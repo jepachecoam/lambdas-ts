@@ -1,6 +1,6 @@
 import { config as dotenvConfig } from "dotenv";
-
 dotenvConfig();
+
 import express from "express";
 
 const app = express();
