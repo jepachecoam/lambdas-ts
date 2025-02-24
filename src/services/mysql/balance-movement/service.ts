@@ -1,11 +1,12 @@
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
-import { executeSql } from "../utils";
 import { BalanceMovement } from "src/shared/entities";
-import { BalanceMovementModel } from "./types";
+
+import { executeSql } from "../utils";
 import {
   balanceMovementEntityToModel,
-  balanceMovementModelToEntity,
+  balanceMovementModelToEntity
 } from "./mappers";
+import { BalanceMovementModel } from "./types";
 
 class BalanceMovementService {
   private db: Sequelize;
@@ -16,7 +17,7 @@ class BalanceMovementService {
 
   public async getByTransactionId(
     transactionId: string,
-    transaction?: Transaction,
+    transaction?: Transaction
   ): Promise<BalanceMovement[]> {
     const query = `SELECT * 
     FROM balanceMovement
@@ -30,14 +31,14 @@ class BalanceMovementService {
       data: { transactionId },
       errorMsg: "Error fetching balance movement",
       oneResult: true,
-      transaction,
+      transaction
     });
     return models.map(balanceMovementModelToEntity);
   }
 
   public async create(
     data: BalanceMovement,
-    transaction?: Transaction,
+    transaction?: Transaction
   ): Promise<number> {
     const params = balanceMovementEntityToModel(data);
     const query = `INSERT INTO balanceMovement
@@ -50,13 +51,13 @@ class BalanceMovementService {
       type: QueryTypes.INSERT,
       data: params,
       errorMsg: "Error creating balance movement",
-      transaction,
+      transaction
     });
   }
 
   public async update(
     data: BalanceMovement,
-    transaction?: Transaction,
+    transaction?: Transaction
   ): Promise<void> {
     const params = balanceMovementEntityToModel(data);
     const query = `UPDATE balanceMovement
@@ -83,7 +84,7 @@ class BalanceMovementService {
       type: QueryTypes.UPDATE,
       data: params,
       errorMsg: "Error updating balance movement",
-      transaction,
+      transaction
     });
   }
 }

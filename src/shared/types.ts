@@ -18,4 +18,11 @@ type ValidationResult = {
   errors: string[];
 };
 
-export { SecretsGateways, SecretsDatabase, ValidationResult };
+enum QueryTypes {
+  SELECT = "SELECT",
+  INSERT = "INSERT",
+  UPDATE = "UPDATE",
+  DELETE = "DELETE"
+}
+
+export { QueryTypes, SecretsDatabase, SecretsGateways, ValidationResult };

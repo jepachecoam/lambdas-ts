@@ -1,5 +1,6 @@
-import { UserBalanceModel } from "./types";
 import { UserBalance } from "src/shared/entities";
+
+import { UserBalanceModel } from "./types";
 
 function userBalanceModelToEntity(model: UserBalanceModel): UserBalance {
   return {
@@ -7,7 +8,7 @@ function userBalanceModelToEntity(model: UserBalanceModel): UserBalance {
     userAccountId: model.idUserAccount,
     currency: model.currency,
     totalBalance: model.totalBalance,
-    availableBalance: model.availableBalance,
+    availableBalance: model.availableBalance
   };
 }
 
@@ -17,8 +18,8 @@ function userBalanceEntityToModel(entity: UserBalance): UserBalanceModel {
     idUserAccount: entity.userAccountId,
     currency: entity.currency,
     totalBalance: entity.totalBalance,
-    availableBalance: entity.availableBalance,
+    availableBalance: entity.availableBalance
   };
 }
 
-export { userBalanceModelToEntity, userBalanceEntityToModel };
+export { userBalanceEntityToModel, userBalanceModelToEntity };

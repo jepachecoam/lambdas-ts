@@ -1,4 +1,1 @@
-# template-ts
-# template-ts
-# template-ts
-# lambdas-ts
+# for build lambda run command ./build-lambda.sh and insert name of the folder contain src code.
