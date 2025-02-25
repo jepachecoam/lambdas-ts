@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "ts-node-dev index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "[[ $SKIP_HUSKY != 'true' ]] && husky install || true"
+    "prepare": "node -e \"if (process.env.SKIP_HUSKY !== 'true') require('child_process').execSync('husky install', { stdio: 'inherit' });\""
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
