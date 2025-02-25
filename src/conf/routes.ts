@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { handler as example } from "../use-cases/example/index";
+import { handler as example } from "../lambdas/example/index";
 import { jsonResponse } from "./middlewares/index";
 
 const router = Router();
