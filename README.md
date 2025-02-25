@@ -23,7 +23,7 @@ To build your Lambda function, follow these steps:
    ```
 3. When prompted, enter the name of the folder containing your source code.
 
-## This script will compile and package your Lambda function for deployment. Note that the package will **not include dependencies** from the `node_modules` directory. Instead, you should use **Lambda Layers** to manage and include your dependencies separately. This approach ensures a cleaner deployment and better dependency management.
+## This script will compile and package your Lambda function for deployment in ./dist/index.js
 
 ## Setting Up Visual Studio Code (VSCode)
 
