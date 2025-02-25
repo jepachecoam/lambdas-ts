@@ -5,7 +5,7 @@
     "dev": "ts-node-dev index.ts",
     "build": "bash ./build-lambda.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "node -e \"if (process.env.SKIP_HUSKY !== 'true') require('child_process').execSync('husky install', { stdio: 'inherit' });\""
+    "prepare": "[[ $SKIP_HUSKY != 'true' ]] && husky install || true"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.1",
