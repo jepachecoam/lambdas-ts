@@ -1,27 +1,13 @@
+import http from "../../shared/http";
 export const handler = async (
-  _event: unknown,
+  event: unknown,
   _context: unknown
 ): Promise<any> => {
-  console.log("hello word from lambda");
+  console.log("Event =>>>", event);
 
-  return response({
+  return http.jsonResponse({
     statusCode: 200,
     message: "hello word from lambda",
     result: {}
   });
-};
-
-const response = ({
-  statusCode,
-  message,
-  result
-}: {
-  statusCode: number;
-  message: string;
-  result: any;
-}) => {
-  return {
-    statusCode,
-    body: JSON.stringify({ message, result })
-  };
 };

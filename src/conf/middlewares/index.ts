@@ -1,16 +1,31 @@
 import { NextFunction, Request, Response } from "express";
 
-function lambdaHandler(handler: (event: any, context?: any) => Promise<any>) {
-  return async function (req: Request, res: Response, _next: NextFunction) {
+function jsonResponse(handler: (event: any, context?: any) => Promise<any>) {
+  return async function (
+    req: Request,
+    res: Response,
+    _next: NextFunction
+  ): Promise<any> {
     try {
-      const result = await handler(req, res);
+      const event = req.body;
+      const context = {};
 
-      res.status(result?.statusCode || 200).send(result);
+      const result = await handler(event, context);
+
+      if (!result || !result.statusCode || !result.body) {
+        return res
+          .status(500)
+          .json({ message: "Function should return statusCode and body" });
+      }
+
+      const responseBody = result.body ? JSON.parse(result.body) : {};
+
+      return res.status(result.statusCode).json(responseBody);
     } catch (error) {
       console.error("Error:", error);
-      res.status(500).send("Internal server error");
+      return res.status(500).send("Internal server error");
     }
   };
 }
 
-export default lambdaHandler;
+export { jsonResponse };
