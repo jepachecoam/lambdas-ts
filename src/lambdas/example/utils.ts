@@ -1,5 +1,6 @@
 import { validateEnvVariables } from "../../shared/utils/envChecker";
+import { EnvVariables } from "./enums";
 
 export const checkEnv = () => {
-  validateEnvVariables(["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME"]);
+  validateEnvVariables(Object.values(EnvVariables));
 };
