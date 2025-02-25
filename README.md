@@ -19,7 +19,7 @@ To build your Lambda function, follow these steps:
 1. Open a terminal in the root directory of your project.
 2. Run the following command:
    ```bash
-   ./build-lambda.sh
+   npm run build
    ```
 3. When prompted, enter the name of the folder containing your source code.
 
