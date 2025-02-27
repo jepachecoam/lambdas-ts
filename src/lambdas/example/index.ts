@@ -1,17 +1,16 @@
 import http from "../../shared/http";
-import { checkEnv } from "./utils";
+import dao from "./dao";
 export const handler = async (
   event: unknown,
   _context: unknown
 ): Promise<any> => {
   try {
-    checkEnv();
     console.log("Event =>>>", event);
 
     return http.jsonResponse({
       statusCode: 200,
       message: "hello word from lambda",
-      result: {}
+      result: await dao.getOrders(event)
     });
   } catch (error) {
     console.error("Error:", error);
