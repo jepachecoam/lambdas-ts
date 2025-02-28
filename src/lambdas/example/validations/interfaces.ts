@@ -41,6 +41,13 @@ export enum Carrier {
   Domina = "Domina"
 }
 
+export enum OrderBy {
+  MostRecent = "mostRecent",
+  LeastRecent = "leastRecent",
+  HighestPrice = "highestPrice",
+  LowestPrice = "lowestPrice"
+}
+
 export type OrderTableFilters = {
   idOrder?: number;
   email?: string;
@@ -58,4 +65,5 @@ export type OrderTableFilters = {
   roleType?: string;
   limit: number;
   offset: number;
+  orderBy?: OrderBy;
 };

@@ -3,8 +3,9 @@ import {
   OrderStatuses,
   OrderParentStatus,
   RoleType,
-  Carrier
-} from "./validations";
+  Carrier,
+  OrderBy
+} from "./interfaces";
 export const validateOrderTableFilters = (payload: unknown) => {
   const schema = Joi.object({
     idOrder: Joi.number().integer().min(1).optional(),
@@ -29,7 +30,10 @@ export const validateOrderTableFilters = (payload: unknown) => {
       .valid(...Object.values(RoleType))
       .optional(),
     limit: Joi.number().integer().min(1).optional().default(10),
-    offset: Joi.number().integer().min(0).optional().default(0)
+    offset: Joi.number().integer().min(0).optional().default(0),
+    orderBy: Joi.string()
+      .valid(...Object.values(OrderBy))
+      .optional()
   });
 
   return schema.validate(payload, { abortEarly: false });

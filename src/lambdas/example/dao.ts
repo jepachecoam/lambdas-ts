@@ -2,16 +2,29 @@ import { QueryTypes } from "sequelize";
 import {
   OrderTableFilters,
   RoleType,
-  OrderParentStatus
+  OrderParentStatus,
+  OrderBy
 } from "./validations/interfaces";
 
 import db from "./database/config";
 
 const getOrders = async (params: OrderTableFilters) => {
   const userOrdersCTEConditionals: string[] = [];
+  let orderBy: string | null = null;
 
-  if (params.idOrder) {
-    userOrdersCTEConditionals.push(`o.idOrder = ${params.idOrder}`);
+  if (params.orderBy) {
+    switch (params.orderBy) {
+      case OrderBy.HighestPrice:
+        break;
+      case OrderBy.LowestPrice:
+        break;
+      case OrderBy.LeastRecent:
+        orderBy = "uo.createdAt ASC";
+        break;
+      case OrderBy.MostRecent:
+        orderBy = "uo.createdAt DESC";
+        break;
+    }
   }
 
   if (params.roleType) {
@@ -34,12 +47,16 @@ const getOrders = async (params: OrderTableFilters) => {
     }
   } else {
     userOrdersCTEConditionals.push(
-      `o.idBussiness = ${params.idBusiness} or (o.idBussinessProvider = ${params.idBusiness} and o.idStatus not in (1,2))`
+      `(o.idBussiness = ${params.idBusiness} or (o.idBussinessProvider = ${params.idBusiness} and o.idStatus not in (1,2)))`
     );
   }
 
+  if (params.idOrder) {
+    userOrdersCTEConditionals.push(`o.idOrder = ${params.idOrder}`);
+  }
+
   if (params.paymentMethod) {
-    if (params.paymentMethod === "cod") {
+    if (params.paymentMethod.toLocaleLowerCase() === "cod") {
       userOrdersCTEConditionals.push(`o.paymentMethod = 'cod'`);
     } else {
       userOrdersCTEConditionals.push(`o.paymentMethod != 'cod'`);
@@ -52,6 +69,18 @@ const getOrders = async (params: OrderTableFilters) => {
 
   if (params.finalDate) {
     userOrdersCTEConditionals.push(`o.createdAt <= '${params.finalDate}'`);
+  }
+
+  if (params.phone) {
+    userOrdersCTEConditionals.push(
+      `json_extract(o.shippingAddress, '$.phone') = '${params.phone}'`
+    );
+  }
+
+  if (params.clientName) {
+    userOrdersCTEConditionals.push(
+      `json_extract(o.shippingAddress, '$.fullName') = '${params.clientName}'`
+    );
   }
 
   const cancelReasonIsNeed =
@@ -120,12 +149,15 @@ ${
                             LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder)
 SELECT (SELECT total FROM countOrders) AS totalOrders,
        JSON_ARRAYAGG(jsonData)         AS data
-FROM finalData;
+FROM finalData ;
 `
     : `
-select uo.* FROM userOrders uo
+select uo.idOrder, oi.items, oa.alerts, 
+uo.idProvider, uo.idBussiness, uo.idBussinessProvider, 
+uo.createdAt, uo.userInfo, uo.paymentMethod, uo.totalSeller, 
+uo.totalProvider, uo.cancelReason FROM userOrders uo
                             LEFT JOIN orderItems oi ON oi.idOrder = uo.idOrder
-                            LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder
+                            LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder;
 `
 }
 `;
