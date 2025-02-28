@@ -26,25 +26,34 @@ export enum OrderParentStatus {
   Finalizadas = "Finalizadas"
 }
 
-export enum roleType {
+export enum RoleType {
   Dropshipper = "Dropshipper",
   Supplier = "Supplier",
   BrandOwner = "BrandOwner"
 }
 
+export enum Carrier {
+  Coordinadora = "Coordinadora",
+  TCC = "TCC",
+  Envia = "Envia",
+  Swayp = "Swayp",
+  Interrapidisimo = "Interrapidisimo",
+  Domina = "Domina"
+}
+
 export type OrderTableFilters = {
+  idOrder?: number;
+  email?: string;
+  phone?: string;
+  clientName?: string;
   startDate?: string;
   finalDate?: string;
-  searchBy?: string;
-  search?: string;
-  status?: OrderStatuses;
-  statusParent: OrderParentStatus;
-  confirmationStatusId?: number;
-  carrier?: string;
+  orderStatus?: OrderStatuses;
+  orderStatusParent: OrderParentStatus;
+  idConfirmationStatus?: number;
+  carrier?: Carrier;
   warehouse?: string;
-  paymentMethod?: "cod" | "pia";
-  pageSize?: number;
-  pageNumber?: number;
+  paymentMethod?: string;
   idBusiness: number;
   roleType?: string;
   limit: number;

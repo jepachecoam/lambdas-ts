@@ -1,7 +1,7 @@
 import http from "../../shared/http";
-import dao from "./dao";
+import model from "./model";
 import { checkEnv } from "./utils";
-import { validateOrderTableFilters } from "./validations";
+import { validateOrderTableFilters } from "./validations/params";
 export const handler = async (event: any, _context: unknown): Promise<any> => {
   try {
     checkEnv();
@@ -15,10 +15,12 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
         result: {}
       });
     }
+    const response = await model.getOrders(value);
+
     return http.jsonResponse({
       statusCode: 200,
       message: "hello word from lambda",
-      result: await dao.getOrders(value)
+      result: response
     });
   } catch (error) {
     console.error("Error:", error);
