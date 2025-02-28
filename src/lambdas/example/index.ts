@@ -1,16 +1,24 @@
 import http from "../../shared/http";
 import dao from "./dao";
-export const handler = async (
-  event: unknown,
-  _context: unknown
-): Promise<any> => {
+import { checkEnv } from "./utils";
+import { validateOrderTableFilters } from "./validations";
+export const handler = async (event: any, _context: unknown): Promise<any> => {
   try {
+    checkEnv();
     console.log("Event =>>>", event);
 
+    const { error, value } = validateOrderTableFilters(event);
+    if (error) {
+      return http.jsonResponse({
+        statusCode: 400,
+        message: error.message,
+        result: {}
+      });
+    }
     return http.jsonResponse({
       statusCode: 200,
       message: "hello word from lambda",
-      result: await dao.getOrders(event)
+      result: await dao.getOrders(value)
     });
   } catch (error) {
     console.error("Error:", error);

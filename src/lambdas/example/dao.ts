@@ -1,8 +1,9 @@
 import { QueryTypes } from "sequelize";
+import { OrderTableFilters } from "./enums";
 
 import db from "./database/config";
 
-const getOrders = async (_payload: any) => {
+const getOrders = async (params: OrderTableFilters) => {
   const query = `
     with userOrders
     as (select o.idOrder,   
@@ -20,12 +21,13 @@ const getOrders = async (_payload: any) => {
                cr.name as cancelReason
         from  \`order\` o
                  inner join status s
-                            on o.idStatus = s.idStatus 
+                            on o.idStatus = s.idStatus and s.statusParent = '${params.statusParent}' and s.name = '${params.status}'
                  left join customer c on o.idCustomer = c.idCustomer and email is not null
                  left join statusMessage cr ON o.idCancelReason = cr.idStatusMessage and cr.typeMessage = 'ORDER_CANCELATION'
-        where o.idBussiness = 66056
-          AND o.idBussinessProvider = 66056
-        limit 30 offset 0)                                           
+        where o.idBussiness = ${params.idBusiness}
+          AND o.idBussinessProvider = ${params.idBusiness}
+        limit ${params.limit} offset ${params.offset}
+        )                                           
    , orderItems as (select uo.idOrder,
                            json_arrayagg(JSON_OBJECT('name', p.name)) as items
                     from orderItem oi
@@ -64,8 +66,9 @@ const getOrders = async (_payload: any) => {
 SELECT (SELECT total FROM countOrders) AS totalOrders,
        JSON_ARRAYAGG(jsonData)         AS data
 FROM finalData;
-# limit 30 offset 0
 `;
+
+  console.log("query =>>>", query);
   const result = await db.query(query, {
     type: QueryTypes.SELECT
   });
