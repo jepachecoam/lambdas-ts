@@ -53,6 +53,7 @@ export type OrderTableFilters = {
   email?: string;
   phone?: string;
   clientName?: string;
+  productName?: string;
   startDate?: string;
   finalDate?: string;
   orderStatus?: OrderStatuses;

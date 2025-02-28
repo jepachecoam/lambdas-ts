@@ -11,6 +11,7 @@ export const validateOrderTableFilters = (payload: unknown) => {
     idOrder: Joi.number().integer().min(1).optional(),
     email: Joi.string().email().optional(),
     phone: Joi.string().optional(),
+    productName: Joi.string().optional(),
     startDate: Joi.string().isoDate().optional(),
     finalDate: Joi.string().isoDate().optional(),
     orderStatus: Joi.string()

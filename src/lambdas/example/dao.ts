@@ -12,6 +12,9 @@ const getOrders = async (params: OrderTableFilters) => {
   const userOrdersCTEConditionals: string[] = [];
   let orderBy: string | null = null;
 
+  const limit = `limit ${params.limit} offset ${params.offset}`;
+  let limitInFinal = !!params.productName || params.offset === 0;
+
   if (params.orderBy) {
     switch (params.orderBy) {
       case OrderBy.HighestPrice:
@@ -107,8 +110,8 @@ const getOrders = async (params: OrderTableFilters) => {
                  inner join customer c on o.idCustomer = c.idCustomer ${params.email ? `and c.email = '${params.email}'` : ""}
                  ${cancelReasonIsNeed ? "left join statusMessage cr ON o.idCancelReason = cr.idStatusMessage and cr.typeMessage = 'ORDER_CANCELATION'" : ""}
          where ${userOrdersCTEConditionals.join(" and ")}
-        limit ${params.limit} offset ${params.offset}
-        )                                           
+        ${limitInFinal ? "" : limit}
+         )                                           
    , orderItems as (select uo.idOrder,
                            json_arrayagg(JSON_OBJECT('name', p.name)) as items
                     from orderItem oi
@@ -149,7 +152,7 @@ ${
                             LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder)
 SELECT (SELECT total FROM countOrders) AS totalOrders,
        JSON_ARRAYAGG(jsonData)         AS data
-FROM finalData ;
+FROM finalData ${limitInFinal ? limit : ""};
 `
     : `
 select uo.idOrder, oi.items, oa.alerts, 
@@ -157,7 +160,8 @@ uo.idProvider, uo.idBussiness, uo.idBussinessProvider,
 uo.createdAt, uo.userInfo, uo.paymentMethod, uo.totalSeller, 
 uo.totalProvider, uo.cancelReason FROM userOrders uo
                             LEFT JOIN orderItems oi ON oi.idOrder = uo.idOrder
-                            LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder;
+                            LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder 
+                            ${limitInFinal ? limit : ""};
 `
 }
 `;
