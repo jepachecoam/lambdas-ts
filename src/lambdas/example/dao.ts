@@ -1,19 +1,19 @@
 import { QueryTypes } from "sequelize";
-import {
-  OrderTableFilters,
-  RoleType,
-  OrderParentStatus,
-  OrderBy
-} from "./validations/interfaces";
 
 import db from "./database/config";
+import {
+  OrderBy,
+  OrderParentStatus,
+  OrderTableFilters,
+  RoleType
+} from "./validations/interfaces";
 
 const getOrders = async (params: OrderTableFilters) => {
   const userOrdersCTEConditionals: string[] = [];
-  let orderBy: string | null = null;
+  let _orderBy: string | null = null;
 
   const limit = `limit ${params.limit} offset ${params.offset}`;
-  let limitInFinal = !!params.productName || params.offset === 0;
+  const limitInFinal = !!params.productName || params.offset === 0;
 
   if (params.orderBy) {
     switch (params.orderBy) {
@@ -22,10 +22,10 @@ const getOrders = async (params: OrderTableFilters) => {
       case OrderBy.LowestPrice:
         break;
       case OrderBy.LeastRecent:
-        orderBy = "uo.createdAt ASC";
+        _orderBy = "uo.createdAt ASC";
         break;
       case OrderBy.MostRecent:
-        orderBy = "uo.createdAt DESC";
+        _orderBy = "uo.createdAt DESC";
         break;
     }
   }
@@ -60,9 +60,9 @@ const getOrders = async (params: OrderTableFilters) => {
 
   if (params.paymentMethod) {
     if (params.paymentMethod.toLocaleLowerCase() === "cod") {
-      userOrdersCTEConditionals.push(`o.paymentMethod = 'cod'`);
+      userOrdersCTEConditionals.push("o.paymentMethod = 'cod'");
     } else {
-      userOrdersCTEConditionals.push(`o.paymentMethod != 'cod'`);
+      userOrdersCTEConditionals.push("o.paymentMethod != 'cod'");
     }
   }
 
@@ -102,8 +102,8 @@ const getOrders = async (params: OrderTableFilters) => {
                )       as userInfo,
                paymentMethod,
                totalSeller,
-               totalProvider,
-               ${cancelReasonIsNeed ? "cr.name as cancelReason" : ""}
+               totalProvider
+               ${cancelReasonIsNeed ? ", cr.name as cancelReason" : ""}
         from  \`order\` o
                  inner join status s
                             on o.idStatus = s.idStatus and s.statusParent = '${params.orderStatusParent}' and s.name = '${params.orderStatus}'
@@ -144,21 +144,21 @@ ${
                                   'userInfo', uo.userInfo,
                                   'paymentMethod', uo.paymentMethod,
                                   'totalSeller', uo.totalSeller,
-                                  'totalProvider', uo.totalProvider,
-                                  'cancelReason', uo.cancelReason
+                                  'totalProvider', uo.totalProvider
+                                  ${cancelReasonIsNeed ? ", 'cancelReason', uo.cancelReason" : ""}
                           ) AS jsonData
-                   FROM userOrders uo
-                            LEFT JOIN orderItems oi ON oi.idOrder = uo.idOrder
-                            LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder)
+                   FROM (select * from userOrders ${limitInFinal ? limit : ""}) as uo
+                            inner join orderItems oi ON oi.idOrder = uo.idOrder
+                            left join orderAlerts oa ON oa.idOrder = uo.idOrder)
 SELECT (SELECT total FROM countOrders) AS totalOrders,
        JSON_ARRAYAGG(jsonData)         AS data
-FROM finalData ${limitInFinal ? limit : ""};
+FROM finalData;
 `
     : `
 select uo.idOrder, oi.items, oa.alerts, 
 uo.idProvider, uo.idBussiness, uo.idBussinessProvider, 
 uo.createdAt, uo.userInfo, uo.paymentMethod, uo.totalSeller, 
-uo.totalProvider, uo.cancelReason FROM userOrders uo
+uo.totalProvider ${cancelReasonIsNeed ? ", uo.cancelReason" : ""} FROM userOrders uo
                             LEFT JOIN orderItems oi ON oi.idOrder = uo.idOrder
                             LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder 
                             ${limitInFinal ? limit : ""};

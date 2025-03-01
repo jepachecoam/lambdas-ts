@@ -1,10 +1,11 @@
 import Joi from "joi";
+
 import {
-  OrderStatuses,
-  OrderParentStatus,
-  RoleType,
   Carrier,
-  OrderBy
+  OrderBy,
+  OrderParentStatus,
+  OrderStatuses,
+  RoleType
 } from "./interfaces";
 export const validateOrderTableFilters = (payload: unknown) => {
   const schema = Joi.object({

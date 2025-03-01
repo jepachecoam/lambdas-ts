@@ -20,9 +20,9 @@ export enum OrderStatuses {
 }
 
 export enum OrderParentStatus {
-  PorPreparar = "PorPreparar",
-  EnPreparacion = "EnPreparacion",
-  EnTransito = "EnTransito",
+  PorPreparar = "Por preparar",
+  EnPreparacion = "En preparación",
+  EnTransito = "En tránsito",
   Finalizadas = "Finalizadas"
 }
 

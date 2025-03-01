@@ -7,6 +7,8 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
     checkEnv();
     console.log("Event =>>>", event);
 
+    // validar que el negocio pertenezca al usuario logueado.
+
     const { error, value } = validateOrderTableFilters(event);
     if (error) {
       return http.jsonResponse({
