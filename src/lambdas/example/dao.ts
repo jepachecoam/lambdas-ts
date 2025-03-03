@@ -12,8 +12,15 @@ const getOrders = async (params: OrderTableFilters) => {
   const userOrdersCTEConditionals: string[] = [];
   let _orderBy: string | null = null;
 
-  const limit = `limit ${params.limit} offset ${params.offset}`;
-  const limitInFinal = !!params.productName || params.offset === 0;
+  const paginationParams = `limit ${params.limit} offset ${params.offset}`;
+
+  const shouldLimitInFinal = !!params.productName || params.offset === 0;
+
+  const cancelReasonIsRequired =
+    params.orderStatusParent === OrderParentStatus.Finalizadas;
+
+  const alertsAreRequired =
+    params.orderStatusParent !== OrderParentStatus.Finalizadas;
 
   if (params.orderBy) {
     switch (params.orderBy) {
@@ -86,9 +93,6 @@ const getOrders = async (params: OrderTableFilters) => {
     );
   }
 
-  const cancelReasonIsNeed =
-    params.orderStatusParent === OrderParentStatus.Finalizadas;
-
   const query = `
     with userOrders
     as (select o.idOrder,   
@@ -103,22 +107,24 @@ const getOrders = async (params: OrderTableFilters) => {
                paymentMethod,
                totalSeller,
                totalProvider
-               ${cancelReasonIsNeed ? ", cr.name as cancelReason" : ""}
+               ${cancelReasonIsRequired ? ", cr.name as cancelReason" : ""}
         from  \`order\` o
                  inner join status s
                             on o.idStatus = s.idStatus and s.statusParent = '${params.orderStatusParent}' and s.name = '${params.orderStatus}'
                  inner join customer c on o.idCustomer = c.idCustomer ${params.email ? `and c.email = '${params.email}'` : ""}
-                 ${cancelReasonIsNeed ? "left join statusMessage cr ON o.idCancelReason = cr.idStatusMessage and cr.typeMessage = 'ORDER_CANCELATION'" : ""}
+                 ${cancelReasonIsRequired ? "left join statusMessage cr ON o.idCancelReason = cr.idStatusMessage and cr.typeMessage = 'ORDER_CANCELATION'" : ""}
          where ${userOrdersCTEConditionals.join(" and ")}
-        ${limitInFinal ? "" : limit}
+        ${shouldLimitInFinal ? "" : paginationParams}
          )                                           
    , orderItems as (select uo.idOrder,
                            json_arrayagg(JSON_OBJECT('name', p.name)) as items
                     from orderItem oi
                              inner join userOrders uo on oi.idOrder = uo.idOrder
-                             inner join db_bemaster_aff.product p on oi.idProduct = p.idProduct -- NOMBRE DEL PRODUCTO
+                             inner join db_bemaster_aff.product p on oi.idProduct = p.idProduct ${params.productName ? `and p.name like '%${params.productName}%'` : ""}
                     group by uo.idOrder)
-   , orderAlerts as (select oa.idOrder, 
+                    ${
+                      alertsAreRequired
+                        ? `, orderAlerts as (select oa.idOrder, 
                             json_arrayagg(json_object(
                                     'idAlert', oa.idAlert,
                                     'type', sm.typeMessage,
@@ -127,7 +133,10 @@ const getOrders = async (params: OrderTableFilters) => {
                      from orderAlert oa
                               inner join userOrders uo on oa.idOrder = uo.idOrder
                               left join statusMessage sm ON oa.idAlert = sm.idStatusMessage and sm.typeMessage = 'ALERT'
-                     group by oa.idOrder) 
+                     group by oa.idOrder) `
+                        : ""
+                    }
+   
 ${
   params.offset === 0
     ? `
@@ -136,7 +145,7 @@ ${
                           JSON_OBJECT(
                                   'idOrder', uo.idOrder,
                                   'items', oi.items,
-                                  'alerts', oa.alerts,
+                                  ${alertsAreRequired ? "'alerts', oa.alerts," : ""}
                                   'idProvider', uo.idProvider,
                                   'idBusiness', uo.idBussiness,
                                   'idBusinessProvider', uo.idBussinessProvider,
@@ -145,23 +154,24 @@ ${
                                   'paymentMethod', uo.paymentMethod,
                                   'totalSeller', uo.totalSeller,
                                   'totalProvider', uo.totalProvider
-                                  ${cancelReasonIsNeed ? ", 'cancelReason', uo.cancelReason" : ""}
+                                  ${cancelReasonIsRequired ? ", 'cancelReason', uo.cancelReason" : ""}
                           ) AS jsonData
-                   FROM (select * from userOrders ${limitInFinal ? limit : ""}) as uo
+                   FROM (select * from userOrders ${shouldLimitInFinal ? paginationParams : ""}) as uo
                             inner join orderItems oi ON oi.idOrder = uo.idOrder
-                            left join orderAlerts oa ON oa.idOrder = uo.idOrder)
+                            ${alertsAreRequired ? "left join orderAlerts oa ON oa.idOrder = uo.idOrder" : ""} )
 SELECT (SELECT total FROM countOrders) AS totalOrders,
        JSON_ARRAYAGG(jsonData)         AS data
 FROM finalData;
 `
     : `
-select uo.idOrder, oi.items, oa.alerts, 
+select uo.idOrder, oi.items, 
+${alertsAreRequired ? "oa.alerts," : ""}
 uo.idProvider, uo.idBussiness, uo.idBussinessProvider, 
 uo.createdAt, uo.userInfo, uo.paymentMethod, uo.totalSeller, 
-uo.totalProvider ${cancelReasonIsNeed ? ", uo.cancelReason" : ""} FROM userOrders uo
+uo.totalProvider ${cancelReasonIsRequired ? ", uo.cancelReason" : ""} FROM userOrders uo
                             LEFT JOIN orderItems oi ON oi.idOrder = uo.idOrder
-                            LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder 
-                            ${limitInFinal ? limit : ""};
+                            ${alertsAreRequired ? "LEFT JOIN orderAlerts oa ON oa.idOrder = uo.idOrder" : ""}
+                            ${shouldLimitInFinal ? paginationParams : ""};
 `
 }
 `;
