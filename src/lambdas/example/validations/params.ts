@@ -21,13 +21,15 @@ export const validateOrderTableFilters = (payload: unknown) => {
     orderStatusParent: Joi.string()
       .valid(...Object.values(OrderParentStatus))
       .required(),
-    idConfirmationStatus: Joi.number().integer().optional(),
+    idConfirmationStatus: Joi.number().integer().min(1).optional(),
     carrier: Joi.string()
       .valid(...Object.values(Carrier))
       .optional(),
-    warehouse: Joi.string().optional(),
+    idWarehouses: Joi.string()
+      .pattern(/^\d+(,\d+)*$/)
+      .optional(),
     paymentMethod: Joi.string().optional(),
-    idBusiness: Joi.number().integer().required(),
+    idBusiness: Joi.number().integer().min(1).required(),
     roleType: Joi.string()
       .valid(...Object.values(RoleType))
       .optional(),

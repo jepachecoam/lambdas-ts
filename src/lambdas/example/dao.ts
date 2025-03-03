@@ -93,6 +93,18 @@ const getOrders = async (params: OrderTableFilters) => {
     );
   }
 
+  if (params.idWarehouses) {
+    userOrdersCTEConditionals.push(
+      `o.idWarehouse  in (${params.idWarehouses})`
+    );
+  }
+
+  if (params.idConfirmationStatus) {
+    userOrdersCTEConditionals.push(
+      `o.idConfirmationStatus = ${params.idConfirmationStatus}`
+    );
+  }
+
   const query = `
     with userOrders
     as (select o.idOrder,   
@@ -113,7 +125,7 @@ const getOrders = async (params: OrderTableFilters) => {
                             on o.idStatus = s.idStatus and s.statusParent = '${params.orderStatusParent}' and s.name = '${params.orderStatus}'
                  inner join customer c on o.idCustomer = c.idCustomer ${params.email ? `and c.email = '${params.email}'` : ""}
                  ${cancelReasonIsRequired ? "left join statusMessage cr ON o.idCancelReason = cr.idStatusMessage and cr.typeMessage = 'ORDER_CANCELATION'" : ""}
-         where ${userOrdersCTEConditionals.join(" and ")}
+         where  (o.idUser = ${params.idUser} or (o.idProvider = ${params.idUser} and o.idStatus not in (1,2))) and ${userOrdersCTEConditionals.join(" and ")}
         ${shouldLimitInFinal ? "" : paginationParams}
          )                                           
    , orderItems as (select uo.idOrder,

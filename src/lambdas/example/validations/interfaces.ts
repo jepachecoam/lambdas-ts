@@ -60,9 +60,10 @@ export type OrderTableFilters = {
   orderStatusParent: OrderParentStatus;
   idConfirmationStatus?: number;
   carrier?: Carrier;
-  warehouse?: string;
+  idWarehouses?: string;
   paymentMethod?: string;
   idBusiness: number;
+  idUser: number;
   roleType?: string;
   limit: number;
   offset: number;

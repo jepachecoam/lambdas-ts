@@ -9,6 +9,8 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
 
     // validar que el negocio pertenezca al usuario logueado.
 
+    const idUser = 66056;
+
     const { error, value } = validateOrderTableFilters(event);
     if (error) {
       return http.jsonResponse({
@@ -17,7 +19,7 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
         result: {}
       });
     }
-    const response = await model.getOrders(value);
+    const response = await model.getOrders(idUser, value);
 
     return http.jsonResponse({
       statusCode: 200,
