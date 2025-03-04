@@ -13,7 +13,6 @@ const getOrders = async (params: OrderTableFilters): Promise<any> => {
   let orderBy: string | null = null;
 
   const offset = (params.pageNumber - 1) * params.pageSize;
-  console.log("offset", offset);
 
   const paginationParams = `limit ${params.pageSize} offset ${offset}`;
 
