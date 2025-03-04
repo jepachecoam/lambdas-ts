@@ -4,9 +4,7 @@ import dto from "./dto";
 const getOrders = async (idUser: number, params: any) => {
   const orders = await dao.getOrders({ idUser, ...params });
 
-  return params.pageNumber === 1
-    ? orders
-    : dto.dtoOrders(orders, params.orderBy);
+  return dto.dtoOrders(orders, params);
 };
 
 export default { getOrders };

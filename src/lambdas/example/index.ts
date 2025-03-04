@@ -9,7 +9,7 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
 
     // validar que el negocio pertenezca al usuario logueado.
 
-    const idUser = 66056;
+    const idUser = 66191;
 
     const { error, value } = validateOrderTableFilters(event);
     if (error) {

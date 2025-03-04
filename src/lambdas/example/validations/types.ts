@@ -46,7 +46,7 @@ export enum OrderBy {
   LeastRecent = "leastRecent"
 }
 
-export type OrderTableFilters = {
+export interface OrderTableFilters {
   idOrder?: number;
   email?: string;
   phone?: string;
@@ -66,4 +66,23 @@ export type OrderTableFilters = {
   pageSize: number;
   pageNumber: number;
   orderBy?: OrderBy;
-};
+}
+
+export interface Order {
+  [key: string]: any;
+  createdAt: string;
+}
+
+export interface DtoParams {
+  pageNumber: number;
+  pageSize: number;
+  orderBy?: OrderBy;
+}
+
+export interface DtoPayload {
+  totalOrders: number | null;
+  totalSales: number | null;
+
+  haveNextPage: boolean;
+  data: Order[];
+}

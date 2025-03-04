@@ -6,15 +6,15 @@ import {
   OrderParentStatus,
   OrderTableFilters,
   RoleType
-} from "./validations/interfaces";
+} from "./validations/types";
 
-const getOrders = async (params: OrderTableFilters): Promise<any> => {
+const getOrders = async (params: OrderTableFilters) => {
   const userOrdersCTEConditionals: string[] = [];
   let orderBy: string | null = null;
 
   const offset = (params.pageNumber - 1) * params.pageSize;
 
-  const paginationParams = `limit ${params.pageSize} offset ${offset}`;
+  const paginationParams = `limit ${params.pageSize + 1} offset ${offset}`;
 
   const shouldPaginationInFinal = !!params.productName || offset === 0;
 
@@ -27,10 +27,10 @@ const getOrders = async (params: OrderTableFilters): Promise<any> => {
   if (params.orderBy) {
     switch (params.orderBy) {
       case OrderBy.LeastRecent:
-        orderBy = "uo.createdAt asc";
+        orderBy = "createdAt asc";
         break;
       case OrderBy.MostRecent:
-        orderBy = "uo.createdAt desc";
+        orderBy = "createdAt desc";
         break;
     }
   }
@@ -131,7 +131,8 @@ const getOrders = async (params: OrderTableFilters): Promise<any> => {
                 left join statusMessage csm on o.idConfirmationStatus = csm.idStatusMessage and csm.typeMessage = 'ORDER_CONFIRMATION'
                 ${cancelReasonIsRequired ? "left join statusMessage cr ON o.idCancelReason = cr.idStatusMessage and cr.typeMessage = 'ORDER_CANCELATION'" : ""}
          where  (o.idUser = ${params.idUser} or (o.idProvider = ${params.idUser} and o.idStatus not in (1,2))) and ${userOrdersCTEConditionals.join(" and ")}
-        ${shouldPaginationInFinal ? "" : paginationParams}
+         ${params.orderBy ? `order by o.${orderBy}` : "order by o.createdAt desc"}
+         ${shouldPaginationInFinal ? "" : paginationParams}
          )                                           
    , orderItems as (select uo.idOrder,
                            json_arrayagg(json_object('name',
@@ -160,11 +161,11 @@ const getOrders = async (params: OrderTableFilters): Promise<any> => {
 ${
   offset === 0
     ? `
-, countOrders as (select count(uo.idOrder) as orderCount,
+, totals as (select count(uo.idOrder) as orderCount,
                             sum(
                                     case
-                                        when uo.idBussiness = 66056 then uo.totalSeller
-                                        when uo.idBussinessProvider = 66056 then uo.totalProvider
+                                        when uo.idBussiness = ${params.idBusiness} then uo.totalSeller
+                                        when uo.idBussinessProvider = ${params.idBusiness} then uo.totalProvider
                                         else 0 end
                             )                 as totalSales
                      from userOrders uo) 
@@ -188,8 +189,8 @@ ${
                    from (select * from userOrders ${shouldPaginationInFinal ? paginationParams : ""}) as uo
                             inner join orderItems oi on oi.idOrder = uo.idOrder
                             ${alertsAreRequired ? "left join orderAlerts oa ON oa.idOrder = uo.idOrder" : ""} )
-select (select orderCount from countOrders) as totalOrders,
-       (select totalSales from countOrders) as totalSales,
+select (select orderCount from totals) as totalOrders,
+       (select totalSales from totals) as totalSales,
        json_arrayagg(jsonData)              as data
 from finalData;
 `
@@ -202,7 +203,7 @@ uo.totalProvider ${cancelReasonIsRequired ? ", uo.cancelReason" : ""} from userO
                             left join orderItems oi on oi.idOrder = uo.idOrder
                             ${alertsAreRequired ? "left join orderAlerts oa on oa.idOrder = uo.idOrder" : ""}
                             ${shouldPaginationInFinal ? paginationParams : ""}
-${params.orderBy ? `order by ${orderBy} ` : "order by uo.createdAt desc"};
+                            ${params.orderBy ? `order by uo.${orderBy}` : "order by uo.createdAt desc"};
 `
 }
 `;

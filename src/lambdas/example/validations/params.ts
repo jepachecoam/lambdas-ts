@@ -6,7 +6,7 @@ import {
   OrderParentStatus,
   OrderStatuses,
   RoleType
-} from "./interfaces";
+} from "./types";
 export const validateOrderTableFilters = (payload: unknown) => {
   const schema = Joi.object({
     idOrder: Joi.number().integer().min(1).optional(),
