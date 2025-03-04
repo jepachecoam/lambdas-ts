@@ -33,8 +33,8 @@ export const validateOrderTableFilters = (payload: unknown) => {
     roleType: Joi.string()
       .valid(...Object.values(RoleType))
       .optional(),
-    limit: Joi.number().integer().min(1).optional().default(10),
-    offset: Joi.number().integer().min(0).optional().default(0),
+    pageSize: Joi.number().integer().min(1).required().default(10),
+    pageNumber: Joi.number().integer().min(1).required().default(0),
     orderBy: Joi.string()
       .valid(...Object.values(OrderBy))
       .optional()

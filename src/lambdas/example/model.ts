@@ -2,12 +2,11 @@ import dao from "./dao";
 import dto from "./dto";
 
 const getOrders = async (idUser: number, params: any) => {
-  const response = await dao.getOrders({ idUser, ...params });
-  if (params.offset > 0) {
-    return dto.dtoResponseWithOffsetGreaterThanZero(response);
-  } else {
-    return response;
-  }
+  const orders = await dao.getOrders({ idUser, ...params });
+
+  return params.pageNumber === 1
+    ? orders
+    : dto.dtoOrders(orders, params.orderBy);
 };
 
 export default { getOrders };

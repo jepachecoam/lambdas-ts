@@ -43,9 +43,7 @@ export enum Carrier {
 
 export enum OrderBy {
   MostRecent = "mostRecent",
-  LeastRecent = "leastRecent",
-  HighestPrice = "highestPrice",
-  LowestPrice = "lowestPrice"
+  LeastRecent = "leastRecent"
 }
 
 export type OrderTableFilters = {
@@ -65,7 +63,7 @@ export type OrderTableFilters = {
   idBusiness: number;
   idUser: number;
   roleType?: string;
-  limit: number;
-  offset: number;
+  pageSize: number;
+  pageNumber: number;
   orderBy?: OrderBy;
 };
