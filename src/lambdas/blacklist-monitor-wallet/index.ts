@@ -14,7 +14,7 @@ export const handler = async (
 
     console.log("params =>>>", params);
 
-    const model = new Model("dev");
+    const model = new Model(params.environment);
 
     switch (params.action) {
       case "block":

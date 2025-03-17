@@ -1,11 +1,19 @@
 const getParams = ({ event }: any) => {
-  console.log("Event =>>>", event);
-  console.log("Movement =>>>", event.detail?.movement?.body);
+  console.log("Event =>>>", JSON.stringify(event));
+
+  const dataEvent = event.detail.data.dataEvent.eventInfo.dataEvent;
+  const environment = event.detail.parameters.stage;
+
+  if (!dataEvent || !environment) {
+    throw new Error("Missing data in event");
+  }
+
   return {
     action: event.blacklistAction,
-    idUser: event.detail.idUser,
-    idBusiness: event.detail.idBusiness,
-    idBlacklistReason: event.idBlacklistReason
+    idBlacklistReason: event.idBlacklistReason,
+    environment: environment,
+    idUser: dataEvent.idUser,
+    idBusiness: dataEvent.idBusiness
   };
 };
 
