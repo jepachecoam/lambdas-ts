@@ -1,4 +1,4 @@
-import { validateEnvVariables } from "../../shared/utils/envChecker";
+import { validateEnvVariables } from "../../shared/envChecker";
 import { EnvVariables } from "./enums";
 
 export const checkEnv = () => {
