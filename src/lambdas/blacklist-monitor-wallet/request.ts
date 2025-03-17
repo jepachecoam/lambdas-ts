@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
+import { EnvironmentTypes } from "../../shared/types";
 import {
   AddItemToBlacklistParams,
   UpdateItemToBlacklistParams
@@ -9,7 +10,7 @@ class Request {
   private client: AxiosInstance;
   private environment: string;
 
-  constructor(environment: string) {
+  constructor(environment: EnvironmentTypes) {
     this.environment = environment;
 
     this.client = axios.create({

@@ -1,5 +1,7 @@
 import { Sequelize } from "sequelize";
 
+import { EnvironmentTypes } from "../types";
+
 const dbConfig = {
   dev: {
     database: `${process.env["DB_NAME_DEV"]}`,
@@ -15,9 +17,11 @@ const dbConfig = {
   }
 };
 
-const getDatabaseInstance = (environment: "dev" | "prod") => {
-  const { database, username, password, host } = dbConfig[environment];
-  return new Sequelize(database, username, password, {
+const getDatabaseInstance = (environment: EnvironmentTypes) => {
+  const configKey = ["prod", "qa"].includes(environment) ? "prod" : "dev";
+  const { database, username, password, host } = dbConfig[configKey];
+
+  return new Sequelize(database!, username!, password!, {
     host,
     dialect: "mysql",
     dialectOptions: { decimalNumbers: true },

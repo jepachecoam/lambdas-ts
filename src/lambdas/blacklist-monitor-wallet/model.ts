@@ -1,11 +1,13 @@
+import { EnvironmentTypes } from "../../shared/types";
 import Dao from "./dao";
 import Request from "./request";
 import { statusType } from "./types/types";
+
 class Model {
   private dao: Dao;
   private request: Request;
 
-  constructor(environment: "dev" | "prod") {
+  constructor(environment: EnvironmentTypes) {
     this.dao = new Dao(environment);
     this.request = new Request(environment);
   }

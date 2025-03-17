@@ -1,10 +1,11 @@
 import { QueryTypes, Sequelize } from "sequelize";
 
 import getDatabaseInstance from "../../shared/databases/sequelize";
+import { EnvironmentTypes } from "../../shared/types";
 
 class Dao {
   private db: Sequelize;
-  constructor(environment: "dev" | "prod") {
+  constructor(environment: EnvironmentTypes) {
     this.db = getDatabaseInstance(environment);
   }
 
