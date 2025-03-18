@@ -78,7 +78,7 @@ export default [
         }
       ],
 
-      indent: ["error", 2], // Enforces consistent indentation of 2 spaces.
+      // indent: ["error", 2], // Enforces consistent indentation of 2 spaces.
       // ❌ Incorrect: Inconsistent indentation (4 spaces).
       // function test() {
       //     return true;

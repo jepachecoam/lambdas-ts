@@ -8,10 +8,11 @@
     "prepare": "[[ $SKIP_HUSKY != 'true' ]] && husky install || true"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.1",
     "@eslint/js": "^9.20.0",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.4",
+    "@types/sequelize": "^4.28.20",
+    "@vercel/ncc": "^0.38.1",
     "eslint": "^8.57.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unused-imports": "^4.1.4",
@@ -27,6 +28,7 @@
     "test"
   ],
   "dependencies": {
+    "axios": "^1.8.3",
     "dotenv": "^16.4.7",
     "express": "4.21.2",
     "mysql2": "^3.12.0",
