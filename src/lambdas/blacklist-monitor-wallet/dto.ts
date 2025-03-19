@@ -1,7 +1,12 @@
 const getParams = ({ event }: any) => {
   console.log("Event =>>>", JSON.stringify(event));
 
-  const { detail, environment, action, idBlacklistReason } = event;
+  const {
+    detail,
+    stage: environment,
+    blacklistAction: action,
+    idBlacklistReason
+  } = event;
 
   const idBusiness = detail?.idBusiness;
   const idUser = detail?.idUser;
