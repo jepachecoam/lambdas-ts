@@ -93,16 +93,22 @@ class Dao {
     return result && result.length > 0 ? result : null;
   }
 
-  async getIdsBlacklistByReference({ idBusiness }: { idBusiness: number }) {
+  async getIdsBlacklistByReference({
+    idBusiness,
+    idBlacklistReason
+  }: {
+    idBusiness: number;
+    idBlacklistReason: number;
+  }) {
     const query = `
       select idBlacklist
       from blacklist
       where idBlacklistReference in
             (select idBlacklistReference from blacklistReference where idBlacklistEntityType = 2 and idReference = :idBusiness)
-        and idBlacklistReason = 1
+        and idBlacklistReason in (1, :idBlacklistReason);
           `;
     const result = await this.db.query(query, {
-      replacements: { idBusiness },
+      replacements: { idBusiness, idBlacklistReason },
       type: QueryTypes.SELECT
     });
     return result && result.length > 0 ? result : null;

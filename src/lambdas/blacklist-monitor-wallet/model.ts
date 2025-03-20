@@ -17,6 +17,7 @@ class Model {
 
     await this.updateStatusEntities({
       idBusiness,
+      idBlacklistReason,
       newStatus: statusType.ACTIVE
     });
 
@@ -85,9 +86,14 @@ class Model {
     return entitiesToBlock;
   }
 
-  async updateStatusEntities({ idBusiness, newStatus }: any) {
+  async updateStatusEntities({
+    idBusiness,
+    newStatus,
+    idBlacklistReason
+  }: any) {
     const itemsBlacklist = await this.dao.getIdsBlacklistByReference({
-      idBusiness
+      idBusiness,
+      idBlacklistReason
     });
 
     if (!itemsBlacklist || itemsBlacklist.length === 0) {
