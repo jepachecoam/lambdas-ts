@@ -1,15 +1,15 @@
+import { checkEnv } from "../../shared/envChecker";
 import http from "../../shared/http";
 import dto from "./dto";
 import Model from "./model";
-import { statusType } from "./types/types";
-import { checkEnv } from "./utils/utils";
+import { EnvVariables, statusType } from "./types/types";
 
 export const handler = async (
   event: unknown,
   _context: unknown
 ): Promise<any> => {
   try {
-    checkEnv();
+    checkEnv(EnvVariables);
     const params = dto.getParams({ event });
 
     console.log("params =>>>", params);
