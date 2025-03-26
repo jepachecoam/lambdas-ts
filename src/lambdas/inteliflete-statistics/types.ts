@@ -1,1 +1,3 @@
-export enum EnvVariables {}
+export interface getStatisticsInt {
+  minOrdersRequired: number;
+}

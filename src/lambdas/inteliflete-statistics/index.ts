@@ -1,13 +1,19 @@
 import { checkEnv } from "../../shared/envChecker";
 import http from "../../shared/http";
-import { EnvVariables } from "./types";
+import { dbEnv, dynamoEnv } from "../../shared/types";
+import Model from "./model";
 
 export const handler = async (
   _event: unknown,
   _context: unknown
 ): Promise<any> => {
   try {
-    checkEnv(EnvVariables);
+    checkEnv({ ...dynamoEnv, ...dbEnv });
+
+    const environment = "prod";
+
+    const model = new Model(environment);
+    await model.updateStatistics();
 
     return http.jsonResponse({
       statusCode: 200,

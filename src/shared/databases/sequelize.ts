@@ -26,7 +26,8 @@ const getDatabaseInstance = (environment: EnvironmentTypes) => {
     dialect: "mysql",
     dialectOptions: { decimalNumbers: true },
     timezone: "+00:00",
-    logging: (msg) => console.log(`Query =>>> ${msg}`)
+    logging: (msg) =>
+      console.log(`Environment(${environment}) -  Query =>>> ${msg}`)
   });
 };
 
