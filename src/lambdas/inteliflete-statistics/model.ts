@@ -1,5 +1,3 @@
-import { log } from "console";
-
 import { EnvironmentTypes } from "../../shared/types";
 import Dao from "./dao";
 import { statisticCategories } from "./types";
