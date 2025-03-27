@@ -28,6 +28,8 @@
     "test"
   ],
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.775.0",
+    "@aws-sdk/lib-dynamodb": "^3.775.0",
     "axios": "^1.8.3",
     "dotenv": "^16.4.7",
     "express": "4.21.2",
