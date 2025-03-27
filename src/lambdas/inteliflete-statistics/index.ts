@@ -15,7 +15,7 @@ export const handler = async (event: any, _context: any): Promise<any> => {
 
     return http.jsonResponse({
       statusCode: 200,
-      message: "hello word from lambda",
+      message: "ok",
       result: {}
     });
   } catch (error) {
