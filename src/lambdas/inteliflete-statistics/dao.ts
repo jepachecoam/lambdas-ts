@@ -30,9 +30,11 @@ class Dao extends Dynamo {
                 group by osl.idOrder)
         select o.idCarrier,
             if(o.paymentMethod = 'cod', 'cod', 'pia')                       as paymentMethod,
-            json_unquote(json_extract(o.originAddress, '$.cityDaneCode'))   as originCity,
-            json_unquote(json_extract(o.shippingAddress, '$.cityDaneCode')) as shippingCity,
-            avg(hourDiff)                                                   as avgHourDiff,
+            json_unquote(json_extract(o.originAddress, '$.city'))           as originCityName,
+            json_unquote(json_extract(o.originAddress, '$.cityDaneCode'))   as originCityDaneCode,
+            json_unquote(json_extract(o.shippingAddress, '$.city'))         as shippingCityName,
+            json_unquote(json_extract(o.shippingAddress, '$.cityDaneCode')) as shippingCityDaneCode,
+            round(avg(hourDiff), 2)                                         as avgHourDiff,
             count(o.idCarrier)                                              as totalOrders
         from orders o
         group by o.idCarrier,

@@ -62,11 +62,13 @@ class Model {
     for (const stat of originAndDestinationStats) {
       const item = {
         pk: String(stat.idCarrier),
-        sk: `${stat.paymentMethod}-${stat.originCity}-${stat.shippingCity}`,
+        sk: `${stat.paymentMethod}-${stat.originCityDaneCode}-${stat.shippingCityDaneCode}`,
         avgHourDiff: stat.avgHourDiff,
         totalOrders: stat.totalOrders,
         lastUpdate: formattedDate,
-        category: statisticCategories.ORIGIN_AND_DESTINATION_AVG_HOUR_DIFF
+        category: statisticCategories.ORIGIN_AND_DESTINATION_AVG_HOUR_DIFF,
+        originCityName: stat.originCityName,
+        shippingCityName: stat.shippingCityName
       };
       const response = this.dao.putItem("Mastershop-Carrier-Stats", item);
       promises.push(response);

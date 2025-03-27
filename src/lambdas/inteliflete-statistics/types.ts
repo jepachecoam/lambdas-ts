@@ -5,8 +5,10 @@ export interface getStatisticsInt {
 export interface OriginAndDestinationStat {
   idCarrier: string;
   paymentMethod: "cod" | "pia";
-  originCity: string;
-  shippingCity: string;
+  originCityName: string;
+  originCityDaneCode: string;
+  shippingCityName: string;
+  shippingCityDaneCode: string;
   avgHourDiff: number;
   totalOrders: number;
 }
