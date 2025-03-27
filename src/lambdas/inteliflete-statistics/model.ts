@@ -1,5 +1,9 @@
+import { log } from "console";
+
 import { EnvironmentTypes } from "../../shared/types";
 import Dao from "./dao";
+import { statisticCategories } from "./types";
+import { formattedDate } from "./utils";
 
 class Model {
   private dao: Dao;
@@ -8,24 +12,67 @@ class Model {
   }
 
   async updateStatistics() {
-    const originAndDestinationStats =
-      await this.dao.getOriginAndDestinationStats({
+    const promises = [];
+
+    const [
+      returnStatisticsByStates,
+      returnStatisticsByCities,
+      originAndDestinationStats
+    ] = await Promise.all([
+      this.dao.getReturnStatisticsByStates({
         minOrdersRequired: 30
-      });
-
-    const returnStatisticsByStates = await this.dao.getReturnStatisticsByStates(
-      { minOrdersRequired: 30 }
-    );
-
-    const returnStatisticsByCities = await this.dao.getReturnStatisticsByCities(
-      {
+      }),
+      this.dao.getReturnStatisticsByCities({
         minOrdersRequired: 30
-      }
-    );
+      }),
+      this.dao.getOriginAndDestinationStats({
+        minOrdersRequired: 30
+      })
+    ]);
 
-    console.log("originAndDestinationStats", originAndDestinationStats);
-    console.log("returnStatisticsByStates", returnStatisticsByStates);
-    console.log("returnStatisticsByCities", returnStatisticsByCities);
+    for (const state of returnStatisticsByStates) {
+      const item = {
+        pk: String(state.idCarrier),
+        sk: `${state.paymentMethodGroup}-State-${state.shippingStateName}`,
+        totalOrders: state.totalOrders,
+        totalOrdersReturned: state.totalOrdersReturned,
+        returnPercentage: state.returnPercentage,
+        lastUpdate: formattedDate,
+        category: statisticCategories.STATES_RETURN_STATISTICS
+      };
+      const response = this.dao.putItem("Mastershop-Carrier-Stats", item);
+      promises.push(response);
+    }
+
+    for (const city of returnStatisticsByCities) {
+      const item = {
+        pk: String(city.idCarrier),
+        sk: `${city.paymentMethodGroup}-City-${city.shippingCityDaneCode}`,
+        cityName: city.cityName,
+        totalOrders: city.totalOrders,
+        totalOrdersReturned: city.totalOrdersReturned,
+        returnPercentage: city.returnPercentage,
+        lastUpdate: formattedDate,
+        category: statisticCategories.CITIES_RETURN_STATISTICS
+      };
+      const response = this.dao.putItem("Mastershop-Carrier-Stats", item);
+      promises.push(response);
+    }
+
+    for (const stat of originAndDestinationStats) {
+      const item = {
+        pk: String(stat.idCarrier),
+        sk: `${stat.paymentMethod}-${stat.originCity}-${stat.shippingCity}`,
+        avgHourDiff: stat.avgHourDiff,
+        totalOrders: stat.totalOrders,
+        lastUpdate: formattedDate,
+        category: statisticCategories.ORIGIN_AND_DESTINATION_AVG_HOUR_DIFF
+      };
+      const response = this.dao.putItem("Mastershop-Carrier-Stats", item);
+      promises.push(response);
+    }
+    await Promise.all(promises);
+    console.log("Statistics updated", promises.length);
   }
 }
 

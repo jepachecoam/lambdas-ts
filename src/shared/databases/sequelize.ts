@@ -1,4 +1,4 @@
-import { Sequelize } from "sequelize";
+import { QueryTypes, Sequelize, Transaction } from "sequelize";
 
 import { EnvironmentTypes } from "../types";
 
@@ -31,4 +31,33 @@ const getDatabaseInstance = (environment: EnvironmentTypes) => {
   });
 };
 
-export default getDatabaseInstance;
+interface QueryOptions {
+  replacements?: Record<string, any>;
+  transaction?: Transaction;
+}
+
+export class Database {
+  private db: Sequelize;
+
+  constructor(environment: EnvironmentTypes) {
+    this.db = getDatabaseInstance(environment);
+  }
+
+  async fetchOne(query: string, config?: QueryOptions) {
+    const result = await this.db.query(query, {
+      ...config,
+      type: QueryTypes.SELECT
+    });
+    return result && result.length > 0 ? result[0] : null;
+  }
+
+  async fetchMany(query: string, config?: QueryOptions) {
+    const result = await this.db.query(query, {
+      ...config,
+      type: QueryTypes.SELECT
+    });
+    return result && result.length > 0 ? result : null;
+  }
+}
+
+export default Database;

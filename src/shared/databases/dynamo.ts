@@ -1,93 +1,53 @@
-import AWS from "aws-sdk";
+import {
+  DeleteItemCommand,
+  DynamoDBClient,
+  GetItemCommand,
+  PutItemCommand
+} from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
 import { EnvironmentTypes } from "../types";
-import AwsInstance from "./aws";
 
 class Dynamo {
-  private db: AWS.DynamoDB.DocumentClient;
+  private client: DynamoDBDocumentClient;
   private environment: EnvironmentTypes;
 
   constructor(environment: EnvironmentTypes) {
     this.environment = environment;
-    this.db = new AwsInstance.DynamoDB.DocumentClient();
+    const dynamoClient = new DynamoDBClient({
+      region: `${process.env["AWS_REGION"]}`
+    });
+    this.client = DynamoDBDocumentClient.from(dynamoClient);
   }
 
   private getTableName(tableName: string): string {
     return this.environment === "dev" ? `${tableName}-Dev` : tableName;
   }
 
-  async getItem(tableName: string, key: any) {
-    const params = {
+  async getItem(tableName: string, key: Record<string, any>) {
+    const params = new GetItemCommand({
       TableName: this.getTableName(tableName),
-      Key: key
-    };
-    const data = await this.db.get(params).promise();
-    console.log("Item retrieved:", data.Item);
-    return data.Item;
+      Key: marshall(key)
+    });
+    const data = await this.client.send(params);
+    return data.Item ? unmarshall(data.Item) : null;
   }
 
-  async putItem(tableName: string, item: any) {
-    const params = {
+  async putItem(tableName: string, item: Record<string, any>) {
+    const params = new PutItemCommand({
       TableName: this.getTableName(tableName),
-      Item: item
-    };
-    await this.db.put(params).promise();
-    console.log("Item inserted:", item);
+      Item: marshall(item)
+    });
+    await this.client.send(params);
   }
 
-  async batchGetItems(tableName: string, keys: Array<any>) {
-    const params = {
-      RequestItems: {
-        [this.getTableName(tableName)]: {
-          Keys: keys
-        }
-      }
-    };
-    const data = await this.db.batchGet(params).promise();
-    console.log(
-      "Batch Get Items:",
-      data.Responses?.[this.getTableName(tableName)]
-    );
-    return data.Responses?.[this.getTableName(tableName)];
-  }
-
-  async batchWriteItems(tableName: string, items: Array<any>) {
-    const params = {
-      RequestItems: {
-        [this.getTableName(tableName)]: items.map((item) => ({
-          PutRequest: { Item: item }
-        }))
-      }
-    };
-    const data = await this.db.batchWrite(params).promise();
-    console.log("Batch Write Success:", data);
-  }
-
-  async updateItem(
-    tableName: string,
-    key: any,
-    updateExpression: string,
-    expressionAttributes: any
-  ) {
-    const params = {
+  async deleteItem(tableName: string, key: Record<string, any>) {
+    const params = new DeleteItemCommand({
       TableName: this.getTableName(tableName),
-      Key: key,
-      UpdateExpression: updateExpression,
-      ExpressionAttributeValues: expressionAttributes,
-      ReturnValues: "UPDATED_NEW"
-    };
-    const data = await this.db.update(params).promise();
-    console.log("Item updated:", data, "newParams", params);
-    return data;
-  }
-
-  async deleteItem(tableName: string, key: any) {
-    const params = {
-      TableName: this.getTableName(tableName),
-      Key: key
-    };
-    await this.db.delete(params).promise();
-    console.log("Item deleted:", key);
+      Key: marshall(key)
+    });
+    await this.client.send(params);
   }
 }
 

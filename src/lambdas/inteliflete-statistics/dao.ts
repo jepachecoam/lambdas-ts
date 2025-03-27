@@ -1,13 +1,18 @@
-import { QueryTypes, Sequelize } from "sequelize";
-
-import getDatabaseInstance from "../../shared/databases/sequelize";
+import Dynamo from "../../shared/databases/dynamo";
+import Database from "../../shared/databases/sequelize";
 import { EnvironmentTypes } from "../../shared/types";
-import { getStatisticsInt } from "./types";
+import {
+  getStatisticsInt,
+  OriginAndDestinationStat,
+  ReturnStatisticsByCities,
+  ReturnStatisticsByStates
+} from "./types";
 
-class Dao {
-  private db: Sequelize;
+class Dao extends Dynamo {
+  private db: Database;
   constructor(environment: EnvironmentTypes) {
-    this.db = getDatabaseInstance(environment);
+    super(environment);
+    this.db = new Database(environment);
   }
 
   async getOriginAndDestinationStats({ minOrdersRequired }: getStatisticsInt) {
@@ -34,13 +39,14 @@ class Dao {
                 o.paymentMethod,
                 json_extract(o.originAddress, '$.cityDaneCode'),
                 json_extract(o.shippingAddress, '$.cityDaneCode')
-        having totalOrders >= ${minOrdersRequired}
+        having totalOrders >= :minOrdersRequired
         order by o.idCarrier;
           `;
-    const result = await this.db.query(query, {
-      type: QueryTypes.SELECT
+    const result = await this.db.fetchMany(query, {
+      replacements: { minOrdersRequired }
     });
-    return result && result.length > 0 ? result : null;
+
+    return result ? (result as OriginAndDestinationStat[]) : [];
   }
 
   async getReturnStatisticsByStates({ minOrdersRequired }: getStatisticsInt) {
@@ -57,18 +63,20 @@ class Dao {
             group by o.idCarrier,
                     paymentMethodGroup,
                     shippingStateName
-            having totalOrdersReturned >= ${minOrdersRequired}
+            having totalOrdersReturned >= :minOrdersRequired
             order by o.idCarrier;
           `;
-    const result = await this.db.query(query, {
-      type: QueryTypes.SELECT
+    const result = await this.db.fetchMany(query, {
+      replacements: { minOrdersRequired }
     });
-    return result && result.length > 0 ? result : null;
+
+    return result ? (result as ReturnStatisticsByStates[]) : [];
   }
 
   async getReturnStatisticsByCities({ minOrdersRequired }: getStatisticsInt) {
     const query = `
             select o.idCarrier,
+                json_unquote(json_extract(o.shippingAddress, '$.city'))         as cityName,
                 json_unquote(json_extract(o.shippingAddress, '$.cityDaneCode')) as shippingCityDaneCode,
                 if(o.paymentMethod = 'cod', 'cod', 'pia')                       as paymentMethodGroup,
                 count(o.idOrder)                                                as totalOrders,
@@ -81,13 +89,14 @@ class Dao {
             group by o.idCarrier,
                     paymentMethodGroup,
                     shippingCityDaneCode
-            having totalOrdersReturned >= ${minOrdersRequired}
+            having totalOrdersReturned >= :minOrdersRequired
             order by o.idCarrier;
           `;
-    const result = await this.db.query(query, {
-      type: QueryTypes.SELECT
+    const result = await this.db.fetchMany(query, {
+      replacements: { minOrdersRequired }
     });
-    return result && result.length > 0 ? result : null;
+
+    return result ? (result as ReturnStatisticsByCities[]) : [];
   }
 }
 

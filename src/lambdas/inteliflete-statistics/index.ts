@@ -1,16 +1,14 @@
 import { checkEnv } from "../../shared/envChecker";
 import http from "../../shared/http";
 import { dbEnv, dynamoEnv } from "../../shared/types";
+import dto from "./dto";
 import Model from "./model";
 
-export const handler = async (
-  _event: unknown,
-  _context: unknown
-): Promise<any> => {
+export const handler = async (event: any, _context: any): Promise<any> => {
   try {
     checkEnv({ ...dynamoEnv, ...dbEnv });
 
-    const environment = "prod";
+    const environment = dto.parseParams(event);
 
     const model = new Model(environment);
     await model.updateStatistics();
