@@ -12,6 +12,6 @@ export enum dbEnv {
   DB_HOST_PROD = "DB_HOST_PROD"
 }
 
-export enum dynamoEnv {
-  AWS_REGION = "AWS_REGION"
+export enum contextEnv {
+  CLOUD_REGION = "CLOUD_REGION"
 }
