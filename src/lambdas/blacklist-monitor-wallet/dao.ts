@@ -1,12 +1,10 @@
-import { QueryTypes, Sequelize } from "sequelize";
-
-import getDatabaseInstance from "../../shared/databases/sequelize";
+import Database from "../../shared/databases/sequelize";
 import { EnvironmentTypes } from "../../shared/types";
 
 class Dao {
-  private db: Sequelize;
+  private db: Database;
   constructor(environment: EnvironmentTypes) {
-    this.db = getDatabaseInstance(environment);
+    this.db = new Database(environment);
   }
 
   async getBankAccounts({ idUser }: { idUser: number }) {
@@ -24,11 +22,7 @@ class Dao {
           from bankData bd
                    inner join userBeneficiaryFiltered ubf on bd.idBeneficiary = ubf.idUserBeneficiary;
           `;
-    const result = await this.db.query(query, {
-      replacements: { idUser },
-      type: QueryTypes.SELECT
-    });
-    return result && result.length > 0 ? result : null;
+    return this.db.fetchMany(query, { replacements: { idUser } });
   }
 
   async getIdDocuments({ idUser }: { idUser: number }) {
@@ -42,11 +36,7 @@ class Dao {
                    inner join userBusinessFiltered ubf
                               on ufc.idBussiness = ubf.idBussiness and ufc.state = 1
           `;
-    const result = await this.db.query(query, {
-      replacements: { idUser },
-      type: QueryTypes.SELECT
-    });
-    return result && result.length > 0 ? result : null;
+    return this.db.fetchMany(query, { replacements: { idUser } });
   }
 
   async getPhones({ idUser }: { idUser: number }) {
@@ -73,24 +63,16 @@ class Dao {
           FROM uniquePhones
           WHERE phoneNumber IS NOT NULL;
           `;
-    const result = await this.db.query(query, {
-      replacements: { idUser },
-      type: QueryTypes.SELECT
-    });
-    return result && result.length > 0 ? result : null;
+    return this.db.fetchMany(query, { replacements: { idUser } });
   }
 
   async getEmails({ idUser }: { idUser: number }) {
     const query = `
           select u.email
           from user u
-          where idUser = :idUser;
+          where idUser = ${idUser};
           `;
-    const result = await this.db.query(query, {
-      replacements: { idUser },
-      type: QueryTypes.SELECT
-    });
-    return result && result.length > 0 ? result : null;
+    return this.db.fetchMany(query);
   }
 
   async getIdsBlacklistByReference({
@@ -107,11 +89,9 @@ class Dao {
             (select idBlacklistReference from blacklistReference where idBlacklistEntityType = 2 and idReference = :idBusiness)
         and idBlacklistReason in (1, :idBlacklistReason);
           `;
-    const result = await this.db.query(query, {
-      replacements: { idBusiness, idBlacklistReason },
-      type: QueryTypes.SELECT
+    return this.db.fetchMany(query, {
+      replacements: { idBusiness, idBlacklistReason }
     });
-    return result && result.length > 0 ? result : null;
   }
 }
 
