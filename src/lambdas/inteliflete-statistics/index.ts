@@ -1,12 +1,12 @@
 import { checkEnv } from "../../shared/envChecker";
 import http from "../../shared/http";
-import { dbEnv, dynamoEnv } from "../../shared/types";
+import { contextEnv, dbEnv } from "../../shared/types";
 import dto from "./dto";
 import Model from "./model";
 
 export const handler = async (event: any, _context: any): Promise<any> => {
   try {
-    checkEnv({ ...dynamoEnv, ...dbEnv });
+    checkEnv({ ...contextEnv, ...dbEnv });
 
     const environment = dto.parseParams(event);
 
@@ -15,7 +15,7 @@ export const handler = async (event: any, _context: any): Promise<any> => {
 
     return http.jsonResponse({
       statusCode: 200,
-      message: "hello word from lambda",
+      message: "ok",
       result: {}
     });
   } catch (error) {

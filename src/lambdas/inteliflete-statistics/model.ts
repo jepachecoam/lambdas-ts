@@ -1,5 +1,3 @@
-import { log } from "console";
-
 import { EnvironmentTypes } from "../../shared/types";
 import Dao from "./dao";
 import { statisticCategories } from "./types";
@@ -34,6 +32,7 @@ class Model {
       const item = {
         pk: String(state.idCarrier),
         sk: `${state.paymentMethodGroup}-State-${state.shippingStateName}`,
+        shippingStateName: state.shippingStateName,
         totalOrders: state.totalOrders,
         totalOrdersReturned: state.totalOrdersReturned,
         returnPercentage: state.returnPercentage,
@@ -48,7 +47,7 @@ class Model {
       const item = {
         pk: String(city.idCarrier),
         sk: `${city.paymentMethodGroup}-City-${city.shippingCityDaneCode}`,
-        cityName: city.cityName,
+        shippingCityName: city.cityName,
         totalOrders: city.totalOrders,
         totalOrdersReturned: city.totalOrdersReturned,
         returnPercentage: city.returnPercentage,
