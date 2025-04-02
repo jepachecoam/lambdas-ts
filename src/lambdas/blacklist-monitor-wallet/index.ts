@@ -28,7 +28,8 @@ export const handler = async (
       case "unblock":
         await model.updateStatusEntities({
           idBusiness: params.idBusiness,
-          newStatus: statusType.INACTIVE
+          newStatus: statusType.INACTIVE,
+          idBlacklistReason: params.idBlacklistReason
         });
         break;
       default:

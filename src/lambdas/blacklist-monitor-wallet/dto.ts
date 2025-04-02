@@ -1,16 +1,19 @@
 const getParams = ({ event }: any) => {
   console.log("Event =>>>", JSON.stringify(event));
 
-  const dataEvent = event?.detail?.data?.dataEvent?.eventInfo?.dataEvent;
-  const environment = event?.detail?.parameters?.stage;
-  const action = event?.blacklistAction;
-  const idBlacklistReason = event?.idBlacklistReason;
-  const idBusiness = dataEvent?.idBusiness;
-  const idUser = dataEvent?.idUser;
+  const {
+    detail,
+    stage: environment,
+    blacklistAction: action,
+    idBlacklistReason
+  } = event;
+
+  const idBusiness = detail?.idBusiness;
+  const idUser = detail?.idUser;
 
   const missingFields = [];
 
-  if (!dataEvent) missingFields.push("dataEvent");
+  if (!detail) missingFields.push("dataEvent");
   if (!environment) missingFields.push("environment");
   if (!action) missingFields.push("action");
   if (!idBlacklistReason) missingFields.push("idBlacklistReason");
