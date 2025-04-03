@@ -1,6 +1,6 @@
 import { checkEnv } from "../../shared/envChecker";
 import http from "../../shared/http";
-import { dbEnv } from "../../shared/types";
+import { BbEnv } from "../../shared/types";
 import dto from "./dto";
 import Model from "./model";
 import { statusType } from "./types/types";
@@ -10,7 +10,7 @@ export const handler = async (
   _context: unknown
 ): Promise<any> => {
   try {
-    checkEnv(dbEnv);
+    checkEnv(BbEnv);
     const params = dto.getParams({ event });
 
     console.log("params =>>>", params);

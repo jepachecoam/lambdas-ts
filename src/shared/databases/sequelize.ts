@@ -1,19 +1,20 @@
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 
+import config from "../../conf/config";
 import { EnvironmentTypes } from "../types";
 
 const dbConfig = {
   dev: {
-    database: `${process.env["DB_NAME_DEV"]}`,
-    username: `${process.env["DB_USER_DEV"]}`,
-    password: `${process.env["DB_PASSWORD_DEV"]}`,
-    host: `${process.env["DB_HOST_DEV"]}`
+    database: config.database.DB_NAME_DEV,
+    username: config.database.DB_USER_DEV,
+    password: config.database.DB_PASSWORD_DEV,
+    host: config.database.DB_HOST_DEV
   },
   prod: {
-    database: `${process.env["DB_NAME_PROD"]}`,
-    username: `${process.env["DB_USER_PROD"]}`,
-    password: `${process.env["DB_PASSWORD_PROD"]}`,
-    host: `${process.env["DB_HOST_PROD"]}`
+    database: config.database.DB_NAME_PROD,
+    username: config.database.DB_USER_PROD,
+    password: config.database.DB_PASSWORD_PROD,
+    host: config.database.DB_HOST_PROD
   }
 };
 

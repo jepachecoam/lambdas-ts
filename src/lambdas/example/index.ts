@@ -1,12 +1,12 @@
 import { checkEnv } from "../../shared/envChecker";
 import http from "../../shared/http";
-import { EnvVariables } from "./types";
+import { BbEnv } from "../../shared/types";
 export const handler = async (
   event: unknown,
   _context: unknown
 ): Promise<any> => {
   try {
-    checkEnv(EnvVariables);
+    checkEnv(BbEnv);
     console.log("Event =>>>", event);
 
     return http.jsonResponse({

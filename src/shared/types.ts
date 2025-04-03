@@ -1,6 +1,6 @@
 export type EnvironmentTypes = "dev" | "prod" | "qa";
 
-export enum dbEnv {
+export enum BbEnv {
   DB_NAME_DEV = "DB_NAME_DEV",
   DB_USER_DEV = "DB_USER_DEV",
   DB_PASSWORD_DEV = "DB_PASSWORD_DEV",
@@ -12,6 +12,10 @@ export enum dbEnv {
   DB_HOST_PROD = "DB_HOST_PROD"
 }
 
-export enum contextEnv {
+export enum AwsEnv {
   CLOUD_REGION = "CLOUD_REGION"
+}
+
+export enum ServerEnv {
+  PORT = "PORT"
 }
