@@ -8,9 +8,18 @@ import { jsonResponse } from "./middlewares";
 
 const router = Router();
 
-router.post("/example", jsonResponse(example));
-router.post("/blacklist-monitor-wallet", jsonResponse(blacklistMonitorWallet));
-router.post("/inteliflete-statistics", jsonResponse(intelifleteStatistics));
-router.post("/auth", jsonResponse(auth));
+router.post("/example", jsonResponse({ handler: example }));
+
+router.post(
+  "/blacklist-monitor-wallet",
+  jsonResponse({ handler: blacklistMonitorWallet })
+);
+
+router.post(
+  "/inteliflete-statistics",
+  jsonResponse({ handler: intelifleteStatistics })
+);
+
+router.post("/auth", jsonResponse({ handler: auth, customResponse: true }));
 
 export default router;

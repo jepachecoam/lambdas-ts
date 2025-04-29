@@ -1,6 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 
-function jsonResponse(handler: (event: any, context?: any) => Promise<any>) {
+function jsonResponse({
+  handler,
+  customResponse
+}: {
+  handler: (event: any, context?: any) => Promise<any>;
+  customResponse?: boolean;
+}) {
   return async function (
     req: Request,
     res: Response,
@@ -11,6 +17,10 @@ function jsonResponse(handler: (event: any, context?: any) => Promise<any>) {
       const context = {};
 
       const result = await handler(event, context);
+
+      if (customResponse) {
+        return res.status(200).json(result);
+      }
 
       if (!result || !result.statusCode || !result.body) {
         return res
