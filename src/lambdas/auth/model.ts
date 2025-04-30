@@ -16,15 +16,21 @@ async function verifyToken(
     });
 
     const payload = await verifier.verify(token);
+    console.log(`token type ${typeTokenUse} is verified.`);
     return payload;
   } catch (err: any) {
-    console.log(err.message);
     if (typeTokenUse === "id") {
       const decoded = jwt.verify(token, `${process.env["JWT_SECRET"]}`);
-      console.log("Token verified with alternative method. Payload:", decoded);
+      console.log(
+        "Token type id verified with alternative method. Payload:",
+        decoded
+      );
       return { decoded, alternativeMethod: true } as any;
     }
-
+    console.log(
+      `Error in typeTokenUse ${typeTokenUse} error =>>>`,
+      err.message
+    );
     throw new Error("token verification failed");
   }
 }
