@@ -15,7 +15,7 @@ class Dynamo {
 
   private useEnvSuffix: boolean;
 
-  constructor(environment: EnvironmentTypes, useEnvSuffix = false) {
+  constructor(environment: EnvironmentTypes, useEnvSuffix: boolean) {
     this.environment = environment;
     const dynamoClient = new DynamoDBClient({
       region: `${process.env[contextEnv.CLOUD_REGION]}`

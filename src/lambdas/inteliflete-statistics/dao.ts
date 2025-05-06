@@ -11,7 +11,7 @@ import {
 class Dao extends Dynamo {
   private db: Database;
   constructor(environment: EnvironmentTypes) {
-    super(environment);
+    super(environment, true);
     this.db = new Database(environment);
   }
 
