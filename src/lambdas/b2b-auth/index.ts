@@ -23,7 +23,7 @@ const generatePolicy = (principalId: any, effect: any, resource: any) => {
 export const handler = async (event: any) => {
   let response;
   let policyDocument;
-  console.log("event>>>", event);
+  console.log("event>>>", JSON.stringify(event, null, 2));
   const apiKey = event.headers["x-api-key"];
   const appName = event.headers["x-app-name"];
   let methodArn = event.methodArn || event.routeArn;
@@ -64,7 +64,7 @@ export const handler = async (event: any) => {
       delete response.isAuthorized;
     }
     console.log("response>>>", JSON.stringify(response));
-    // eslint-disable-next-line no-unsafe-finally
-    return response;
   }
+
+  return response;
 };
