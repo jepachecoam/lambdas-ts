@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { handler as auth } from "../lambdas/auth/index";
+import { handler as auth } from "../lambdas/b2c-auth/index";
 import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-wallet/index";
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
