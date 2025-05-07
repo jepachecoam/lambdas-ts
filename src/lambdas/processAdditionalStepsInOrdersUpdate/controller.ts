@@ -1,5 +1,7 @@
+import enviaModel from "./model/enviaModel";
 import sharedModel from "./model/sharedModel";
 import tccModel from "./model/tccModel";
+import constants from "./utils/const";
 
 const handleTccRequest = async ({ _detail, eventProcess }: any) => {
   try {
@@ -22,17 +24,22 @@ const handleEnviaRequest = async ({ detail, _eventProcess }: any) => {
 
     const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
 
-    if (idCarrierStatusUpdate === 266) {
-      const regexConfigToFindNewTrackingCode = {
-        startWith: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-        length: 12
-      };
-      await sharedModel.insertNewTrackingCodeIfFound({
-        data: detail,
-        config: regexConfigToFindNewTrackingCode
-      });
-    } else {
-      console.log("Process not found ");
+    switch (idCarrierStatusUpdate) {
+      case constants.EnviaCarrierStatusUpdate.Redireccionando:
+        await sharedModel.insertNewTrackingCodeIfFound({
+          data: detail,
+          config: {
+            startWith: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+            length: 12
+          }
+        });
+        break;
+      case constants.EnviaCarrierStatusUpdate.SolucionadoEnMalla:
+        await enviaModel.updateShipmentUpdate(detail);
+        break;
+      default:
+        console.log("Process not found ");
+        break;
     }
   } catch (err) {
     console.error(err);

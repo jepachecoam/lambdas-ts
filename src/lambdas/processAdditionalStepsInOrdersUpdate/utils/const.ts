@@ -6,4 +6,9 @@ enum Carriers {
   coordinadora = "coordinadora"
 }
 
-export default { Carriers };
+enum EnviaCarrierStatusUpdate {
+  SolucionadoEnMalla = 259,
+  Redireccionando = 266
+}
+
+export default { Carriers, EnviaCarrierStatusUpdate };

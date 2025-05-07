@@ -1,7 +1,7 @@
 import controller from "./controller";
 import sharedDto from "./dto/sharedDto";
 import sharedModel from "./model/sharedModel";
-import sharedUtils from "./utils/sharedUtils";
+import sharedUtils from "./utils/const";
 
 export const handler = async (event: any, _context: any) => {
   try {
