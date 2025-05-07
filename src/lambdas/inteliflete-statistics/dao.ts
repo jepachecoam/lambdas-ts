@@ -1,5 +1,5 @@
-import Dynamo from "../../shared/databases/dynamo";
-import Database from "../../shared/databases/sequelize";
+import Dynamo from "../../shared/services/dynamo";
+import Database from "../../shared/services/sequelize";
 import { EnvironmentTypes } from "../../shared/types";
 import {
   getStatisticsInt,
@@ -11,7 +11,7 @@ import {
 class Dao extends Dynamo {
   private db: Database;
   constructor(environment: EnvironmentTypes) {
-    super(environment);
+    super(environment, true);
     this.db = new Database(environment);
   }
 

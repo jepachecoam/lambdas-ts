@@ -1,4 +1,4 @@
-import Database from "../../shared/databases/sequelize";
+import Database from "../../shared/services/sequelize";
 import { EnvironmentTypes } from "../../shared/types";
 
 class Dao {

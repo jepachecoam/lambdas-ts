@@ -433,7 +433,7 @@ export default [
       // ✅ Correct: Use `if (x)` directly.
       // if (x) { console.log(x); }
 
-      "no-extra-parens": "error", // Disallow unnecessary parentheses around expressions.
+      // "no-extra-parens": "error", // Disallow unnecessary parentheses around expressions.
       // ❌ Incorrect: Extra parentheses are not needed.
       // let result = (a + b);
 

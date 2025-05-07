@@ -1,6 +1,7 @@
 import { Router } from "express";
 
-import { handler as auth } from "../lambdas/b2c-auth/index";
+import { handler as b2bAuth } from "../lambdas/b2b-auth/index";
+import { handler as b2cAuth } from "../lambdas/b2c-auth/index";
 import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-wallet/index";
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
@@ -20,6 +21,14 @@ router.post(
   jsonResponse({ handler: intelifleteStatistics })
 );
 
-router.post("/auth", jsonResponse({ handler: auth, customResponse: true }));
+router.post(
+  "/b2c-auth",
+  jsonResponse({ handler: b2cAuth, customResponse: true })
+);
+
+router.post(
+  "/b2b-auth",
+  jsonResponse({ handler: b2bAuth, customResponse: true })
+);
 
 export default router;

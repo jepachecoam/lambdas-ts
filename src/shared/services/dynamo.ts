@@ -13,15 +13,20 @@ class Dynamo {
   private client: DynamoDBDocumentClient;
   private environment: EnvironmentTypes;
 
-  constructor(environment: EnvironmentTypes) {
+  private useEnvSuffix: boolean;
+
+  constructor(environment: EnvironmentTypes, useEnvSuffix: boolean) {
     this.environment = environment;
     const dynamoClient = new DynamoDBClient({
       region: `${process.env[contextEnv.CLOUD_REGION]}`
     });
     this.client = DynamoDBDocumentClient.from(dynamoClient);
+    this.useEnvSuffix = useEnvSuffix;
   }
 
   private getTableName(tableName: string): string {
+    if (!this.useEnvSuffix) return tableName;
+
     return this.environment === "dev" ? `${tableName}-Dev` : tableName;
   }
 
