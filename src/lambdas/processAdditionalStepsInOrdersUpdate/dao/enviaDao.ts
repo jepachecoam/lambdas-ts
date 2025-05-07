@@ -18,7 +18,7 @@ const updateShipmentUpdate = async ({ idOrder }: any) => {
       type: QueryTypes.INSERT
     });
 
-    return result.length > 0;
+    return result[1] > 0;
   } catch (error) {
     console.error("Error in Dao updateShipmentUpdate =>>>", error);
     throw error;
@@ -41,7 +41,7 @@ const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
       type: QueryTypes.INSERT
     });
 
-    return result.length > 0;
+    return result[1] > 0;
   } catch (error) {
     console.error("Error in Dao updateShipmentUpdate =>>>", error);
     throw error;
