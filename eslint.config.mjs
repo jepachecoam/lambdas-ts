@@ -189,7 +189,7 @@ export default [
 
       // let b = 20;
 
-      "operator-linebreak": ["error", "after"], // Enforces line breaks after operators in multi-line expressions. Example:
+      // "operator-linebreak": ["error", "after"], // Enforces line breaks after operators in multi-line expressions. Example:
       // ✅ `let result = condition ? value1 : value2;`
       // ❌ `let result = condition
       // ? value1 : value2;`
