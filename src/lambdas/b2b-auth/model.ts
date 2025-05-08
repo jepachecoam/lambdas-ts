@@ -3,62 +3,79 @@ import Dao from "./dao";
 
 class Model {
   private dao: Dao;
+
   constructor(environment: EnvironmentTypes) {
     this.dao = new Dao(environment);
   }
-  async isValid(
+
+  async isAuthorizedRequest(
     apiKey: string,
     appName: string,
     httpMethod: string,
     resource: string
   ): Promise<boolean> {
+    if (!apiKey || !appName || !httpMethod || !resource) {
+      console.warn("Missing required parameters for authorization.");
+      return false;
+    }
+
     const secret = await this.dao.getSecret(
       "apigateway/prod/apps/b2b-api-keys"
     );
 
-    let isMatched = secret[appName] === apiKey;
-
-    if (isMatched) {
-      isMatched = await this.checkScopeAccess(appName, httpMethod, resource);
+    if (!secret || !secret[appName]) {
+      console.warn("App not found in secrets.");
+      return false;
     }
 
-    return isMatched;
+    const isApiKeyValid = secret[appName] === apiKey;
+    if (!isApiKeyValid) {
+      console.warn("Invalid API key.");
+      return false;
+    }
+
+    return this.hasScopePermission(appName, httpMethod, resource);
   }
 
-  async checkScopeAccess(
+  private async hasScopePermission(
     appName: string,
     httpMethod: string,
     resource: string
   ): Promise<boolean> {
-    const item = await this.dao.getItem("B2BAccessControl", {
+    const accessItem = await this.dao.getItem("B2BAccessControl", {
       provider: appName
     });
 
-    console.log("Access control item =>>>", item, httpMethod);
-
-    if (!item || item["isActive"] !== true || !item["scopes"]) {
+    if (!accessItem || !accessItem["isActive"] || !accessItem["scopes"]) {
+      console.warn("Access item is missing or inactive.");
       return false;
     }
 
     const normalizedMethod = httpMethod.toUpperCase();
     const requiredScope = `${normalizedMethod}:${resource}`;
 
-    console.log("requiredScope =>>>", requiredScope);
-
-    let scopes: string[] = [];
-
+    let scopes: string[];
     try {
-      scopes = JSON.parse(item["scopes"]);
-    } catch (error) {
-      console.error("Error parsing scopes for provider:", appName, error);
+      scopes = JSON.parse(accessItem["scopes"]);
+      if (!Array.isArray(scopes)) {
+        console.warn("Scopes format is invalid.");
+        return false;
+      }
+    } catch (err) {
+      console.error("Failed to parse scopes:", err);
       return false;
     }
 
-    if (!Array.isArray(scopes)) return false;
-
-    if (scopes.includes("*")) return true;
-
-    return scopes.includes(requiredScope);
+    if (scopes.includes("*")) {
+      console.log(`Provider ${appName} has access to all scopes with ["*"].`);
+      return true;
+    }
+    const hasScopePermission = scopes.includes(requiredScope);
+    console.log(
+      `hasScopePermission for resource >>> ${resource} :`,
+      hasScopePermission
+    );
+    return hasScopePermission;
   }
 }
 

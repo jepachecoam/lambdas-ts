@@ -2,50 +2,56 @@ import dto from "./dto";
 import Model from "./model";
 
 export const handler = async (event: any) => {
-  let response;
-  let policyDocument;
-  let methodArn = event.methodArn || event.routeArn;
   const { stage, apiKey, appName, isRestApiGateway, httpMethod, resource } =
     dto.getParams(event);
 
+  const methodArn = event.methodArn || event.routeArn;
+  let response;
+
   try {
     const model = new Model(stage);
-    if (isRestApiGateway && event.pathParameters) {
-      for (const [_key, value] of Object.entries(event.pathParameters)) {
-        methodArn = methodArn.replace(value, "*");
-      }
-    }
 
-    const isValid = await model.isValid(apiKey, appName, httpMethod, resource);
-    policyDocument = dto.generatePolicy("user", "Deny", methodArn);
+    const normalizedArn = dto.normalizeArn(
+      methodArn,
+      event.pathParameters,
+      isRestApiGateway
+    );
+    const isAuthorized = await model.isAuthorizedRequest(
+      apiKey,
+      appName,
+      httpMethod,
+      resource
+    );
+
+    const effect = isAuthorized ? "Allow" : "Deny";
+    const baseResponse = dto.generatePolicy("user", effect, normalizedArn);
+
     response = {
-      ...policyDocument,
-      isAuthorized: false
-    };
-
-    if (isValid) {
-      policyDocument = dto.generatePolicy("user", "Allow", methodArn);
-      response = {
-        ...policyDocument,
+      ...baseResponse,
+      ...(isAuthorized && {
         isAuthorized: true,
         context: {
           authorizedToAccess: String(appName)
         }
-      };
-    }
+      }),
+      ...(!isAuthorized && {
+        isAuthorized: false
+      })
+    };
   } catch (error) {
-    console.error(error);
-    policyDocument = dto.generatePolicy("user", "Deny", methodArn);
+    console.error("Authorization error:", error);
+
+    const baseResponse = dto.generatePolicy("user", "Deny", methodArn);
     response = {
-      ...policyDocument,
+      ...baseResponse,
       isAuthorized: false
     };
-  } finally {
-    if (isRestApiGateway) {
-      delete response.isAuthorized;
-    }
-    console.log("response>>>", JSON.stringify(response));
   }
 
+  if (isRestApiGateway) {
+    delete response.isAuthorized;
+  }
+
+  console.log("Final response:", JSON.stringify(response));
   return response;
 };

@@ -1,4 +1,4 @@
-const getParams = (event: any) => {
+function getParams(event: any) {
   console.log("event =>>>", event);
 
   const apiKey = event.headers["x-api-key"];
@@ -9,9 +9,9 @@ const getParams = (event: any) => {
   const resource = event.resource;
 
   return { stage, apiKey, appName, isRestApiGateway, httpMethod, resource };
-};
+}
 
-const generatePolicy = (principalId: string, effect: string, resource: any) => {
+function generatePolicy(principalId: string, effect: string, resource: any) {
   const authResponse: any = {};
   authResponse.principalId = principalId;
 
@@ -29,6 +29,21 @@ const generatePolicy = (principalId: string, effect: string, resource: any) => {
     authResponse.policyDocument = policyDocument;
   }
   return authResponse;
-};
+}
 
-export default { getParams, generatePolicy };
+function normalizeArn(
+  arn: string,
+  pathParams: Record<string, string> | undefined,
+  isRest: boolean
+): string {
+  if (!isRest || !pathParams) return arn;
+
+  let normalized = arn;
+  for (const value of Object.values(pathParams)) {
+    normalized = normalized.replace(value, "*");
+  }
+
+  return normalized;
+}
+
+export default { getParams, generatePolicy, normalizeArn };
