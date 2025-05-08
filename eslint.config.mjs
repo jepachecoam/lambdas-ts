@@ -844,7 +844,7 @@ export default [
       // ✅ Correct:
       // class Example {}
 
-      "no-useless-escape": "error", // Disallow unnecessary escape characters.
+      // "no-useless-escape": "error", // Disallow unnecessary escape characters.
       // ❌ Incorrect:
       // let str = "Hello, \"world\"!";
 
