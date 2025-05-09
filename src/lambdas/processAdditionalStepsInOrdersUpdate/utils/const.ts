@@ -6,9 +6,25 @@ enum Carriers {
   coordinadora = "coordinadora"
 }
 
-enum EnviaCarrierStatusUpdate {
+enum EnviaCarrierStatusUpdateIds {
   SolucionadoEnMalla = 259,
   Redireccionando = 266
 }
 
-export default { Carriers, EnviaCarrierStatusUpdate };
+enum SwaypStatusUpdateIds {
+  Novedad = 236,
+  Cancelacion = 239,
+  Cancelada = 240
+}
+
+enum OrderSourcesTypes {
+  Order = "order",
+  OrderReturn = "orderReturn"
+}
+
+export default {
+  Carriers,
+  EnviaCarrierStatusUpdateIds,
+  SwaypStatusUpdateIds,
+  OrderSourcesTypes
+};

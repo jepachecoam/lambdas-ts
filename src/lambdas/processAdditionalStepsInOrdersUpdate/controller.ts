@@ -1,5 +1,6 @@
 import enviaModel from "./model/enviaModel";
 import sharedModel from "./model/sharedModel";
+import swaypModel from "./model/swaypModel";
 import tccModel from "./model/tccModel";
 import constants from "./utils/const";
 
@@ -25,7 +26,7 @@ const handleEnviaRequest = async ({ detail, _eventProcess }: any) => {
     const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
 
     switch (idCarrierStatusUpdate) {
-      case constants.EnviaCarrierStatusUpdate.Redireccionando:
+      case constants.EnviaCarrierStatusUpdateIds.Redireccionando:
         await sharedModel.insertNewTrackingCodeIfFound({
           data: detail,
           config: {
@@ -34,7 +35,7 @@ const handleEnviaRequest = async ({ detail, _eventProcess }: any) => {
           }
         });
         break;
-      case constants.EnviaCarrierStatusUpdate.SolucionadoEnMalla:
+      case constants.EnviaCarrierStatusUpdateIds.SolucionadoEnMalla:
         await enviaModel.updateShipmentUpdate(detail);
         break;
       default:
@@ -48,26 +49,28 @@ const handleEnviaRequest = async ({ detail, _eventProcess }: any) => {
 };
 
 const handleSwaypRequest = async ({ detail, _eventProcess }: any) => {
-  try {
-    console.log("handleSwaypRequest...");
+  console.log("handleSwaypRequest...");
 
-    const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
+  const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
 
-    if (idCarrierStatusUpdate === 236) {
-      const regexConfigToFindNewTrackingCode = {
-        startWith: ["1"],
-        length: 11
-      };
+  switch (idCarrierStatusUpdate) {
+    case constants.SwaypStatusUpdateIds.Novedad:
       await sharedModel.insertNewTrackingCodeIfFound({
         data: detail,
-        config: regexConfigToFindNewTrackingCode
+        config: {
+          startWith: ["1"],
+          length: 11
+        }
       });
-    } else {
-      console.log("Process not found ");
-    }
-  } catch (err) {
-    console.error(err);
-    throw err;
+      break;
+
+    case constants.SwaypStatusUpdateIds.Cancelacion ||
+      constants.SwaypStatusUpdateIds.Cancelada:
+      await swaypModel.updateCancelReason(detail);
+      break;
+
+    default:
+      break;
   }
 };
 

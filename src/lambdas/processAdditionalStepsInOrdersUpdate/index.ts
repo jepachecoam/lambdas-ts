@@ -8,12 +8,12 @@ export const handler = async (event: any, _context: any) => {
     const { carrier, detail, eventProcess } =
       sharedDto.extractParamsFromEvent(event);
 
-    if (detail) {
-      await sharedModel.dispatchShipmentUpdate({
-        carrierName: carrier,
-        detail: detail
-      });
-    }
+    // if (detail) {
+    //   await sharedModel.dispatchShipmentUpdate({
+    //     carrierName: carrier,
+    //     detail: detail
+    //   });
+    // }
 
     const { Carriers } = sharedUtils;
 
