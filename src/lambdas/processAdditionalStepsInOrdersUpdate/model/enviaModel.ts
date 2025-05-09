@@ -1,4 +1,5 @@
 import enviaDao from "../dao/enviaDao";
+import constants from "../utils/const";
 
 const updateShipmentUpdate = async ({
   idOrder,
@@ -9,7 +10,7 @@ const updateShipmentUpdate = async ({
 }) => {
   try {
     let result = false;
-    if (source === "orderReturn") {
+    if (source === constants.OrderSourcesTypes.OrderReturn) {
       result = await enviaDao.updateReturnShipmentUpdate({
         idOrderReturn: idOrder
       });

@@ -11,11 +11,12 @@ const updateShipmentUpdate = async ({ idOrder }: any) => {
             userSolution = 'Inhouse-Envia',
             dateSolution = now(),
             comments     = 'Solucionada automáticamente por el inhouse de Envia'
-        where idOrder = ${idOrder}
+        where idOrder = :idOrder
         and status = 'PENDING'
         `;
     const result = await db.query(query, {
-      type: QueryTypes.INSERT
+      type: QueryTypes.INSERT,
+      replacements: { idOrder }
     });
 
     return result[1] > 0;
@@ -34,11 +35,12 @@ const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
             userSolution = 'Inhouse-Envia',
             dateSolution = now(),
             comments     = 'Solucionada automáticamente por el inhouse de Envia'
-        where idOrderReturn = ${idOrderReturn}
+        where idOrderReturn = :idOrderReturn
         and status = 'PENDING';
           `;
     const result = await db.query(query, {
-      type: QueryTypes.INSERT
+      type: QueryTypes.INSERT,
+      replacements: { idOrderReturn }
     });
 
     return result[1] > 0;
