@@ -7,7 +7,7 @@ class Dao {
   private dynamo: Dynamo;
   constructor(environment: EnvironmentTypes) {
     this.secretManager = new SecretManager(environment, false);
-    this.dynamo = new Dynamo(environment, false);
+    this.dynamo = new Dynamo(environment, true);
   }
 
   async getSecret(secretName: string) {
