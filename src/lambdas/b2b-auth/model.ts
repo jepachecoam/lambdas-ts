@@ -110,7 +110,10 @@ class Model {
 
     if (scopeMethod !== actualMethod && scopeMethod !== "*") return false;
 
-    const regexPattern = "^" + scopePath.replace(/\*/g, ".*") + "$";
+    const regexPattern =
+      "^" +
+      scopePath.replace(/\*/g, ".*").replace(/\{[^/]+?\}/g, "[^/]+") +
+      "$";
 
     const patternRegex = new RegExp(regexPattern);
 
