@@ -72,6 +72,13 @@ class Model {
       return false;
     }
 
+    if (scopes.includes("*")) {
+      console.log(
+        `[ACCESS LOG] Provider "${appName}" granted full access by wildcard "*".`
+      );
+      return true;
+    }
+
     const normalizedMethod = httpMethod.toUpperCase();
     const requiredScope = `${normalizedMethod}:${resource}`;
 
