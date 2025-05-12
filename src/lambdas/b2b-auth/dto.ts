@@ -1,14 +1,66 @@
 function getParams(event: any) {
-  console.log("event =>>>", event);
+  console.log("event =>>>", JSON.stringify(event));
 
-  const apiKey = event.headers["x-api-key"];
-  const appName = event.headers["x-app-name"];
-  const isRestApiGateway = !!event.methodArn;
+  const apiKey = event.headers?.["x-api-key"];
+  const appName = event.headers?.["x-app-name"];
   const stage = event?.requestContext?.stage;
-  const httpMethod = event.httpMethod;
-  const resource = event.resource;
 
-  return { stage, apiKey, appName, isRestApiGateway, httpMethod, resource };
+  const isRestApiGateway = !!event.methodArn;
+
+  if (!apiKey || !appName || !stage) {
+    throw new Error("Missing required parameters for authorization.");
+  }
+
+  const baseParams = {
+    stage,
+    apiKey,
+    appName,
+    isRestApiGateway
+  };
+
+  const result = isRestApiGateway
+    ? handleRest(event, baseParams)
+    : handleHttp(event, baseParams);
+
+  console.log("result =>>>", result);
+
+  return result;
+}
+
+function handleRest(event: any, baseParams: any) {
+  const httpMethod = event.httpMethod;
+  const fullPath = event.path;
+
+  if (!httpMethod || !fullPath) {
+    throw new Error("Missing REST API parameters.");
+  }
+
+  const parts = fullPath.split("/").filter(Boolean);
+  const normalizedPath = "/" + parts.slice(1).join("/");
+
+  return {
+    ...baseParams,
+    httpMethod: httpMethod.toUpperCase(),
+    resource: normalizedPath
+  };
+}
+
+function handleHttp(event: any, baseParams: any) {
+  const httpMethod = event.requestContext?.http?.method;
+  const fullPath = event.requestContext?.http?.path || event.rawPath;
+
+  if (!httpMethod || !fullPath) {
+    throw new Error("Missing HTTP API parameters.");
+  }
+
+  const parts = fullPath.split("/").filter(Boolean);
+  const normalizedPath = "/" + parts.slice(3).join("/");
+
+  return {
+    ...baseParams,
+    httpMethod: httpMethod.toUpperCase(),
+    resource: normalizedPath
+  };
 }
 
 function generatePolicy(principalId: string, effect: string, resource: any) {

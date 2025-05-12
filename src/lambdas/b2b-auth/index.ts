@@ -2,13 +2,14 @@ import dto from "./dto";
 import Model from "./model";
 
 export const handler = async (event: any) => {
-  const { stage, apiKey, appName, isRestApiGateway, httpMethod, resource } =
-    dto.getParams(event);
-
   const methodArn = event.methodArn || event.routeArn;
+  const isRestApiGateway = !!event.methodArn;
   let response;
 
   try {
+    const { stage, apiKey, appName, httpMethod, resource } =
+      dto.getParams(event);
+
     const model = new Model(stage);
 
     const normalizedArn = dto.normalizeArn(
