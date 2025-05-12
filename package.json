@@ -5,7 +5,7 @@
     "dev": "ts-node-dev index.ts",
     "build": "bash ./build-lambda.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "[[ $SKIP_HUSKY != 'true' ]] && husky install || true"
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
