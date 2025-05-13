@@ -9,6 +9,7 @@ const validateHeaders = (event: any) => {
   const cognitoClientId = event.stageVariables?.cognitoClientId;
 
   if (clientType) {
+    console.log(`clientType: ${clientType} not allowed`);
     throw new Error("Client type not allowed");
   }
 
