@@ -48,7 +48,10 @@ export const handler = async (event: any) => {
         types.Constants.ALLOW,
         methodArn
       ),
-      isAuthorized: true
+      isAuthorized: true,
+      context: {
+        clientType: "B2C"
+      }
     };
   } catch (error: any) {
     response = {
