@@ -32,7 +32,8 @@ export const handler = async (event: any) => {
       ...(isAuthorized && {
         isAuthorized: true,
         context: {
-          authorizedToAccess: String(appName)
+          authorizedToAccess: String(appName),
+          clientType: "B2B"
         }
       }),
       ...(!isAuthorized && {
