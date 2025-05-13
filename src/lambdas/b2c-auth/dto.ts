@@ -6,6 +6,11 @@ const validateHeaders = (event: any) => {
   const cognitoIssuer = event.stageVariables?.cognitoIssuer;
   const cognitoUserPoolId = event.stageVariables?.cognitoUserPoolId;
   const cognitoClientId = event.stageVariables?.cognitoClientId;
+  const clientType = event.headers["x-client-type"];
+
+  if (clientType) {
+    throw new Error("Client type not allowed");
+  }
 
   if (
     !authHeader ||
