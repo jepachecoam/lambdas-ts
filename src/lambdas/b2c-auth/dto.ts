@@ -3,10 +3,10 @@ import types from "./types";
 const validateHeaders = (event: any) => {
   const authHeader = event.headers["authorization"];
   const idToken = event.headers["x-auth-id"];
+  const clientType = event.headers["x-client-type"];
   const cognitoIssuer = event.stageVariables?.cognitoIssuer;
   const cognitoUserPoolId = event.stageVariables?.cognitoUserPoolId;
   const cognitoClientId = event.stageVariables?.cognitoClientId;
-  const clientType = event.headers["x-client-type"];
 
   if (clientType) {
     throw new Error("Client type not allowed");

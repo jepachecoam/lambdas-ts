@@ -1,9 +1,14 @@
 function getParams(event: any) {
   console.log("event =>>>", JSON.stringify(event));
 
-  const apiKey = event.headers?.["x-api-key"];
-  const appName = event.headers?.["x-app-name"];
+  const apiKey = event.headers["x-api-key"];
+  const appName = event.headers["x-app-name"];
+  const clientType = event.headers["x-client-type"];
   const stage = event?.requestContext?.stage;
+
+  if (clientType) {
+    throw new Error("Client type not allowed");
+  }
 
   const isRestApiGateway = !!event.methodArn;
 
