@@ -2,7 +2,9 @@ import ExcelJS from "exceljs";
 
 import { EnvironmentTypes } from "../../shared/types";
 import Dao from "./dao";
-import { conciliationTypes, ValidationRule } from "./types";
+import schemas from "./schemas";
+import { conciliationTypes } from "./types";
+import validators from "./validators";
 
 class Model {
   private Dao: Dao;
@@ -23,156 +25,99 @@ class Model {
   }
 
   async processWorksheet(workbookReaderStream: any, conciliationType: string) {
-    const errors: string[] = [];
-
-    for await (const worksheet of workbookReaderStream) {
-      console.log(`📄 Procesando hoja: ${worksheet.name}`);
-
-      let headers: string[] = [];
-      let rowIndex = 1;
-
-      for await (const row of worksheet) {
-        const rowValues = row.values;
-
-        if (!Array.isArray(rowValues) || rowValues.length === 0) continue;
-
-        if (rowIndex === 1) {
-          headers = rowValues.slice(1);
-          rowIndex++;
-          continue;
-        }
-
-        const schema =
-          conciliationType === conciliationTypes.payments ? paymentSchema : []; // luego puedes usar otro esquema
-
-        const rowErrors = validateRow(rowValues, headers, schema, rowIndex);
-
-        if (rowErrors.length > 0) {
-          errors.push(...rowErrors);
-        } else {
-          console.log("✅ Insertando a la BDD:", rowValues.slice(1));
-        }
-
-        rowIndex++;
-      }
+    const worksheet = await this.getFirstWorksheet(workbookReaderStream);
+    if (!worksheet) {
+      console.warn("❌ No se encontró ninguna hoja en el archivo.");
+      return;
     }
 
+    console.log(`📄 Procesando hoja: ${worksheet.name}`);
+
+    const { errors } = await this.processRowsFromWorksheet(
+      worksheet,
+      conciliationType
+    );
+    this.handleProcessingResult(errors);
+  }
+
+  private async getFirstWorksheet(
+    workbookReaderStream: any
+  ): Promise<any | null> {
+    for await (const worksheet of workbookReaderStream) {
+      return worksheet; // Solo se procesa la primera hoja
+    }
+    return null;
+  }
+
+  private async processRowsFromWorksheet(
+    worksheet: any,
+    conciliationType: string
+  ) {
+    const errors: string[] = [];
+    let headers: string[] = [];
+    let rowIndex = 1;
+
+    for await (const row of worksheet) {
+      const rowValues = row.values;
+
+      if (!Array.isArray(rowValues) || rowValues.length === 0) continue;
+
+      if (rowIndex === 1) {
+        headers = this.extractHeaders(rowValues);
+        rowIndex++;
+        continue;
+      }
+
+      const schema = this.getSchema(conciliationType);
+      const rowErrors = validators.validateRow(
+        rowValues,
+        headers,
+        schema,
+        rowIndex
+      );
+
+      if (rowErrors.length > 0) {
+        errors.push(...rowErrors);
+      } else {
+        this.saveRow(rowValues);
+      }
+
+      rowIndex++;
+    }
+
+    return { errors };
+  }
+
+  private extractHeaders(rowValues: any[]): string[] {
+    return rowValues.slice(1); // Omite la celda vacía en [0]
+  }
+
+  private getSchema(conciliationType: string): any[] {
+    switch (conciliationType) {
+      case conciliationTypes.payments:
+        return schemas.paymentSchema;
+      case conciliationTypes.charges:
+        return [];
+      default:
+        throw new Error(
+          `❌ Tipo de conciliación no soportado: ${conciliationType}`
+        );
+    }
+  }
+
+  private saveRow(rowValues: any[]) {
+    console.log("✅ Insertando a la BDD:", rowValues.slice(1));
+    console.log("Falta implementar");
+  }
+
+  private handleProcessingResult(errors: string[]) {
     if (errors.length > 0) {
       console.warn("⚠️ Errores encontrados:", errors);
-      // Aquí podrías enviar el array `errors` a un endpoint vía fetch o SNS, etc.
+      console.log("Enviando a Slack...");
     } else {
       console.log("📥 Archivo procesado sin errores");
     }
   }
-}
-
-const paymentSchema: ValidationRule[] = [
-  {
-    header: "Id transportadora*",
-    key: "idCarrier",
-    type: "number",
-    required: true
-  },
-  {
-    header: "Numero de Guia *",
-    key: "carrierTrackingCode",
-    type: "string",
-    required: true,
-    pattern: /^\d+$/
-  },
-  {
-    header: "Fecha de recaudo *",
-    key: "collectionDate",
-    type: "date",
-    required: true
-  },
-  {
-    header: "Observaciones",
-    key: "notes",
-    type: "string",
-    required: false
-  },
-  {
-    header: "Medio de pago *",
-    key: "paymentMethod",
-    type: "enum",
-    required: true,
-    enumValues: ["Efectivo", "Tarjeta"]
-  },
-  { header: "Valor *", key: "amount", type: "decimal", required: true },
-  {
-    header: "Fecha de pago *",
-    key: "paymentDate",
-    type: "date",
-    required: true
-  }
-];
-
-function validateRow(
-  row: any[],
-  headers: string[],
-  schema: ValidationRule[],
-  rowIndex: number
-): string[] {
-  const errors: string[] = [];
-
-  for (let i = 0; i < schema.length; i++) {
-    const rule = schema[i];
-    const cellValue = row[i + 1]; // porque row[0] es null en ExcelJS
-    const header = headers[i];
-
-    if (
-      rule.required &&
-      (cellValue === undefined || cellValue === null || cellValue === "")
-    ) {
-      errors.push(`Fila ${rowIndex}: El campo "${header}" es obligatorio`);
-      continue;
-    }
-
-    if (cellValue === undefined || cellValue === null || cellValue === "") {
-      continue;
-    }
-
-    switch (rule.type) {
-      case "number":
-        if (isNaN(Number(cellValue)) || !Number.isInteger(Number(cellValue))) {
-          errors.push(
-            `Fila ${rowIndex}: El campo "${header}" debe ser un número entero`
-          );
-        }
-        break;
-      case "decimal":
-        if (isNaN(Number(cellValue))) {
-          errors.push(
-            `Fila ${rowIndex}: El campo "${header}" debe ser un número decimal`
-          );
-        }
-        break;
-      case "date":
-        if (isNaN(Date.parse(cellValue))) {
-          errors.push(
-            `Fila ${rowIndex}: El campo "${header}" debe ser una fecha válida`
-          );
-        }
-        break;
-      case "enum":
-        if (!rule.enumValues?.includes(cellValue)) {
-          errors.push(
-            `Fila ${rowIndex}: El campo "${header}" debe ser uno de: ${rule.enumValues?.join(", ")}`
-          );
-        }
-        break;
-      case "string":
-        if (rule.pattern && !rule.pattern.test(cellValue)) {
-          errors.push(
-            `Fila ${rowIndex}: El campo "${header}" tiene un formato inválido`
-          );
-        }
-        break;
-    }
-  }
-
-  return errors;
 }
 
 export default Model;
