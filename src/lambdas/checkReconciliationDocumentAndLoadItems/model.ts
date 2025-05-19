@@ -97,7 +97,7 @@ class Model {
       case conciliationTypes.payments:
         return schemas.paymentSchema;
       case conciliationTypes.charges:
-        return [];
+        return schemas.chargeSchema;
       default:
         throw new Error(
           `❌ Tipo de conciliación no soportado: ${conciliationType}`
