@@ -3,6 +3,7 @@ import { Router } from "express";
 import { handler as b2bAuth } from "../lambdas/b2b-auth/index";
 import { handler as b2cAuth } from "../lambdas/b2c-auth/index";
 import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-wallet/index";
+import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/checkReconciliationDocumentAndLoadItems/index";
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
@@ -35,6 +36,11 @@ router.post(
 router.post(
   "/process-additional-steps-in-orders-update",
   jsonResponse({ handler: processAdditionalStepsInOrdersUpdate })
+);
+
+router.post(
+  "/check-reconciliation-document-and-load-items",
+  jsonResponse({ handler: getReconciliationDocumentAndLoadItems })
 );
 
 export default router;

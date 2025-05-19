@@ -9,7 +9,12 @@ export enum dbEnv {
   DB_NAME_PROD = "DB_NAME_PROD",
   DB_USER_PROD = "DB_USER_PROD",
   DB_PASSWORD_PROD = "DB_PASSWORD_PROD",
-  DB_HOST_PROD = "DB_HOST_PROD"
+  DB_HOST_PROD = "DB_HOST_PROD",
+
+  DB_NAME_QA = "DB_NAME_QA",
+  DB_USER_QA = "DB_USER_QA",
+  DB_PASSWORD_QA = "DB_PASSWORD_QA",
+  DB_HOST_QA = "DB_HOST_QA"
 }
 
 export enum contextEnv {
