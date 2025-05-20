@@ -10,7 +10,8 @@ function validateRow(
 
   for (let i = 0; i < schema.length; i++) {
     const rule = schema[i];
-    const cellValue = row[i + 1]; // porque row[0] es null en ExcelJS
+    const rawValue = row[i + 1];
+    const cellValue = rawValue && rawValue.formula ? rawValue.result : rawValue;
     const header = headers[i];
 
     if (

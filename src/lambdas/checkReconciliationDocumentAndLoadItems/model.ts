@@ -60,7 +60,11 @@ class Model {
     for await (const row of worksheet) {
       const rowValues = row.values;
 
-      if (!Array.isArray(rowValues) || rowValues.length === 0) continue;
+      if (!Array.isArray(rowValues) || rowValues.length === 0) {
+        console.log("Empty row");
+        rowIndex++;
+        continue;
+      }
 
       if (rowIndex === 1) {
         headers = this.extractHeaders(rowValues);
