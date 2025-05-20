@@ -15,5 +15,6 @@ export enum ConciliationTypes {
 }
 
 export enum Envs {
-  SLACK_WEBHOOK_URL = "SLACK_WEBHOOK_URL"
+  SLACK_WEBHOOK_URL = "SLACK_WEBHOOK_URL",
+  BATCH_SIZE = "BATCH_SIZE"
 }

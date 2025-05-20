@@ -61,6 +61,8 @@ class Model {
     conciliationType: string
   ) {
     const errors: any[] = [];
+    const validRows: any[] = [];
+    const batchSize = parseInt(`${process.env[Envs.BATCH_SIZE]}`);
     let headers: string[] = [];
     let rowIndex = 1;
 
@@ -68,7 +70,7 @@ class Model {
       const rowValues = row.values;
 
       if (!Array.isArray(rowValues) || rowValues.length === 0) {
-        console.log("Empty row");
+        console.log(`📥 No se encontraron registros en la fila ${rowIndex}.`);
         rowIndex++;
         continue;
       }
@@ -93,10 +95,18 @@ class Model {
           errors: rowErrors
         });
       } else {
-        this.saveRow(rowValues);
+        validRows.push(rowValues);
+
+        if (validRows.length >= batchSize) {
+          await this.saveRows(validRows.splice(0, batchSize));
+        }
       }
 
       rowIndex++;
+    }
+
+    if (validRows.length > 0) {
+      await this.saveRows(validRows);
     }
 
     return { errors };
@@ -119,9 +129,15 @@ class Model {
     }
   }
 
-  private saveRow(rowValues: any[]) {
-    console.log("✅ Insertando a la BDD:", rowValues.slice(1));
-    console.log("Falta implementar");
+  private saveRows(rowValues: any[][]) {
+    console.log(`✅ Insertando ${rowValues.length} fila(s) a la BDD:`);
+
+    rowValues.forEach((row, index) => {
+      const formattedRow = row
+        .map((cell: any) => String(cell).trim())
+        .join(" | ");
+      console.log(`  [${index + 1}] ${formattedRow}`);
+    });
   }
 
   private handleProcessingResult({
@@ -163,15 +179,16 @@ class Model {
     data: any;
     environment: EnvironmentTypes;
   }) {
-    const payload = {
+    const urlToSend = `${process.env[Envs.SLACK_WEBHOOK_URL]}`;
+
+    const formattedJson = "```json\n" + JSON.stringify(data, null, 2) + "\n```";
+
+    const response = await axios.post(urlToSend, {
       environment,
       conciliationType,
       step,
-      data: JSON.stringify(data)
-    };
-    const urlToSend = `${process.env[Envs.SLACK_WEBHOOK_URL]}`;
-
-    const response = await axios.post(urlToSend, payload);
+      data: formattedJson
+    });
     console.log("response =>>>", response.data);
   }
 }
