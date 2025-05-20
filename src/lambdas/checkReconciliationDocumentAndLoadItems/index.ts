@@ -7,9 +7,9 @@ export const handler = async (event: any) => {
   try {
     checkEnv({ ...contextEnv, ...dbEnv });
 
-    const { bucket, key, conciliationType } = Dto.getParams(event);
+    const { bucket, key, conciliationType, environment } = Dto.getParams(event);
 
-    const model = new Model("dev");
+    const model = new Model(environment);
 
     const workbookReaderStream = await model.getWorkbookReaderStream(
       bucket,
