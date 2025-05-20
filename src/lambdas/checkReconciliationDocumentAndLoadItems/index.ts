@@ -18,6 +18,11 @@ export const handler = async (event: any) => {
     await model.processWorksheet(workbookReaderStream, conciliationType);
   } catch (err: any) {
     console.error(err);
-    throw err;
+    Model.sendSlackNotification({
+      conciliationType: "",
+      step: "",
+      data: err.message,
+      environment: event.stage
+    });
   }
 };

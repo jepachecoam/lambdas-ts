@@ -151,7 +151,7 @@ class Model {
   }) {
     if (errors.length > 0) {
       console.warn("⚠️ Errores encontrados:", errors);
-      this.sendSlackNotification({
+      Model.sendSlackNotification({
         conciliationType,
         step: "Validacion de tipos de los registros en el archivo",
         data: errors,
@@ -159,7 +159,7 @@ class Model {
       });
     } else {
       console.log("📥 Archivo procesado sin errores");
-      this.sendSlackNotification({
+      Model.sendSlackNotification({
         conciliationType,
         step: "Validacion de tipos de los registros en el archivo",
         data: "Completado sin errores",
@@ -168,7 +168,7 @@ class Model {
     }
   }
 
-  private async sendSlackNotification({
+  static async sendSlackNotification({
     conciliationType,
     step,
     data,
