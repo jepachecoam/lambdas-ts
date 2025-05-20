@@ -4,6 +4,10 @@ class Dto {
   static getParams(event: any) {
     console.log("event:>>>", JSON.stringify(event));
 
+    if (!event.Records || !event.Records[0] || !event.Records[0].s3) {
+      throw new Error("Missing required parameters for authorization.");
+    }
+
     const environment: EnvironmentTypes = !["dev", "qa"].includes(event.stage)
       ? "prod"
       : event.stage;

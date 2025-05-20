@@ -1,15 +1,18 @@
+import axios from "axios";
 import ExcelJS from "exceljs";
 
 import { EnvironmentTypes } from "../../shared/types";
 import Dao from "./dao";
 import schemas from "./schemas";
-import { conciliationTypes } from "./types";
+import { ConciliationTypes, Envs } from "./types";
 import validators from "./validators";
 
 class Model {
   private Dao: Dao;
+  private environment: EnvironmentTypes;
   constructor(environment: EnvironmentTypes) {
     this.Dao = new Dao(environment);
+    this.environment = environment;
   }
 
   async getWorkbookReaderStream(bucket: string, key: string) {
@@ -37,7 +40,11 @@ class Model {
       worksheet,
       conciliationType
     );
-    this.handleProcessingResult(errors);
+    this.handleProcessingResult({
+      conciliationType,
+      errors,
+      environment: this.environment
+    });
   }
 
   private async getFirstWorksheet(
@@ -53,7 +60,7 @@ class Model {
     worksheet: any,
     conciliationType: string
   ) {
-    const errors: string[] = [];
+    const errors: any[] = [];
     let headers: string[] = [];
     let rowIndex = 1;
 
@@ -81,7 +88,10 @@ class Model {
       );
 
       if (rowErrors.length > 0) {
-        errors.push(...rowErrors);
+        errors.push({
+          row: rowIndex,
+          errors: rowErrors
+        });
       } else {
         this.saveRow(rowValues);
       }
@@ -98,9 +108,9 @@ class Model {
 
   private getSchema(conciliationType: string): any[] {
     switch (conciliationType) {
-      case conciliationTypes.payments:
+      case ConciliationTypes.payments:
         return schemas.paymentSchema;
-      case conciliationTypes.charges:
+      case ConciliationTypes.charges:
         return schemas.chargeSchema;
       default:
         throw new Error(
@@ -114,13 +124,55 @@ class Model {
     console.log("Falta implementar");
   }
 
-  private handleProcessingResult(errors: string[]) {
+  private handleProcessingResult({
+    conciliationType,
+    errors,
+    environment
+  }: {
+    conciliationType: string;
+    errors: any;
+    environment: EnvironmentTypes;
+  }) {
     if (errors.length > 0) {
       console.warn("⚠️ Errores encontrados:", errors);
-      console.log("Enviando a Slack...");
+      this.sendSlackNotification({
+        conciliationType,
+        step: "Validacion de tipos de los registros en el archivo",
+        data: errors,
+        environment
+      });
     } else {
       console.log("📥 Archivo procesado sin errores");
+      this.sendSlackNotification({
+        conciliationType,
+        step: "Validacion de tipos de los registros en el archivo",
+        data: "Completado sin errores",
+        environment
+      });
     }
+  }
+
+  private async sendSlackNotification({
+    conciliationType,
+    step,
+    data,
+    environment
+  }: {
+    conciliationType: string;
+    step: string;
+    data: any;
+    environment: EnvironmentTypes;
+  }) {
+    const payload = {
+      environment,
+      conciliationType,
+      step,
+      data: JSON.stringify(data)
+    };
+    const urlToSend = `${process.env[Envs.SLACK_WEBHOOK_URL]}`;
+
+    const response = await axios.post(urlToSend, payload);
+    console.log("response =>>>", response.data);
   }
 }
 

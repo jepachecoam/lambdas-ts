@@ -9,7 +9,11 @@ export interface ValidationRule {
   pattern?: RegExp;
 }
 
-export enum conciliationTypes {
+export enum ConciliationTypes {
   payments = "payments",
   charges = "charges"
+}
+
+export enum Envs {
+  SLACK_WEBHOOK_URL = "SLACK_WEBHOOK_URL"
 }
