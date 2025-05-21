@@ -3,6 +3,7 @@ import ExcelJS from "exceljs";
 
 import { EnvironmentTypes } from "../../shared/types";
 import Dao from "./dao";
+import Dto from "./dto";
 import schemas from "./schemas";
 import { ConciliationTypes, Envs } from "./types";
 import validators from "./validators";
@@ -98,7 +99,8 @@ class Model {
         validRows.push(rowValues);
 
         if (validRows.length >= batchSize) {
-          await this.saveRows(validRows.splice(0, batchSize));
+          const records = validRows.splice(0, batchSize);
+          await this.saveRows(records, conciliationType);
         }
       }
 
@@ -106,7 +108,7 @@ class Model {
     }
 
     if (validRows.length > 0) {
-      await this.saveRows(validRows);
+      await this.saveRows(validRows, conciliationType);
     }
 
     return { errors };
@@ -129,15 +131,18 @@ class Model {
     }
   }
 
-  private saveRows(rowValues: any[][]) {
-    console.log(`✅ Insertando ${rowValues.length} fila(s) a la BDD:`);
-
-    rowValues.forEach((row, index) => {
-      const formattedRow = row
-        .map((cell: any) => String(cell).trim())
-        .join(" | ");
-      console.log(`  [${index + 1}] ${formattedRow}`);
-    });
+  private async saveRows(rowValues: any[][], conciliationType: string) {
+    if (conciliationType === ConciliationTypes.payments) {
+      const rowValuesParsed = Dto.rowValuesToCarrierPayment(rowValues);
+      return await this.Dao.bulkInsertCarrierPayment(rowValuesParsed);
+    }
+    if (conciliationType === ConciliationTypes.charges) {
+      const rowValuesParsed = Dto.rowValuesToCarrierCharge(rowValues);
+      return await this.Dao.bulkInsertCarrierCharge(rowValuesParsed);
+    }
+    throw new Error(
+      `❌ Tipo de conciliación no soportado: ${conciliationType}`
+    );
   }
 
   private handleProcessingResult({

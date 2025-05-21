@@ -25,6 +25,64 @@ class Dto {
 
     return { bucket, key, conciliationType, environment };
   }
+  static rowValuesToCarrierCharge(rowValues: any[][]) {
+    const result: any[] = [];
+
+    rowValues.forEach((rowValue) => {
+      const getValue = (index: number, allowNull = false) => {
+        const value = rowValue[index];
+        if (value === undefined || value === null || value === "") {
+          return allowNull ? null : "";
+        }
+        return value;
+      };
+
+      result.push({
+        idCarrier: getValue(1),
+        invoiceNumber: getValue(2),
+        carrierTrackingCode: getValue(3),
+        chargeDate: getValue(4),
+        units: getValue(5),
+        actualWeight: getValue(6),
+        volumetricWeight: getValue(7),
+        billedWeight: getValue(8),
+        declaredValue: getValue(9),
+        fixedFreight: getValue(10),
+        variableFreight: getValue(11),
+        collectionCommission: getValue(12),
+        totalFreight: getValue(13),
+        businessUnit: getValue(14, true),
+        notes: getValue(15, true)
+      });
+    });
+
+    return result;
+  }
+
+  static rowValuesToCarrierPayment(rowValues: any[][]) {
+    const result: any[] = [];
+
+    rowValues.forEach((rowValue) => {
+      const getValue = (index: number, allowNull = false) => {
+        const value = rowValue[index];
+        if (value === undefined || value === null || value === "") {
+          return allowNull ? null : "";
+        }
+        return value;
+      };
+
+      result.push({
+        idCarrier: getValue(1),
+        paymentDate: getValue(2),
+        invoiceNumber: getValue(3),
+        amount: getValue(4),
+        businessUnit: getValue(5, true),
+        notes: getValue(6, true)
+      });
+    });
+
+    return result;
+  }
 }
 
 export default Dto;
