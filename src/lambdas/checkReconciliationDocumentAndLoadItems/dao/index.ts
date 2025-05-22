@@ -19,6 +19,7 @@ class Dao {
     const dbInstance = await this.db.getInstance();
     const carrierChargeModel = initCarrierChargeModel(dbInstance);
     return await carrierChargeModel.bulkCreate(records, {
+      validate: true,
       updateOnDuplicate: [
         "idCarrier",
         "invoiceNumber",
@@ -45,6 +46,7 @@ class Dao {
     const dbInstance = await this.db.getInstance();
     const carrierPaymentModel = initCarrierPaymentModel(dbInstance);
     return await carrierPaymentModel.bulkCreate(records, {
+      validate: true,
       updateOnDuplicate: [
         "idCarrier",
         "collectionDate",

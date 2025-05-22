@@ -76,56 +76,56 @@ const chargeSchema: ValidationRule[] = [
   },
   {
     header: "Peso real *",
-    key: "realWeight",
+    key: "actualWeight",
     type: "decimal",
     required: true
   },
   {
     header: "Peso Volumen *",
-    key: "volumeWeight",
+    key: "volumetricWeight",
     type: "decimal",
     required: true
   },
   {
     header: "Peso Liquidado *",
-    key: "volumeWeight",
+    key: "billedWeight",
     type: "decimal",
     required: true
   },
   {
     header: "Valor declarado *",
-    key: "volumeWeight",
+    key: "declaredValue",
     type: "decimal",
     required: true
   },
   {
     header: "Flete Fijo *",
-    key: "volumeWeight",
+    key: "fixedFreight",
     type: "decimal",
     required: true
   },
   {
     header: "Flete Variable *",
-    key: "volumeWeight",
+    key: "variableFreight",
     type: "decimal",
     required: true
   },
   {
     header: "Flete Total *",
-    key: "volumeWeight",
+    key: "totalFreight",
     type: "decimal",
     required: true
   },
   {
     header: "Comision de recaudo *",
-    key: "volumeWeight",
+    key: "collectionCommission",
     type: "decimal",
     required: true
   },
   {
     header: "Servicio / Unidad de negocio",
-    key: "volumeWeight",
-    type: "decimal",
+    key: "businessUnit",
+    type: "string",
     required: false
   },
   {
@@ -136,7 +136,7 @@ const chargeSchema: ValidationRule[] = [
   },
   {
     header: "Total *",
-    key: "total",
+    key: "totalCharge",
     type: "decimal",
     required: true
   }

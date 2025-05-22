@@ -40,30 +40,23 @@ class Dto {
     const result: any[] = [];
 
     rowValues.forEach((rowValue) => {
-      const getValue = (index: number, allowNull = false) => {
-        const value = rowValue[index];
-        if (value === undefined || value === null || value === "") {
-          return allowNull ? null : "";
-        }
-        return value;
-      };
-
       result.push({
-        idCarrier: getValue(0),
-        invoiceNumber: getValue(1),
-        carrierTrackingCode: getValue(2),
-        chargeDate: getValue(3),
-        units: getValue(4),
-        actualWeight: getValue(5),
-        volumetricWeight: getValue(6),
-        billedWeight: getValue(7),
-        declaredValue: getValue(8),
-        fixedFreight: getValue(9),
-        variableFreight: getValue(10),
-        collectionCommission: getValue(11),
-        totalFreight: getValue(12),
-        businessUnit: getValue(13, true),
-        notes: getValue(14, true)
+        idCarrier: rowValue[0],
+        invoiceNumber: rowValue[1],
+        carrierTrackingCode: rowValue[2],
+        chargeDate: rowValue[3],
+        units: rowValue[4],
+        actualWeight: rowValue[5],
+        volumetricWeight: rowValue[6],
+        billedWeight: rowValue[7],
+        declaredValue: rowValue[8],
+        fixedFreight: rowValue[9],
+        variableFreight: rowValue[10],
+        collectionCommission: rowValue[11],
+        totalFreight: rowValue[12],
+        businessUnit: rowValue[13],
+        notes: rowValue[14],
+        totalCharge: rowValue[15]
       });
     });
 
@@ -74,21 +67,13 @@ class Dto {
     const result: any[] = [];
 
     rowValues.forEach((rowValue) => {
-      const getValue = (index: number, allowNull = false) => {
-        const value = rowValue[index];
-        if (value === undefined || value === null || value === "") {
-          return allowNull ? null : "";
-        }
-        return value;
-      };
-
       result.push({
-        idCarrier: getValue(0),
-        paymentDate: getValue(1),
-        invoiceNumber: getValue(2),
-        amount: getValue(3),
-        businessUnit: getValue(4, true),
-        notes: getValue(5, true)
+        idCarrier: rowValue[0],
+        paymentDate: rowValue[1],
+        invoiceNumber: rowValue[2],
+        amount: rowValue[3],
+        businessUnit: rowValue[4],
+        notes: rowValue[5]
       });
     });
 
