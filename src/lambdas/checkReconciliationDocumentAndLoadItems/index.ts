@@ -18,7 +18,7 @@ export const handler = async (event: any) => {
     await model.processWorksheet(workbookReaderStream, conciliationType);
   } catch (err: any) {
     console.error(err);
-    Model.sendSlackNotification({
+    await Model.sendSlackNotification({
       conciliationType: "",
       step: "",
       data: err.message,

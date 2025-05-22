@@ -41,7 +41,7 @@ class Model {
       worksheet,
       conciliationType
     );
-    this.handleProcessingResult({
+    await this.handleProcessingResult({
       conciliationType,
       errors,
       environment: this.environment
@@ -151,7 +151,7 @@ class Model {
     }
   }
 
-  private handleProcessingResult({
+  private async handleProcessingResult({
     conciliationType,
     errors,
     environment
@@ -162,7 +162,7 @@ class Model {
   }) {
     if (errors.length > 0) {
       console.warn("⚠️ Errores encontrados:", errors);
-      Model.sendSlackNotification({
+      await Model.sendSlackNotification({
         conciliationType,
         step: "Validacion de tipos de los registros en el archivo",
         data: errors,
@@ -170,7 +170,7 @@ class Model {
       });
     } else {
       console.log("📥 Archivo procesado sin errores");
-      Model.sendSlackNotification({
+      await Model.sendSlackNotification({
         conciliationType,
         step: "Validacion de tipos de los registros en el archivo",
         data: "Completado sin errores",
