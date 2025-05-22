@@ -135,17 +135,20 @@ class Model {
   }
 
   private async saveRows(rowValues: any[][], conciliationType: string) {
-    if (conciliationType === ConciliationTypes.payments) {
-      const rowValuesParsed = Dto.rowValuesToCarrierPayment(rowValues);
-      return await this.Dao.bulkInsertCarrierPayment(rowValuesParsed);
+    switch (conciliationType) {
+      case ConciliationTypes.payments: {
+        const rowValuesParsed = Dto.rowValuesToCarrierPayment(rowValues);
+        return await this.Dao.bulkInsertCarrierPayment(rowValuesParsed);
+      }
+      case ConciliationTypes.charges: {
+        const rowValuesParsed = Dto.rowValuesToCarrierCharge(rowValues);
+        return await this.Dao.bulkInsertCarrierCharge(rowValuesParsed);
+      }
+      default:
+        throw new Error(
+          `❌ Tipo de conciliación no soportado: ${conciliationType}`
+        );
     }
-    if (conciliationType === ConciliationTypes.charges) {
-      const rowValuesParsed = Dto.rowValuesToCarrierCharge(rowValues);
-      return await this.Dao.bulkInsertCarrierCharge(rowValuesParsed);
-    }
-    throw new Error(
-      `❌ Tipo de conciliación no soportado: ${conciliationType}`
-    );
   }
 
   private handleProcessingResult({
@@ -185,7 +188,7 @@ class Model {
     conciliationType: string;
     step: string;
     data: any;
-    environment: EnvironmentTypes;
+    environment: string;
   }) {
     const urlToSend = `${process.env[Envs.SLACK_WEBHOOK_URL]}`;
 

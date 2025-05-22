@@ -22,7 +22,7 @@ export const handler = async (event: any) => {
       conciliationType: "",
       step: "",
       data: err.message,
-      environment: event.stage
+      environment: ""
     });
   }
 };
