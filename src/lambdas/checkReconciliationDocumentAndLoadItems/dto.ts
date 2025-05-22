@@ -38,21 +38,21 @@ class Dto {
       };
 
       result.push({
-        idCarrier: getValue(1),
-        invoiceNumber: getValue(2),
-        carrierTrackingCode: getValue(3),
-        chargeDate: getValue(4),
-        units: getValue(5),
-        actualWeight: getValue(6),
-        volumetricWeight: getValue(7),
-        billedWeight: getValue(8),
-        declaredValue: getValue(9),
-        fixedFreight: getValue(10),
-        variableFreight: getValue(11),
-        collectionCommission: getValue(12),
-        totalFreight: getValue(13),
-        businessUnit: getValue(14, true),
-        notes: getValue(15, true)
+        idCarrier: getValue(0),
+        invoiceNumber: getValue(1),
+        carrierTrackingCode: getValue(2),
+        chargeDate: getValue(3),
+        units: getValue(4),
+        actualWeight: getValue(5),
+        volumetricWeight: getValue(6),
+        billedWeight: getValue(7),
+        declaredValue: getValue(8),
+        fixedFreight: getValue(9),
+        variableFreight: getValue(10),
+        collectionCommission: getValue(11),
+        totalFreight: getValue(12),
+        businessUnit: getValue(13, true),
+        notes: getValue(14, true)
       });
     });
 
@@ -72,12 +72,12 @@ class Dto {
       };
 
       result.push({
-        idCarrier: getValue(1),
-        paymentDate: getValue(2),
-        invoiceNumber: getValue(3),
-        amount: getValue(4),
-        businessUnit: getValue(5, true),
-        notes: getValue(6, true)
+        idCarrier: getValue(0),
+        paymentDate: getValue(1),
+        invoiceNumber: getValue(2),
+        amount: getValue(3),
+        businessUnit: getValue(4, true),
+        notes: getValue(5, true)
       });
     });
 

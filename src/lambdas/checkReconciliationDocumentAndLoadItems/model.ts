@@ -72,8 +72,11 @@ class Model {
 
       if (!Array.isArray(rowValues) || rowValues.length === 0) {
         console.log(`📥 No se encontraron registros en la fila ${rowIndex}.`);
-        rowIndex++;
-        continue;
+        console.log(`Finalizando el proceso de la hoja ${worksheet.name}.`);
+        console.log(
+          `Total de filas procesadas ${rowIndex - 1}, exitosas ${validRows.length} fallidas ${errors.length}.`
+        );
+        break;
       }
 
       if (rowIndex === 1) {
@@ -83,7 +86,7 @@ class Model {
       }
 
       const schema = this.getSchema(conciliationType);
-      const rowErrors = validators.validateRow(
+      const { rowErrors, validValues } = validators.validateRow(
         rowValues,
         headers,
         schema,
@@ -96,7 +99,7 @@ class Model {
           errors: rowErrors
         });
       } else {
-        validRows.push(rowValues);
+        validRows.push(validValues);
 
         if (validRows.length >= batchSize) {
           const records = validRows.splice(0, batchSize);

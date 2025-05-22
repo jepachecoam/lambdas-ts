@@ -19,7 +19,25 @@ class Dao {
     const dbInstance = await this.db.getInstance();
     const carrierChargeModel = initCarrierChargeModel(dbInstance);
     return await carrierChargeModel.bulkCreate(records, {
-      updateOnDuplicate: ["carrierTrackingCode"]
+      updateOnDuplicate: [
+        "idCarrier",
+        "invoiceNumber",
+        "chargeDate",
+        "units",
+        "actualWeight",
+        "volumetricWeight",
+        "billedWeight",
+        "declaredValue",
+        "fixedFreight",
+        "variableFreight",
+        "collectionCommission",
+        "totalFreight",
+        "businessUnit",
+        "notes",
+        "createdAt",
+        "updatedAt",
+        "totalCharge"
+      ]
     });
   }
 
@@ -27,7 +45,16 @@ class Dao {
     const dbInstance = await this.db.getInstance();
     const carrierPaymentModel = initCarrierPaymentModel(dbInstance);
     return await carrierPaymentModel.bulkCreate(records, {
-      updateOnDuplicate: ["carrierTrackingCode"]
+      updateOnDuplicate: [
+        "idCarrier",
+        "collectionDate",
+        "notes",
+        "paymentMethod",
+        "amount",
+        "paymentDate",
+        "createdAt",
+        "updatedAt"
+      ]
     });
   }
 }
