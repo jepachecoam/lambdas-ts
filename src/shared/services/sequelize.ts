@@ -43,6 +43,10 @@ export class Database {
     this.db = getDatabaseInstance(environment);
   }
 
+  async getInstance() {
+    return this.db;
+  }
+
   async fetchOne(query: string, config?: QueryOptions) {
     const result = await this.db.query(query, {
       ...config,
