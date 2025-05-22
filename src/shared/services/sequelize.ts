@@ -9,6 +9,12 @@ const dbConfig = {
     password: `${process.env["DB_PASSWORD_DEV"]}`,
     host: `${process.env["DB_HOST_DEV"]}`
   },
+  qa: {
+    database: `${process.env["DB_NAME_QA"]}`,
+    username: `${process.env["DB_USER_QA"]}`,
+    password: `${process.env["DB_PASSWORD_QA"]}`,
+    host: `${process.env["DB_HOST_QA"]}`
+  },
   prod: {
     database: `${process.env["DB_NAME_PROD"]}`,
     username: `${process.env["DB_USER_PROD"]}`,
@@ -18,17 +24,38 @@ const dbConfig = {
 };
 
 const getDatabaseInstance = (environment: EnvironmentTypes) => {
-  const configKey = ["prod", "qa"].includes(environment) ? "prod" : "dev";
-  const { database, username, password, host } = dbConfig[configKey];
+  try {
+    if (!["dev", "qa", "prod"].includes(environment)) {
+      throw new Error(`Invalid environment: ${environment}`);
+    }
 
-  return new Sequelize(database!, username!, password!, {
-    host,
-    dialect: "mysql",
-    dialectOptions: { decimalNumbers: true },
-    timezone: "+00:00",
-    logging: (msg) =>
-      console.log(`Environment(${environment}) -  Query =>>> ${msg}`)
-  });
+    const { database, username, password, host } = dbConfig[environment];
+    const missingVars: string[] = [];
+
+    if (!database) missingVars.push(`DB_NAME_${environment.toUpperCase()}`);
+    if (!username) missingVars.push(`DB_USER_${environment.toUpperCase()}`);
+    if (!password) missingVars.push(`DB_PASSWORD_${environment.toUpperCase()}`);
+    if (!host) missingVars.push(`DB_HOST_${environment.toUpperCase()}`);
+
+    if (missingVars.length > 0) {
+      throw new Error(
+        `Missing environment variables for '${environment}': ${missingVars.join(", ")}`
+      );
+    }
+
+    return new Sequelize(database, username, password, {
+      host,
+      dialect: "mysql",
+      dialectOptions: { decimalNumbers: true },
+      timezone: "+00:00",
+      logging: (msg) =>
+        console.log(`Environment(${environment}) - Query =>>> ${msg}`)
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[DB_INIT_ERROR]: ${msg}`);
+    throw err;
+  }
 };
 
 interface QueryOptions {
