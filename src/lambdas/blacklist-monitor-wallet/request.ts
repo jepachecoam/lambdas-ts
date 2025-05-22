@@ -74,7 +74,7 @@ class Request {
 
       const payload = {
         idUser: idUser,
-        idEntity: idBusiness,
+        idEntity: String(idBusiness),
         updateSourceType: "PROCESS",
         idUpdateSource: "lambda-MasterShop-Blacklist-MonitorWallet",
         reasonIds: [NEGATIVE_WALLET_REASON, idBlacklistReason],

@@ -30,18 +30,6 @@ const getDatabaseInstance = (environment: EnvironmentTypes) => {
     }
 
     const { database, username, password, host } = dbConfig[environment];
-    const missingVars: string[] = [];
-
-    if (!database) missingVars.push(`DB_NAME_${environment.toUpperCase()}`);
-    if (!username) missingVars.push(`DB_USER_${environment.toUpperCase()}`);
-    if (!password) missingVars.push(`DB_PASSWORD_${environment.toUpperCase()}`);
-    if (!host) missingVars.push(`DB_HOST_${environment.toUpperCase()}`);
-
-    if (missingVars.length > 0) {
-      throw new Error(
-        `Missing environment variables for '${environment}': ${missingVars.join(", ")}`
-      );
-    }
 
     return new Sequelize(database, username, password, {
       host,
