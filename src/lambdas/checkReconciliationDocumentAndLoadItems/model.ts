@@ -190,17 +190,22 @@ class Model {
     data: any;
     environment: string;
   }) {
-    const urlToSend = `${process.env[Envs.SLACK_WEBHOOK_URL]}`;
+    try {
+      const urlToSend = `${process.env[Envs.SLACK_WEBHOOK_URL]}`;
 
-    const formattedJson = "```json\n" + JSON.stringify(data, null, 2) + "\n```";
+      const formattedJson =
+        "```json\n" + JSON.stringify(data, null, 2) + "\n```";
 
-    const response = await axios.post(urlToSend, {
-      environment,
-      conciliationType,
-      step,
-      data: formattedJson
-    });
-    console.log("response =>>>", response.data);
+      const response = await axios.post(urlToSend, {
+        environment,
+        conciliationType,
+        step,
+        data: formattedJson
+      });
+      console.log("response =>>>", response.data);
+    } catch (error) {
+      console.error("Error in sendSlackNotification =>>>", error);
+    }
   }
 }
 
