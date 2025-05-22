@@ -71,10 +71,11 @@ class Model {
       const rowValues = row.values;
 
       if (!Array.isArray(rowValues) || rowValues.length === 0) {
-        console.log(`📥 No se encontraron registros en la fila ${rowIndex}.`);
+        // se deja de leer registros cuando se encuentra una fila vacia.
+        console.log(`📥La fila ${rowIndex} esta vacia.`);
         console.log(`Finalizando el proceso de la hoja ${worksheet.name}.`);
         console.log(
-          `Total de filas procesadas ${rowIndex - 1}, exitosas ${validRows.length} fallidas ${errors.length}.`
+          `Total de filas leidas ${rowIndex - 1}, exitosas ${validRows.length} fallidas ${errors.length}.`
         );
         break;
       }
@@ -104,6 +105,9 @@ class Model {
         if (validRows.length >= batchSize) {
           const records = validRows.splice(0, batchSize);
           await this.saveRows(records, conciliationType);
+          console.log(
+            `📥 Guardando ${records.length} registros en la base de datos.`
+          );
         }
       }
 
@@ -112,6 +116,9 @@ class Model {
 
     if (validRows.length > 0) {
       await this.saveRows(validRows, conciliationType);
+      console.log(
+        `📥 Guardando ${validRows.length} registros en la base de datos.`
+      );
     }
 
     return { errors };

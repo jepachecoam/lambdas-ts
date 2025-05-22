@@ -31,6 +31,7 @@ class Dto {
     }
 
     console.log("conciliationType:>>>", conciliationType);
+    console.log("environment:>>>", environment);
     console.log("bucket:>>>", bucket);
     console.log("key:>>>", key);
 
