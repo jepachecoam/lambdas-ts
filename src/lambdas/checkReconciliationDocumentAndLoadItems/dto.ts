@@ -70,11 +70,12 @@ class Dto {
     rowValues.forEach((rowValue) => {
       result.push({
         idCarrier: rowValue[0],
-        paymentDate: rowValue[1],
-        invoiceNumber: rowValue[2],
-        amount: rowValue[3],
-        businessUnit: rowValue[4],
-        notes: rowValue[5]
+        carrierTrackingCode: rowValue[1],
+        collectionDate: rowValue[2],
+        notes: rowValue[3],
+        paymentMethod: rowValue[4],
+        amount: rowValue[5],
+        paymentDate: rowValue[6]
       });
     });
 

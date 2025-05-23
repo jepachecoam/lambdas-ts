@@ -21,7 +21,7 @@ export const handler = async (event: any) => {
     await Model.sendSlackNotification({
       conciliationType: "",
       step: "",
-      data: err.message,
+      data: err.message ? err.message : err,
       environment: ""
     });
   }
