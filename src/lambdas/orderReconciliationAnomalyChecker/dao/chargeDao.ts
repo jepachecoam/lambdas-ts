@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
 
-import db from "../database/config.js";
+import db from "../database/config";
 
 const getCarrierChargePendingToProcess = async () => {
   try {

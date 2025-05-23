@@ -11,10 +11,12 @@ export const handler = async (event: any, context: any) => {
 
     switch (operationType) {
       case "CHARGES":
+        console.log("Starting CHARGES reconciliation process...");
         await chargeModel.processCharges();
         break;
 
       case "PAYMENTS":
+        console.log("Starting PAYMENTS reconciliation process...");
         await paymentModel.processPayments();
         break;
       default:

@@ -1,5 +1,3 @@
-import { or } from "sequelize";
-
 import paymentDao from "../dao/paymentDao";
 import paymentUtils from "../utils/paymentUtils";
 import sharedModel from "./sharedModel";
