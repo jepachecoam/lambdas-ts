@@ -1,6 +1,17 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
-import { ICarrierPayment } from "../../types";
+export interface ICarrierPayment {
+  idCarrierPayment: number;
+  idCarrier: number;
+  carrierTrackingCode: string;
+  collectionDate: Date;
+  notes?: string;
+  paymentMethod: string;
+  amount: number;
+  paymentDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 class CarrierPayment extends Model<ICarrierPayment> {}
 

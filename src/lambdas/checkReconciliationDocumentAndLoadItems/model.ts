@@ -66,6 +66,7 @@ class Model {
     const batchSize = parseInt(`${process.env[Envs.BATCH_SIZE]}`);
     let headers: string[] = [];
     let rowIndex = 1;
+    let validRowsCounter = 0;
 
     for await (const row of worksheet) {
       const rowValues = row.values;
@@ -103,6 +104,7 @@ class Model {
         validRows.push(validValues);
 
         if (validRows.length >= batchSize) {
+          validRowsCounter += validRows.length;
           const records = validRows.splice(0, batchSize);
           await this.saveRows(records, conciliationType);
           console.log(
@@ -115,11 +117,19 @@ class Model {
     }
 
     if (validRows.length > 0) {
+      validRowsCounter += validRows.length;
       await this.saveRows(validRows, conciliationType);
       console.log(
         `📥 Guardando ${validRows.length} registros en la base de datos.`
       );
     }
+
+    await Model.sendSlackNotification({
+      conciliationType,
+      step: "Procesamiento de registros completado",
+      data: `Total de filas leidas ${rowIndex - 1}, exitosas ${validRowsCounter} fallidas ${errors.length}.`,
+      environment: this.environment
+    });
 
     return { errors };
   }

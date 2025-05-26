@@ -1,8 +1,8 @@
-import S3 from "../../../shared/services/S3";
-import Database from "../../../shared/services/sequelize";
-import { EnvironmentTypes } from "../../../shared/types";
-import { initCarrierChargeModel } from "./models/charge";
-import { initCarrierPaymentModel } from "./models/payment";
+import { initCarrierChargeModel } from "../../shared/databases/models/carrierCharge";
+import { initCarrierPaymentModel } from "../../shared/databases/models/carrierPayment";
+import Database from "../../shared/databases/sequelize";
+import S3 from "../../shared/services/S3";
+import { EnvironmentTypes } from "../../shared/types";
 
 class Dao {
   private S3 = new S3();

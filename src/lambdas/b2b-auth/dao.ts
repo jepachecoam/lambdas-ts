@@ -1,4 +1,4 @@
-import Dynamo from "../../shared/services/dynamo";
+import Dynamo from "../../shared/databases/dynamo";
 import SecretManager from "../../shared/services/secretManager";
 import { EnvironmentTypes } from "../../shared/types";
 
