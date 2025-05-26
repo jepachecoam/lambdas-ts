@@ -1,25 +1,25 @@
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 
-import { EnvironmentTypes } from "../types";
+import { dbEnv, EnvironmentTypes } from "../types";
 
 const dbConfig = {
   dev: {
-    database: `${process.env["DB_NAME_DEV"]}`,
-    username: `${process.env["DB_USER_DEV"]}`,
-    password: `${process.env["DB_PASSWORD_DEV"]}`,
-    host: `${process.env["DB_HOST_DEV"]}`
+    database: `${process.env[dbEnv.DB_NAME_DEV]}`,
+    username: `${process.env[dbEnv.DB_USER_DEV]}`,
+    password: `${process.env[dbEnv.DB_PASSWORD_DEV]}`,
+    host: `${process.env[dbEnv.DB_HOST_DEV]}`
   },
   qa: {
-    database: `${process.env["DB_NAME_QA"]}`,
-    username: `${process.env["DB_USER_QA"]}`,
-    password: `${process.env["DB_PASSWORD_QA"]}`,
-    host: `${process.env["DB_HOST_QA"]}`
+    database: `${process.env[dbEnv.DB_NAME_QA]}`,
+    username: `${process.env[dbEnv.DB_USER_QA]}`,
+    password: `${process.env[dbEnv.DB_PASSWORD_QA]}`,
+    host: `${process.env[dbEnv.DB_HOST_QA]}`
   },
   prod: {
-    database: `${process.env["DB_NAME_PROD"]}`,
-    username: `${process.env["DB_USER_PROD"]}`,
-    password: `${process.env["DB_PASSWORD_PROD"]}`,
-    host: `${process.env["DB_HOST_PROD"]}`
+    database: `${process.env[dbEnv.DB_NAME_PROD]}`,
+    username: `${process.env[dbEnv.DB_USER_PROD]}`,
+    password: `${process.env[dbEnv.DB_PASSWORD_PROD]}`,
+    host: `${process.env[dbEnv.DB_HOST_PROD]}`
   }
 };
 
