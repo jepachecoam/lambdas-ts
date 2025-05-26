@@ -1,6 +1,7 @@
 import Database from "../../shared/databases/sequelize";
 import SQS from "../../shared/services/sqs";
 import { EnvironmentTypes } from "../../shared/types";
+import { Envs } from "./types";
 
 class Dao {
   private db: Database;
@@ -44,16 +45,18 @@ class Dao {
     let queueUrl = "";
     switch (this.environment) {
       case "dev":
-        queueUrl = "";
+        queueUrl = `${process.env[Envs.DEV_QUEUE_URL]}`;
         break;
       case "qa":
-        queueUrl = "";
+        queueUrl = `${process.env[Envs.QA_QUEUE_URL]}`;
         break;
       case "prod":
-        queueUrl = "";
+        queueUrl = `${process.env[Envs.PROD_QUEUE_URL]}`;
         break;
     }
-    return this.SQS.sendMessage(message, queueUrl);
+    const result = await this.SQS.sendMessage(queueUrl, message);
+    console.log(result);
+    return result;
   }
 }
 

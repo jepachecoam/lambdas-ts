@@ -6,6 +6,7 @@ import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-
 import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/checkReconciliationDocumentAndLoadItems/index";
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
+import { handler as loadItemsToQueueReconciliationProcess } from "../lambdas/loadItemsToQueueReconciliationProcess/index";
 import { handler as orderReconciliationAnomalyChecker } from "../lambdas/orderReconciliationAnomalyChecker/index";
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
 import { jsonResponse } from "./middlewares";
@@ -47,6 +48,11 @@ router.post(
 router.post(
   "/order-reconciliation-anomaly-checker",
   jsonResponse({ handler: orderReconciliationAnomalyChecker })
+);
+
+router.post(
+  "/load-items-to-queue-reconciliation-process",
+  jsonResponse({ handler: loadItemsToQueueReconciliationProcess })
 );
 
 export default router;
