@@ -1,5 +1,5 @@
-import Dynamo from "../../shared/services/dynamo";
-import Database from "../../shared/services/sequelize";
+import Dynamo from "../../shared/databases/dynamo";
+import Database from "../../shared/databases/sequelize";
 import { EnvironmentTypes } from "../../shared/types";
 import {
   getStatisticsInt,

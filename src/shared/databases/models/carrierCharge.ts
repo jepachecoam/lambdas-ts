@@ -1,6 +1,27 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
-import { ICarrierCharge } from "../../types";
+export interface ICarrierCharge {
+  idCarrierCharge: number;
+  idCarrier: string;
+  invoiceNumber: string;
+  carrierTrackingCode: string;
+  chargeDate: Date;
+  units: number;
+  actualWeight: number;
+  volumetricWeight: number;
+  billedWeight: number;
+  declaredValue: number;
+  fixedFreight: number;
+  variableFreight: number;
+  collectionCommission: number;
+  totalFreight: number;
+  businessUnit: string;
+  notes: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  totalCharge?: number;
+}
+
 class CarrierCharge extends Model<ICarrierCharge> {}
 
 export const initCarrierChargeModel = (sequelize: Sequelize) => {
