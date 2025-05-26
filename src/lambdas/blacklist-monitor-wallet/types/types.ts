@@ -10,6 +10,12 @@ export interface UpdateItemToBlacklistParams {
   newStatus: string;
 }
 
+export type AddUserToBlacklistParams = {
+  idBlacklistReason: number;
+  idBusiness: number;
+  idUser: number;
+};
+
 export enum statusType {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE"

@@ -1,7 +1,6 @@
 import { EnvironmentTypes } from "../../shared/types";
 import Dao from "./dao";
 import Request from "./request";
-import { statusType } from "./types/types";
 
 class Model {
   private dao: Dao;
@@ -13,35 +12,19 @@ class Model {
   }
 
   async blockEntities({ idUser, idBusiness, idBlacklistReason }: any) {
-    console.log("starting process to block entities...");
+    console.log(`[blockEntities] Start: ${idUser}, business: ${idBusiness}`);
 
-    await this.updateStatusEntities({
-      idBusiness,
-      idBlacklistReason,
-      newStatus: statusType.ACTIVE
-    });
+    try {
+      await this.request.addUserToBlacklist({
+        idBlacklistReason,
+        idBusiness,
+        idUser
+      });
 
-    const entitiesToBlock = await this.getEntitiesToBlock({ idUser });
-
-    const entityTypeMap = {
-      accountNumbers: 7,
-      documentNumbers: 3,
-      phones: 6,
-      emails: 8
-    };
-
-    for (const [entityType, idBlacklistEntityType] of Object.entries(
-      entityTypeMap
-    )) {
-      const entities = entitiesToBlock[entityType]?.filter(Boolean) || [];
-      for (const idEntity of entities) {
-        await this.request.addItemToBlacklist({
-          idBlacklistEntityType,
-          idEntity,
-          idReference: idBusiness,
-          idBlacklistReason
-        });
-      }
+      console.log(`[blockEntities] Done: ${idUser}`);
+    } catch (error) {
+      console.error(`[blockEntities] Error: ${idUser}`, error);
+      throw error;
     }
   }
 
