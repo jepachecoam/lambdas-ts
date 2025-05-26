@@ -1,6 +1,6 @@
-import chargeDao from "../dao/chargeDao";
-import sharedDao from "../dao/sharedDao";
-import chargeUtils from "../utils/chargeUtils";
+import sharedDao from "../dao";
+import chargeDao from "./dao";
+import chargeUtils from "./types";
 
 const processCharges = async () => {
   try {

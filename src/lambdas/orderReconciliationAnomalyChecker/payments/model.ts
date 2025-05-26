@@ -1,6 +1,6 @@
-import paymentDao from "../dao/paymentDao";
-import paymentUtils from "../utils/paymentUtils";
-import sharedModel from "./sharedModel";
+import sharedModel from "../model";
+import paymentDao from "./dao";
+import paymentUtils from "./types";
 
 const processPayments = async () => {
   try {

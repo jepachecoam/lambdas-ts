@@ -1,6 +1,6 @@
-import chargeModel from "./model/chargeModel";
-import paymentModel from "./model/paymentModel";
-import sharedModel from "./model/sharedModel";
+import chargeModel from "./charges/model";
+import sharedModel from "./model";
+import paymentModel from "./payments/model";
 
 export const handler = async (event: any, context: any) => {
   try {

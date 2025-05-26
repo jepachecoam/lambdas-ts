@@ -1,5 +1,5 @@
-import sharedDao from "../dao/sharedDao";
-import dto from "../dto/sharedDto";
+import sharedDao from "./dao";
+import dto from "./dto";
 
 const parseEvent = ({ event }: any) => {
   return dto.parseEvent({ event });
