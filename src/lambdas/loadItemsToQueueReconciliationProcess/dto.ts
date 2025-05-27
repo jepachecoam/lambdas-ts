@@ -10,6 +10,9 @@ const parseEvent = ({ event }: any) => {
     throw new Error(`Unknown environment: ${environment}`);
   }
 
+  console.log("operationType =>>>", operationType);
+  console.log("environment =>>>", environment);
+
   return {
     operationType,
     environment

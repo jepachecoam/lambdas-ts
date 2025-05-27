@@ -2,6 +2,7 @@ import axios from "axios";
 
 import Database from "../../shared/databases/sequelize";
 import { EnvironmentTypes } from "../../shared/types";
+import { config } from "./types";
 
 class Dao {
   private db: Database;
@@ -39,14 +40,13 @@ class Dao {
   }
 
   async sendToQueue(message: any) {
-    const queueUrl = `${process.env["BASE_URL_MS"]}/${this.environment}/api/b2b/reconciliation/sendItems`;
+    const queueUrl = `${config.baseUrl}/${this.environment}/api/b2b/reconciliation/sendItems`;
     const result = await axios.post(queueUrl, message, {
       headers: {
-        "x-app-name": process.env["APP_NAME_MS"],
-        "x-api-key": process.env["API_KEY_MS"]
+        "x-app-name": config.appName,
+        "x-api-key": config.apiKey
       }
     });
-    console.log("result =>>>", result.data);
     return result.data;
   }
 }

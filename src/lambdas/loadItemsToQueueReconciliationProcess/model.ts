@@ -1,6 +1,6 @@
 import { EnvironmentTypes } from "../../shared/types";
 import Dao from "./dao";
-import { Envs } from "./types";
+import { config } from "./types";
 
 class Model {
   private dao: Dao;
@@ -10,7 +10,9 @@ class Model {
   }
 
   async loadItemsToQueue(operationType: string) {
-    const batchSize = parseInt(`${process.env[Envs.BATCH_SIZE]}`);
+    const batchSize = config.batchSize;
+
+    console.log("batchSize =>>>", batchSize);
 
     let items = null;
 
@@ -25,6 +27,8 @@ class Model {
       console.log("No items to process");
       return;
     }
+
+    console.log("items =>>>", items.length);
 
     for (let i = 0; i < items.length; i += batchSize) {
       const batch = items.slice(i, i + batchSize);
