@@ -7,6 +7,7 @@ import { Envs } from "./types";
 export const handler = async (event: any, _context: any) => {
   try {
     console.log("event =>>>", JSON.stringify(event));
+    console.log("envs =>>>", process.env);
 
     checkEnv({ ...contextEnv, ...dbEnv, ...Envs });
 
