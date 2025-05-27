@@ -1,16 +1,13 @@
+import axios from "axios";
+
 import Database from "../../shared/databases/sequelize";
-import SQS from "../../shared/services/sqs";
 import { EnvironmentTypes } from "../../shared/types";
-import { Envs } from "./types";
 
 class Dao {
   private db: Database;
-  private SQS: SQS;
-
   private environment: EnvironmentTypes;
   constructor(environment: EnvironmentTypes) {
     this.db = new Database(environment);
-    this.SQS = new SQS();
     this.environment = environment;
   }
 
@@ -42,21 +39,15 @@ class Dao {
   }
 
   async sendToQueue(message: any) {
-    let queueUrl = "";
-    switch (this.environment) {
-      case "dev":
-        queueUrl = `${process.env[Envs.DEV_QUEUE_URL]}`;
-        break;
-      case "qa":
-        queueUrl = `${process.env[Envs.QA_QUEUE_URL]}`;
-        break;
-      case "prod":
-        queueUrl = `${process.env[Envs.PROD_QUEUE_URL]}`;
-        break;
-    }
-    const result = await this.SQS.sendMessage(queueUrl, message);
-    console.log(result);
-    return result;
+    const queueUrl = `${process.env["BASE_URL_MS"]}/${this.environment}/api/b2b/reconciliation/sendItems`;
+    const result = await axios.post(queueUrl, message, {
+      headers: {
+        "x-app-name": process.env["APP_NAME_MS"],
+        "x-api-key": process.env["API_KEY_MS"]
+      }
+    });
+    console.log("result =>>>", result.data);
+    return result.data;
   }
 }
 
