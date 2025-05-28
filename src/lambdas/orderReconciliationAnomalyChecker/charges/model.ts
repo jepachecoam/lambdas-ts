@@ -2,20 +2,6 @@ import sharedDao from "../dao";
 import chargeDao from "./dao";
 import chargeUtils from "./types";
 
-const processCharges = async () => {
-  try {
-    const carrierCharges = await chargeDao.getCarrierChargePendingToProcess();
-
-    const chargePromises = carrierCharges.map((carrierCharge: any) =>
-      processCarrierCharge({ carrierCharge })
-    );
-    await Promise.all(chargePromises);
-  } catch (error) {
-    console.error("Error", error);
-    throw error;
-  }
-};
-
 const processCarrierCharge = async ({ carrierCharge }: any) => {
   try {
     const { carrierTrackingCode, idCarrierCharge, totalCharge } = carrierCharge;
@@ -163,5 +149,5 @@ const determineChargeStatus = ({
 };
 
 export default {
-  processCharges
+  processCarrierCharge
 };

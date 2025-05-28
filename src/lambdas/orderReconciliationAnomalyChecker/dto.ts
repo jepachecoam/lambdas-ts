@@ -1,13 +1,14 @@
-const parseEvent = ({ event }: any) => {
-  const operationType = event["detail-type"];
-
-  if (!["CHARGES", "PAYMENTS"].includes(operationType)) {
-    throw new Error(`Unknown operation type: ${operationType}`);
+const parseEvent = (event: any) => {
+  console.log("event =>>>", JSON.stringify(event));
+  if (
+    !event.Records ||
+    !Array.isArray(event.Records) ||
+    !event.Records.length ||
+    !event.Records[0] ||
+    !event.Records[0].body
+  ) {
+    throw new Error("❌ Evento inválido.");
   }
-
-  return {
-    operationType
-  };
+  return event.Records.map((record: any) => JSON.parse(record.body));
 };
-
 export default { parseEvent };

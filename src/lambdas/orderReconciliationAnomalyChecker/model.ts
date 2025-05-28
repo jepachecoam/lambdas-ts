@@ -1,8 +1,22 @@
+import chargesModel from "./charges/model";
 import sharedDao from "./dao";
-import dto from "./dto";
+import paymentsModel from "./payments/model";
 
-const parseEvent = ({ event }: any) => {
-  return dto.parseEvent({ event });
+const processRecords = async (records: any[]) => {
+  for (const record of records) {
+    console.log("record =>>>", JSON.stringify(record, null, 2));
+
+    switch (record.operationType) {
+      case "CHARGES":
+        await chargesModel.processCarrierCharge({ carrierCharge: record });
+        break;
+      case "PAYMENTS":
+        await paymentsModel.processCarrierPayment({ carrierPayment: record });
+        break;
+      default:
+        break;
+    }
+  }
 };
 
 const getOrder = async ({ carrierTrackingCode }: any) => {
@@ -26,6 +40,6 @@ const getOrder = async ({ carrierTrackingCode }: any) => {
 };
 
 export default {
-  parseEvent,
-  getOrder
+  getOrder,
+  processRecords
 };

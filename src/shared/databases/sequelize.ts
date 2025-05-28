@@ -67,7 +67,7 @@ export class Database {
       ...config,
       type: QueryTypes.SELECT
     });
-    return result && result.length > 0 ? result[0] : null;
+    return Array.isArray(result) && result.length > 0 ? result[0] : null;
   }
 
   async fetchMany(query: string, config?: QueryOptions) {
@@ -75,7 +75,21 @@ export class Database {
       ...config,
       type: QueryTypes.SELECT
     });
-    return result && result.length > 0 ? result : null;
+    return Array.isArray(result) && result.length > 0 ? result : null;
+  }
+  async insert(query: string, config?: QueryOptions) {
+    const result = await this.db.query(query, {
+      ...config,
+      type: QueryTypes.INSERT
+    });
+    return Array.isArray(result) && result.length > 0 ? result[1] > 0 : null;
+  }
+  async update(query: string, config?: QueryOptions) {
+    const result = await this.db.query(query, {
+      ...config,
+      type: QueryTypes.UPDATE
+    });
+    return Array.isArray(result) && result.length > 0 ? result[1] > 0 : null;
   }
 }
 

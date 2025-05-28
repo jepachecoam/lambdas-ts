@@ -2,21 +2,6 @@ import sharedModel from "../model";
 import paymentDao from "./dao";
 import paymentUtils from "./types";
 
-const processPayments = async () => {
-  try {
-    const carrierPayments =
-      await paymentDao.getCarrierPaymentPendingToProcess();
-
-    const paymentPromises = carrierPayments.map((carrierPayment: any) =>
-      processCarrierPayment({ carrierPayment })
-    );
-    await Promise.all(paymentPromises);
-  } catch (error) {
-    console.error("Error", error);
-    throw error;
-  }
-};
-
 const processCarrierPayment = async ({ carrierPayment }: any) => {
   try {
     const {
@@ -150,5 +135,5 @@ const determinePaymentStatus = ({
 };
 
 export default {
-  processPayments
+  processCarrierPayment
 };
