@@ -1,13 +1,11 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-import { contextEnv } from "../types";
-
 class S3 {
   private client: S3Client;
 
-  constructor() {
+  constructor(region: string) {
     this.client = new S3Client({
-      region: process.env[contextEnv.CLOUD_REGION]
+      region: region
     });
   }
 

@@ -16,7 +16,3 @@ export enum dbEnv {
   DB_PASSWORD_PROD = "DB_PASSWORD_PROD",
   DB_HOST_PROD = "DB_HOST_PROD"
 }
-
-export enum contextEnv {
-  CLOUD_REGION = "CLOUD_REGION"
-}

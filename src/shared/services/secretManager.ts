@@ -3,14 +3,12 @@ import {
   SecretsManagerClient
 } from "@aws-sdk/client-secrets-manager";
 
-import { contextEnv } from "../types";
-
 class SecretManager {
   private client: SecretsManagerClient;
 
-  constructor() {
+  constructor(region: string) {
     this.client = new SecretsManagerClient({
-      region: `${process.env[contextEnv.CLOUD_REGION]}`
+      region: region
     });
   }
 

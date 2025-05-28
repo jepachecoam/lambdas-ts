@@ -7,8 +7,8 @@ class Dao {
   private dynamo: Dynamo;
   private environment: EnvironmentTypes;
   constructor(environment: EnvironmentTypes) {
-    this.secretManager = new SecretManager();
-    this.dynamo = new Dynamo();
+    this.secretManager = new SecretManager("us-east-1");
+    this.dynamo = new Dynamo("us-east-1");
     this.environment = environment;
   }
 

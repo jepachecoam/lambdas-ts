@@ -5,7 +5,7 @@ import S3 from "../../shared/services/S3";
 import { EnvironmentTypes } from "../../shared/types";
 
 class Dao {
-  private S3 = new S3();
+  private S3 = new S3("us-east-2");
   private db: Database;
 
   constructor(environment: EnvironmentTypes) {

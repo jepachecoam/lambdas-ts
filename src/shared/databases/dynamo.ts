@@ -7,14 +7,12 @@ import {
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
-import { contextEnv } from "../types";
-
 class Dynamo {
   private client: DynamoDBDocumentClient;
 
-  constructor() {
+  constructor(region: string) {
     const dynamoClient = new DynamoDBClient({
-      region: `${process.env[contextEnv.CLOUD_REGION]}`
+      region: region
     });
     this.client = DynamoDBDocumentClient.from(dynamoClient);
   }

@@ -1,5 +1,5 @@
 import { checkEnv } from "../../shared/envChecker";
-import { contextEnv, dbEnv } from "../../shared/types";
+import { dbEnv } from "../../shared/types";
 import dto from "./dto";
 import Model from "./model";
 import { Envs } from "./types";
@@ -8,7 +8,7 @@ export const handler = async (event: any, _context: any) => {
   try {
     console.log("event =>>>", JSON.stringify(event, null, 2));
 
-    checkEnv({ ...contextEnv, ...dbEnv, ...Envs });
+    checkEnv({ ...dbEnv, ...Envs });
 
     const { operationType, environment } = dto.parseEvent({ event });
 

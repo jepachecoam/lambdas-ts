@@ -14,7 +14,7 @@ class Dao {
   private environment: EnvironmentTypes;
   constructor(environment: EnvironmentTypes) {
     this.db = new Database(environment);
-    this.dynamo = new Dynamo();
+    this.dynamo = new Dynamo("us-east-1");
     this.environment = environment;
   }
 
