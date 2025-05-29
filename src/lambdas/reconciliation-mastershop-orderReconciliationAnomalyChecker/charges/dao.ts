@@ -2,28 +2,6 @@ import { QueryTypes } from "sequelize";
 
 import db from "../database";
 
-const getCarrierChargePendingToProcess = async () => {
-  try {
-    const query = `
-            select *
-            from db_mastershop_reconciliation.carrierCharge
-            where idCarrierCharge not in (select idCarrierCharge
-                                          from db_mastershop_reconciliation.chargeReconciliation
-                                          where idChargeStatus not in
-                                                (select idChargeStatus
-                                                 from db_mastershop_reconciliation.chargeStatus
-                                                 where statusParent != 'resolved'))
-            `;
-    const result = await db.query(query, {
-      type: QueryTypes.SELECT
-    });
-    return result.length > 0 ? result : [];
-  } catch (error) {
-    console.error("Error fetching carrierCharges", error);
-    throw error;
-  }
-};
-
 const checkIfChargeReconciliationAlreadyExist = async ({
   idCarrierCharge
 }: any) => {
@@ -176,6 +154,5 @@ const upsertChargeReconciliation = async ({
 
 export default {
   upsertChargeReconciliation,
-  createCarrierChargeStatusLog,
-  getCarrierChargePendingToProcess
+  createCarrierChargeStatusLog
 };

@@ -8,7 +8,7 @@ import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statist
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
 import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/reconciliation-checkReconciliationDocumentAndLoadItemsToDb/index";
 import { handler as loadItemsToQueueReconciliationProcess } from "../lambdas/reconciliation-mastershop-loadItemsToQueueReconciliationProcess/index";
-import { handler as orderReconciliationAnomalyChecker } from "../lambdas/reconciliation-orderReconciliationAnomalyChecker/index";
+import { handler as orderReconciliationAnomalyChecker } from "../lambdas/reconciliation-mastershop-orderReconciliationAnomalyChecker/index";
 import { jsonResponse } from "./middlewares";
 
 const router = Router();
