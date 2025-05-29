@@ -95,7 +95,7 @@ function validateRow(
       continue;
     }
 
-    const cellValue = rawCell?.formula ? rawCell.result : rawCell;
+    const cellValue = rawCell?.result ? rawCell.result : rawCell;
 
     if (
       rule.required &&
