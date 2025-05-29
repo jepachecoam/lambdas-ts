@@ -6,16 +6,16 @@ const processRecords = async (records: any[]) => {
   for (const record of records) {
     console.log("processing record =>>>", JSON.stringify(record, null, 2));
 
-    // switch (record.operationType) {
-    //   case "CHARGES":
-    //     await chargesModel.processCarrierCharge({ carrierCharge: record });
-    //     break;
-    //   case "PAYMENTS":
-    //     await paymentsModel.processCarrierPayment({ carrierPayment: record });
-    //     break;
-    //   default:
-    //     break;
-    // }
+    switch (record.operationType) {
+      case "CHARGES":
+        await chargesModel.processCarrierCharge({ carrierCharge: record });
+        break;
+      case "PAYMENTS":
+        await paymentsModel.processCarrierPayment({ carrierPayment: record });
+        break;
+      default:
+        break;
+    }
   }
 };
 
