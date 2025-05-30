@@ -22,7 +22,6 @@ class Dao {
       validate: true,
       updateOnDuplicate: [
         "idCarrier",
-        "invoiceNumber",
         "chargeDate",
         "units",
         "actualWeight",
@@ -35,7 +34,6 @@ class Dao {
         "totalFreight",
         "businessUnit",
         "notes",
-        "createdAt",
         "updatedAt",
         "totalCharge"
       ]
@@ -53,8 +51,6 @@ class Dao {
         "notes",
         "paymentMethod",
         "amount",
-        "paymentDate",
-        "createdAt",
         "updatedAt"
       ]
     });

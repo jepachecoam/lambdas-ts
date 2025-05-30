@@ -32,7 +32,6 @@ export const initCarrierPaymentModel = (sequelize: Sequelize) => {
       carrierTrackingCode: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        unique: true,
         field: "carrierTrackingCode"
       },
       collectionDate: {
@@ -79,7 +78,14 @@ export const initCarrierPaymentModel = (sequelize: Sequelize) => {
       tableName: "carrierPayment",
       timestamps: true,
       createdAt: "createdAt",
-      updatedAt: "updatedAt"
+      updatedAt: "updatedAt",
+      indexes: [
+        {
+          unique: true,
+          name: "unique_tracking_paymentDate",
+          fields: ["carrierTrackingCode", "paymentDate"]
+        }
+      ]
     }
   );
 
