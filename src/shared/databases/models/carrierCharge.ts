@@ -136,8 +136,8 @@ export const initCarrierChargeModel = (sequelize: Sequelize) => {
       indexes: [
         {
           unique: true,
-          name: "unique_tracking_invoice",
-          fields: ["carrierTrackingCode", "invoiceNumber"]
+          name: "unique_idCarrier_carrierTrackingCode_invoiceNumber",
+          fields: ["idCarrier", "carrierTrackingCode", "invoiceNumber"]
         }
       ]
     }

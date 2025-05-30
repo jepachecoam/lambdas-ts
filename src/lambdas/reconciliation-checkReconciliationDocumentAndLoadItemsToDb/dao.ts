@@ -21,7 +21,6 @@ class Dao {
     return carrierChargeModel.bulkCreate(records, {
       validate: true,
       updateOnDuplicate: [
-        "idCarrier",
         "chargeDate",
         "units",
         "actualWeight",
@@ -46,7 +45,6 @@ class Dao {
     return carrierPaymentModel.bulkCreate(records, {
       validate: true,
       updateOnDuplicate: [
-        "idCarrier",
         "paymentDate",
         "notes",
         "paymentMethod",
