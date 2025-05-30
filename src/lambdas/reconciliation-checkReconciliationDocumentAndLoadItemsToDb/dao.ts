@@ -47,7 +47,7 @@ class Dao {
       validate: true,
       updateOnDuplicate: [
         "idCarrier",
-        "collectionDate",
+        "paymentDate",
         "notes",
         "paymentMethod",
         "amount",
