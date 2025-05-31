@@ -1,7 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
-export interface ICarrierPayment {
-  idCarrierPayment: number;
+export interface IPayment {
+  idPayment: number;
   idCarrier: number;
   carrierTrackingCode: string;
   collectionDate: Date;
@@ -13,16 +13,16 @@ export interface ICarrierPayment {
   updatedAt?: Date;
 }
 
-class CarrierPayment extends Model<ICarrierPayment> {}
+class Payment extends Model<IPayment> {}
 
-export const initCarrierPaymentModel = (sequelize: Sequelize) => {
-  CarrierPayment.init(
+export const initPaymentModel = (sequelize: Sequelize) => {
+  Payment.init(
     {
-      idCarrierPayment: {
+      idPayment: {
         type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,
-        field: "idCarrierPayment"
+        field: "idPayment"
       },
       idCarrier: {
         type: DataTypes.INTEGER,
@@ -58,24 +58,12 @@ export const initCarrierPaymentModel = (sequelize: Sequelize) => {
         type: DataTypes.DATEONLY,
         allowNull: false,
         field: "paymentDate"
-      },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-        field: "createdAt"
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-        field: "updatedAt"
       }
     },
     {
       sequelize,
-      modelName: "CarrierPayment",
-      tableName: "carrierPayment",
+      modelName: "Payment",
+      tableName: "payment",
       timestamps: true,
       createdAt: "createdAt",
       updatedAt: "updatedAt",
@@ -89,5 +77,5 @@ export const initCarrierPaymentModel = (sequelize: Sequelize) => {
     }
   );
 
-  return CarrierPayment;
+  return Payment;
 };
