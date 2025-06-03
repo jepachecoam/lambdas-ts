@@ -3,6 +3,7 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { EnvironmentTypes } from "../../shared/types";
 import {
   AddItemToBlacklistParams,
+  AddUserToBlacklistParams,
   UpdateItemToBlacklistParams
 } from "./types/types";
 
@@ -59,6 +60,39 @@ class Request {
       } else {
         console.log("Error in addItemToBlacklist request =>>>", err);
       }
+    }
+  }
+
+  async addUserToBlacklist({
+    idBlacklistReason,
+    idBusiness,
+    idUser
+  }: AddUserToBlacklistParams) {
+    try {
+      const NEGATIVE_WALLET_REASON = 1;
+      const ENTITY_TYPE_BUSINESS = 2;
+
+      const payload = {
+        idUser: idUser,
+        idEntity: String(idBusiness),
+        updateSourceType: "PROCESS",
+        idUpdateSource: "lambda-MasterShop-Blacklist-MonitorWallet",
+        reasonIds: [NEGATIVE_WALLET_REASON, idBlacklistReason],
+        typeEntity: ENTITY_TYPE_BUSINESS
+      };
+
+      console.log("[addUserToBlacklist] payload:", payload);
+
+      const response: AxiosResponse = await this.client.post(
+        `/${this.environment}/api/b2b/blacklist/user/related`,
+        payload
+      );
+
+      console.log("[addUserToBlacklist] response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("[addUserToBlacklist] error:", error);
+      throw error;
     }
   }
 

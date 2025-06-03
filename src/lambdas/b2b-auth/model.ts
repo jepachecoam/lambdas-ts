@@ -72,13 +72,6 @@ class Model {
       return false;
     }
 
-    if (scopes.includes("*")) {
-      console.log(
-        `[ACCESS LOG] Provider "${appName}" granted full access by wildcard "*".`
-      );
-      return true;
-    }
-
     const normalizedMethod = httpMethod.toUpperCase();
     const requiredScope = `${normalizedMethod}:${resource}`;
 
@@ -86,11 +79,19 @@ class Model {
     const isDenied = denyScopes.some((pattern) =>
       this.matchScope(pattern.replace("DENY:", ""), requiredScope)
     );
+
     if (isDenied) {
       console.log(
         `[ACCESS LOG] Provider "${appName}" DENIED by rule for resource "${resource}".`
       );
       return false;
+    }
+
+    if (scopes.includes("*")) {
+      console.log(
+        `[ACCESS LOG] Provider "${appName}" granted full access by wildcard "*".`
+      );
+      return true;
     }
 
     const allowScopes = scopes.filter((s) => !s.startsWith("DENY:"));
