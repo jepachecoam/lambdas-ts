@@ -14,28 +14,26 @@ class Dao {
 
   async getCarrierCharge() {
     const query = `
-            select *
-            from db_mastershop_reconciliation.carrierCharge
-            where idCarrierCharge not in (select idCarrierCharge
-                                          from db_mastershop_reconciliation.chargeReconciliation
-                                          where idChargeStatus not in
-                                                (select idChargeStatus
-                                                 from db_mastershop_reconciliation.chargeStatus
-                                                 where statusParent != 'resolved'))
-            `;
+          select *
+          from db_mastershop_reconciliation.charge cr
+          where cr.idCharge not in (select cre.idCharge
+                                    from db_mastershop_reconciliation.chargeReconciliation cre
+                                    where cre.idStatus not in
+                                          (select s.idStatus
+                                          from db_mastershop_reconciliation.status s
+                                          where lower(statusParent) != 'resolved'))`;
     return await this.db.fetchMany(query);
   }
   async getCarrierPayments() {
     const query = `
-            select *
-            from db_mastershop_reconciliation.carrierPayment
-            where idCarrierPayment not in (select idCarrierPayment
-                                          from db_mastershop_reconciliation.paymentReconciliation
-                                          where idPaymentStatus not in
-                                                (select idPaymentStatus
-                                                 from db_mastershop_reconciliation.paymentStatus
-                                                 where statusParent != 'resolved'))
-            `;
+          select *
+          from db_mastershop_reconciliation.payment pa
+          where pa.idPayment not in (select pr.idPayment
+                                    from db_mastershop_reconciliation.paymentReconciliation pr
+                                    where pr.idStatus not in
+                                          (select s.idStatus
+                                            from db_mastershop_reconciliation.status s
+                                            where lower(statusParent) != 'resolved'))`;
     return await this.db.fetchMany(query);
   }
 
