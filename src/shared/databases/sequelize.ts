@@ -1,49 +1,49 @@
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 
-import { dbEnv, EnvironmentTypes } from "../types";
+import { dbEnv } from "../types";
 
 const dbConfig = {
   dev: {
-    database: `${process.env[dbEnv.DB_NAME_DEV]}`,
-    username: `${process.env[dbEnv.DB_USER_DEV]}`,
-    password: `${process.env[dbEnv.DB_PASSWORD_DEV]}`,
-    host: `${process.env[dbEnv.DB_HOST_DEV]}`
+    database: process.env[dbEnv.DB_NAME_DEV]!,
+    username: process.env[dbEnv.DB_USER_DEV]!,
+    password: process.env[dbEnv.DB_PASSWORD_DEV]!,
+    host: process.env[dbEnv.DB_HOST_DEV]!
   },
   qa: {
-    database: `${process.env[dbEnv.DB_NAME_QA]}`,
-    username: `${process.env[dbEnv.DB_USER_QA]}`,
-    password: `${process.env[dbEnv.DB_PASSWORD_QA]}`,
-    host: `${process.env[dbEnv.DB_HOST_QA]}`
+    database: process.env[dbEnv.DB_NAME_QA]!,
+    username: process.env[dbEnv.DB_USER_QA]!,
+    password: process.env[dbEnv.DB_PASSWORD_QA]!,
+    host: process.env[dbEnv.DB_HOST_QA]!
   },
   prod: {
-    database: `${process.env[dbEnv.DB_NAME_PROD]}`,
-    username: `${process.env[dbEnv.DB_USER_PROD]}`,
-    password: `${process.env[dbEnv.DB_PASSWORD_PROD]}`,
-    host: `${process.env[dbEnv.DB_HOST_PROD]}`
+    database: process.env[dbEnv.DB_NAME_PROD]!,
+    username: process.env[dbEnv.DB_USER_PROD]!,
+    password: process.env[dbEnv.DB_PASSWORD_PROD]!,
+    host: process.env[dbEnv.DB_HOST_PROD]!
   }
+} as const;
+
+type ValidEnvironment = keyof typeof dbConfig;
+
+const isValidEnv = (env: string): env is ValidEnvironment => {
+  return env === "dev" || env === "qa" || env === "prod";
 };
 
-const getDatabaseInstance = (environment: EnvironmentTypes) => {
-  try {
-    if (!["dev", "qa", "prod"].includes(environment)) {
-      throw new Error(`Invalid environment: ${environment}`);
-    }
-
-    const { database, username, password, host } = dbConfig[environment];
-
-    return new Sequelize(database, username, password, {
-      host,
-      dialect: "mysql",
-      dialectOptions: { decimalNumbers: true },
-      timezone: "+00:00",
-      logging: (msg) =>
-        console.log(`Environment(${environment}) - Query =>>> ${msg}`)
-    });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[DB_INIT_ERROR]: ${msg}`);
-    throw err;
+const getDatabaseInstance = (environment: string): Sequelize => {
+  if (!isValidEnv(environment)) {
+    throw new Error(`Invalid environment: ${environment}`);
   }
+
+  const { database, username, password, host } = dbConfig[environment];
+
+  return new Sequelize(database, username, password, {
+    host,
+    dialect: "mysql",
+    dialectOptions: { decimalNumbers: true },
+    timezone: "+00:00",
+    logging: (msg) =>
+      console.log(`Environment(${environment}) - Query =>>> ${msg}`)
+  });
 };
 
 interface QueryOptions {
@@ -54,11 +54,11 @@ interface QueryOptions {
 export class Database {
   private db: Sequelize;
 
-  constructor(environment: EnvironmentTypes) {
+  constructor(environment: string) {
     this.db = getDatabaseInstance(environment);
   }
 
-  async getInstance() {
+  getInstance() {
     return this.db;
   }
 

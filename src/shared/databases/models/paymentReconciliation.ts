@@ -1,10 +1,11 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 export interface IPaymentReconciliation {
-  idPaymentReconciliation: number;
+  idPaymentReconciliation?: number;
   idPayment: number;
   idStatus: number;
-  idOrder?: number;
+  idOrder?: number | null;
+  idOrderReturn?: number | null;
   expectedAmount: number;
   receivedAmount: number;
   balanceResult: number;
@@ -38,6 +39,11 @@ export const initPaymentReconciliationModel = (sequelize: Sequelize) => {
         allowNull: true,
         field: "idOrder"
       },
+      idOrderReturn: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        field: "idOrderReturn"
+      },
       expectedAmount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
@@ -66,10 +72,6 @@ export const initPaymentReconciliationModel = (sequelize: Sequelize) => {
           unique: true,
           name: "unique_idCarrierPayment",
           fields: ["idPayment"]
-        },
-        {
-          name: "idx_idStatus",
-          fields: ["idStatus"]
         }
       ]
     }

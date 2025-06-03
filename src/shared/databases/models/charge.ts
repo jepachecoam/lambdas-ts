@@ -1,7 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 export interface ICharge {
-  idCarrierCharge: number;
+  idCharge: number;
   idCarrier: number;
   invoiceNumber: string;
   carrierTrackingCode: string;
@@ -27,7 +27,7 @@ class Charge extends Model<ICharge> {}
 export const initChargeModel = (sequelize: Sequelize) => {
   Charge.init(
     {
-      idCarrierCharge: {
+      idCharge: {
         type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,

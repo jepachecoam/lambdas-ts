@@ -16,7 +16,7 @@ class Dao {
   }
 
   async bulkInsertCarrierCharge(records: any[]) {
-    const dbInstance = await this.db.getInstance();
+    const dbInstance = this.db.getInstance();
     const carrierChargeModel = initChargeModel(dbInstance);
     return carrierChargeModel.bulkCreate(records, {
       validate: true,
@@ -40,7 +40,7 @@ class Dao {
   }
 
   async bulkInsertCarrierPayment(records: any[]) {
-    const dbInstance = await this.db.getInstance();
+    const dbInstance = this.db.getInstance();
     const carrierPaymentModel = initPaymentModel(dbInstance);
     return carrierPaymentModel.bulkCreate(records, {
       validate: true,

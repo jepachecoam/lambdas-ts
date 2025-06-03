@@ -1,13 +1,14 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 export interface IChargeReconciliation {
-  idChargeReconciliation: number;
+  idChargeReconciliation?: number;
   idCharge: number;
   idStatus: number;
-  idOrder?: number;
+  idOrder?: number | null;
+  idOrderReturn?: number | null;
   carrierChargeAmount: number;
-  userChargeAmount?: number;
-  specialAdjustment?: number;
+  userChargeAmount?: number | null;
+  specialAdjustment?: number | null;
   balanceResult: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -25,19 +26,24 @@ export const initChargeReconciliationModel = (sequelize: Sequelize) => {
         field: "idChargeReconciliation"
       },
       idCharge: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
         field: "idCharge"
       },
       idStatus: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
         field: "idStatus"
       },
       idOrder: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER.UNSIGNED,
         allowNull: true,
         field: "idOrder"
+      },
+      idOrderReturn: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        field: "idOrderReturn"
       },
       carrierChargeAmount: {
         type: DataTypes.DECIMAL(10, 2),

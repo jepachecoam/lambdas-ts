@@ -1,40 +1,49 @@
-import { QueryTypes } from "sequelize";
+import {
+  IChargeReconciliation,
+  initChargeReconciliationModel
+} from "../../shared/databases/models/chargeReconciliation";
+import {
+  initPaymentReconciliationModel,
+  IPaymentReconciliation
+} from "../../shared/databases/models/paymentReconciliation";
+import Database from "../../shared/databases/sequelize";
 
-import db from "./database";
-
-const getOrderByCarrierTrackingCode = async ({ carrierTrackingCode }: any) => {
-  try {
-    const query = `
-                select * from \`order\` where carrierTrackingCode = '${carrierTrackingCode}'
-            `;
-    const result = await db.query(query, {
-      type: QueryTypes.SELECT
-    });
-    return result.length > 0 ? result[0] : null;
-  } catch (error) {
-    console.error("Error fetching order", error);
-    throw error;
+class Dao {
+  private db: Database;
+  constructor(environment: string) {
+    this.db = new Database(environment);
   }
-};
 
-const getOrderReturnByCarrierTrackingCode = async ({
-  carrierTrackingCode
-}: any) => {
-  try {
+  async getOrder({ carrierTrackingCode }: any) {
     const query = `
-                select * from orderReturn where carrierTrackingCode = '${carrierTrackingCode}'
-                `;
-    const result = await db.query(query, {
-      type: QueryTypes.SELECT
-    });
-    return result.length > 0 ? result[0] : null;
-  } catch (error) {
-    console.error("Error fetching orderReturn", error);
-    throw error;
+                select * from \`order\` where carrierTrackingCode = :carrierTrackingCode order by createdAt desc
+    `;
+    return this.db.fetchOne(query, { replacements: { carrierTrackingCode } });
   }
-};
 
-export default {
-  getOrderByCarrierTrackingCode,
-  getOrderReturnByCarrierTrackingCode
-};
+  async getOrderReturn({ carrierTrackingCode }: any) {
+    const query = `
+                select * from orderReturn where carrierTrackingCode = :carrierTrackingCode order by createdAt desc
+    `;
+    return this.db.fetchOne(query, { replacements: { carrierTrackingCode } });
+  }
+
+  async upsertChargeReconciliation(
+    chargeReconciliation: IChargeReconciliation
+  ) {
+    const dbInstance = this.db.getInstance();
+    const chargeReconciliationModel = initChargeReconciliationModel(dbInstance);
+    return chargeReconciliationModel.upsert(chargeReconciliation);
+  }
+
+  async upsertPaymentReconciliation(
+    paymentReconciliation: IPaymentReconciliation
+  ) {
+    const dbInstance = this.db.getInstance();
+    const paymentReconciliationModel =
+      initPaymentReconciliationModel(dbInstance);
+    return paymentReconciliationModel.upsert(paymentReconciliation);
+  }
+}
+
+export default Dao;
