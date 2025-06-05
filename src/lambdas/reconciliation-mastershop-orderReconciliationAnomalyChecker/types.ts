@@ -18,10 +18,11 @@ export enum operationTypeEnum {
 
 export const getCarrierConf = (idCarrier: number) => {
   const carrierConfigurations: Record<number, any> = {
-    4: { copToleranceForOverCharge: 100 },
-    6: { copToleranceForOverCharge: 100 },
-    7: { copToleranceForOverCharge: 100 },
-    8: { copToleranceForOverCharge: 100 }
+    4: { copToleranceForUnderCharge: 100 },
+    6: { copToleranceForUnderCharge: 100 },
+    7: { copToleranceForUnderCharge: 100 },
+    8: { copToleranceForUnderCharge: 100 },
+    9: { copToleranceForUnderCharge: 100 }
   };
   return carrierConfigurations[idCarrier] || null;
 };

@@ -123,7 +123,7 @@ class Model {
     const adjustedResult = baseDifference - (expectedProfit + collectionFee);
 
     const tolerance =
-      getCarrierConf(idCarrier)?.copToleranceForOverCharge ?? 100;
+      getCarrierConf(idCarrier)?.copToleranceForUnderCharge ?? 0;
 
     let idStatus: StatusCodeEnum;
 
