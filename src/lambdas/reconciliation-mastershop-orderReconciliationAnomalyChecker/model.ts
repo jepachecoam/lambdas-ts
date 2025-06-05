@@ -13,6 +13,7 @@ const processRecords = async (records: any[]) => {
         await processCharge({ charge: record });
         break;
       default:
+        console.error("Unknown operation type:", record.operationType);
         break;
     }
   }
@@ -27,7 +28,7 @@ const processCharge = async ({ charge }: { charge: ICharge }) => {
       return null;
     }
 
-    const order: any = await getOrder({ carrierTrackingCode });
+    const order: any = await getOrderData({ carrierTrackingCode });
     if (!order) {
       await handleOrderNotFound({ idCharge, totalCharge });
       return null;
@@ -55,7 +56,7 @@ const processCharge = async ({ charge }: { charge: ICharge }) => {
   }
 };
 
-const getOrder = async ({ carrierTrackingCode }: any) => {
+const getOrderData = async ({ carrierTrackingCode }: any) => {
   let order = await dao.getOrderReturn({
     carrierTrackingCode
   });
@@ -90,7 +91,7 @@ const handleOrderNotFound = async ({
   }
 };
 
-const reconciliation = ({ order, totalCharge, _carrierConf }: any) => {
+const reconciliation = ({ order, totalCharge }: any) => {
   const profitMargin = Number(order?.profitMargin || 0);
   const idStatus = determineChargeStatus({
     profitMargin,

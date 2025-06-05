@@ -11,26 +11,10 @@ export enum StatusCodeEnum {
 }
 
 export const getCarrierConf = (idCarrier: number) => {
-  let conf = null;
-  switch (idCarrier) {
-    case 4:
-      conf = {
-        profitMargin: 0.05,
-        copToleranceForOverCharge: 0.02
-      };
-      break;
-    case 6:
-      conf = {
-        profitMargin: 0.05,
-        copToleranceForOverCharge: 0.02
-      };
-      break;
-    case 7:
-      conf = {
-        profitMargin: 0.05,
-        copToleranceForOverCharge: 0.02
-      };
-      break;
-  }
-  return conf;
+  const carrierConfigurations: Record<number, any> = {
+    4: { profitMargin: 0.05, copToleranceForOverCharge: 0.02 },
+    6: { profitMargin: 0.05, copToleranceForOverCharge: 0.02 },
+    7: { profitMargin: 0.05, copToleranceForOverCharge: 0.02 }
+  };
+  return carrierConfigurations[idCarrier] || null;
 };
