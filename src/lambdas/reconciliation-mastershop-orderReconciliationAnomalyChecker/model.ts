@@ -120,7 +120,7 @@ class Model {
 
     const result = baseDifference - expectedProfit;
 
-    const adjustedResult = result + collectionFee;
+    const adjustedResult = baseDifference - (expectedProfit + collectionFee);
 
     const tolerance =
       getCarrierConf(idCarrier)?.copToleranceForOverCharge ?? 100;
@@ -137,7 +137,7 @@ class Model {
       } else if (adjustedResult > 0) {
         idStatus = StatusCodeEnum.OVERCHARGED;
       } else if (adjustedResult < 0 && adjustedResult >= -tolerance) {
-        idStatus = StatusCodeEnum.ACCEPTABLE_OVERCHARGE;
+        idStatus = StatusCodeEnum.ACCEPTABLE_UNDERCHARGE;
       } else {
         idStatus = StatusCodeEnum.UNKNOWN;
       }
