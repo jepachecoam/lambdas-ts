@@ -138,6 +138,8 @@ class Model {
         idStatus = StatusCodeEnum.OVERCHARGED;
       } else if (adjustedResult < 0 && adjustedResult >= -tolerance) {
         idStatus = StatusCodeEnum.ACCEPTABLE_UNDERCHARGE;
+      } else if (adjustedResult < -tolerance) {
+        idStatus = StatusCodeEnum.UNDERCHARGED;
       } else {
         idStatus = StatusCodeEnum.UNKNOWN;
       }
