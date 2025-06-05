@@ -1,136 +1,162 @@
 import { ICharge } from "../../shared/databases/models/charge";
 import Dao from "./dao";
-import { getCarrierConf, StatusCodeEnum } from "./types";
+import { getCarrierConf, operationTypeEnum, StatusCodeEnum } from "./types";
 
-const dao = new Dao("dev");
+class Model {
+  private dao: Dao;
+  constructor(environment: string) {
+    this.dao = new Dao(environment);
+  }
+  async processRecords(records: any[]) {
+    for (const record of records) {
+      console.log("processing record =>>>", JSON.stringify(record, null, 2));
 
-const processRecords = async (records: any[]) => {
-  for (const record of records) {
-    console.log("processing record =>>>", JSON.stringify(record, null, 2));
-
-    switch (record.operationType) {
-      case "CHARGES":
-        await processCharge({ charge: record });
-        break;
-      default:
-        console.error("Unknown operation type:", record.operationType);
-        break;
+      switch (record.operationType) {
+        case operationTypeEnum.CHARGES:
+          await this.processCharge({ charge: record });
+          break;
+        default:
+          console.error("Unknown operation type:", record.operationType);
+          break;
+      }
     }
   }
-};
 
-const processCharge = async ({ charge }: { charge: ICharge }) => {
-  try {
-    const { idCharge, carrierTrackingCode, totalCharge, idCarrier } = charge;
-    const carrierConf = getCarrierConf(idCarrier);
-    if (!carrierConf) {
-      console.error(`Carrier config not found for idCarrier: ${idCarrier}`);
-      return null;
+  async getOrderData({ carrierTrackingCode }: { carrierTrackingCode: string }) {
+    let order: any = null;
+    let orderSource: string | null = null;
+
+    const orderReturn = await this.dao.getOrderReturn({ carrierTrackingCode });
+    if (orderReturn) {
+      order = orderReturn;
+      orderSource = "orderReturn";
     }
-
-    const order: any = await getOrderData({ carrierTrackingCode });
     if (!order) {
-      await handleOrderNotFound({ idCharge, totalCharge });
+      order = await this.dao.getOrder({ carrierTrackingCode });
+      orderSource = "order";
+    }
+
+    if (!order) {
       return null;
     }
 
-    const result = reconciliation({
-      order,
-      totalCharge,
-      carrierConf
-    });
-
-    await dao.upsertChargeReconciliation({
-      idCharge,
-      ...result
-    });
-  } catch (error) {
-    console.error("Error processing carrier charge:", error);
-    const { totalCharge, idCharge } = charge;
-    await dao.upsertChargeReconciliation({
-      idCharge: idCharge,
-      balanceResult: -totalCharge,
-      idStatus: StatusCodeEnum.ERROR,
-      carrierChargeAmount: totalCharge
-    });
+    return { order, orderSource };
   }
-};
 
-const getOrderData = async ({ carrierTrackingCode }: any) => {
-  let order = await dao.getOrderReturn({
-    carrierTrackingCode
-  });
-  if (!order) {
-    order = await dao.getOrder({
-      carrierTrackingCode
-    });
+  async processCharge({ charge }: { charge: ICharge }) {
+    try {
+      const {
+        idCharge,
+        carrierTrackingCode,
+        totalCharge: carrierChargeAmount,
+        idCarrier
+      } = charge;
+
+      const orderData = await this.getOrderData({ carrierTrackingCode });
+      if (!orderData) {
+        console.error(`Order not found for idCharge: ${idCharge}`);
+        await this.dao.upsertChargeReconciliation({
+          idCharge,
+          idStatus: StatusCodeEnum.ORDER_NOT_FOUND,
+          carrierChargeAmount: carrierChargeAmount,
+          balanceResult: -carrierChargeAmount
+        });
+        return null;
+      }
+
+      const result = this.chargeReconciliation({
+        idCarrier,
+        orderData,
+        carrierChargeAmount
+      });
+
+      await this.dao.upsertChargeReconciliation({
+        idCharge,
+        ...result
+      });
+    } catch (error) {
+      console.error("Error processing carrier charge:", error);
+      const { totalCharge: carrierChargeAmount, idCharge } = charge;
+      await this.dao.upsertChargeReconciliation({
+        idCharge: idCharge,
+        idStatus: StatusCodeEnum.ERROR,
+        carrierChargeAmount: carrierChargeAmount,
+        balanceResult: -carrierChargeAmount
+      });
+    }
   }
-  return order;
-};
+  chargeReconciliation({
+    idCarrier,
+    orderData,
+    carrierChargeAmount
+  }: {
+    idCarrier: number;
+    orderData: any;
+    carrierChargeAmount: number;
+  }) {
+    const order = orderData.order;
+    const idOrder = order.idOrder;
+    const idOrderReturn = orderData.idOrderReturn ?? undefined;
+    const userChargeAmount = order.shippingRate;
 
-const handleOrderNotFound = async ({
-  idCharge,
-  totalCharge
-}: {
-  idCharge: number;
-  totalCharge: number;
-}) => {
-  console.error(`Order not found for idCharge: ${idCharge}`);
-  const upsertResult = await dao.upsertChargeReconciliation({
-    idCharge,
-    idStatus: StatusCodeEnum.ORDER_NOT_FOUND,
-    carrierChargeAmount: totalCharge,
-    balanceResult: -totalCharge
-  });
+    if (!order.carrierInfo || !order.carrierInfo.profitMargin) {
+      return {
+        idStatus: StatusCodeEnum.MISSING_DATA,
+        idOrder,
+        idOrderReturn,
+        carrierChargeAmount,
+        userChargeAmount,
+        balanceResult: -carrierChargeAmount
+      };
+    }
 
-  if (!upsertResult) {
-    console.error(
-      `chargeReconciliation not processed for idCharge: ${idCharge}`
-    );
-    return null;
+    const profitMargin = order.carrierInfo.profitMargin;
+    const discount = order.carrierInfo.discount ?? 0;
+    const collectionFee = order.carrierInfo.collectionFee ?? 0;
+
+    const baseDifference = userChargeAmount - carrierChargeAmount;
+
+    const expectedProfit = profitMargin - discount;
+
+    const result = baseDifference - expectedProfit;
+
+    const adjustedResult = result + collectionFee;
+
+    const tolerance =
+      getCarrierConf(idCarrier)?.copToleranceForOverCharge ?? 100;
+
+    let idStatus: StatusCodeEnum;
+
+    if (result === 0) {
+      idStatus = StatusCodeEnum.MATCHED;
+    } else if (result < 0) {
+      idStatus = StatusCodeEnum.UNDERCHARGED;
+    } else {
+      if (adjustedResult === 0) {
+        idStatus = StatusCodeEnum.MATCHED;
+      } else if (adjustedResult > 0) {
+        idStatus = StatusCodeEnum.OVERCHARGED;
+      } else if (adjustedResult < 0 && adjustedResult >= -tolerance) {
+        idStatus = StatusCodeEnum.ACCEPTABLE_OVERCHARGE;
+      } else {
+        idStatus = StatusCodeEnum.UNKNOWN;
+      }
+    }
+
+    const response = {
+      idStatus,
+      idOrder,
+      idOrderReturn,
+      carrierChargeAmount,
+      userChargeAmount,
+      specialAdjustment: collectionFee,
+      balanceResult: adjustedResult
+    };
+
+    console.log("response =>>>", JSON.stringify(response, null, 2));
+
+    return response;
   }
-};
+}
 
-const reconciliation = ({ order, totalCharge }: any) => {
-  const profitMargin = Number(order?.profitMargin || 0);
-  const idStatus = determineChargeStatus({
-    profitMargin,
-    balanceResult: Number(totalCharge),
-    copToleranceForOverCharge: 700
-  });
-  const shippingRate = Number(order?.shippingRate || 0);
-  const balanceResult = Number(totalCharge) - Number(shippingRate);
-
-  return {
-    idStatus,
-    carrierChargeAmount: Number(totalCharge),
-    balanceResult
-  };
-};
-
-const determineChargeStatus = ({
-  profitMargin,
-  copToleranceForOverCharge,
-  balanceResult
-}: any) => {
-  if (balanceResult === profitMargin) {
-    return StatusCodeEnum.MATCHED;
-  }
-  if (
-    balanceResult > profitMargin &&
-    balanceResult <= profitMargin + copToleranceForOverCharge
-  ) {
-    return StatusCodeEnum.ACCEPTABLE_WITHIN_TOLERANCE;
-  }
-  if (balanceResult > profitMargin + copToleranceForOverCharge) {
-    return StatusCodeEnum.OVERCHARGED;
-  }
-  if (balanceResult < profitMargin) {
-    return StatusCodeEnum.UNDERCHARGED;
-  }
-  return StatusCodeEnum.UNKNOWN;
-};
-
-export default {
-  processRecords
-};
+export default Model;

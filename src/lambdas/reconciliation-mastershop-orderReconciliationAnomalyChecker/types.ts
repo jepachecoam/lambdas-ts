@@ -7,14 +7,25 @@ export enum StatusCodeEnum {
   ACCEPTABLE_OVERCHARGE = 6,
   UNKNOWN = 7,
   ERROR = 8,
-  ACCEPTABLE_WITHIN_TOLERANCE = 9
+  ACCEPTABLE_WITHIN_TOLERANCE = 9,
+  MISSING_DATA = 10
+}
+
+export enum operationTypeEnum {
+  CHARGES = "CHARGES",
+  PAYMENTS = "PAYMENTS"
 }
 
 export const getCarrierConf = (idCarrier: number) => {
   const carrierConfigurations: Record<number, any> = {
-    4: { profitMargin: 0.05, copToleranceForOverCharge: 0.02 },
-    6: { profitMargin: 0.05, copToleranceForOverCharge: 0.02 },
-    7: { profitMargin: 0.05, copToleranceForOverCharge: 0.02 }
+    4: { copToleranceForOverCharge: 100 },
+    6: { copToleranceForOverCharge: 100 },
+    7: { copToleranceForOverCharge: 100 },
+    8: { copToleranceForOverCharge: 100 }
   };
   return carrierConfigurations[idCarrier] || null;
 };
+
+export enum Envs {
+  ENVIRONMENT = "ENVIRONMENT"
+}
