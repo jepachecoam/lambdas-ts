@@ -77,6 +77,8 @@ class Model {
         carrierChargeAmount
       });
 
+      console.log("result =>>>", result);
+
       await this.dao.upsertChargeReconciliation({
         idCharge,
         ...result
