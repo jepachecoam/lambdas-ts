@@ -302,7 +302,7 @@ class PaymentsFormula {
     const { order } = orderData;
 
     const expectedAmount = order.totalSeller;
-    const result = expectedAmount - receivedAmount;
+    const result = receivedAmount - expectedAmount;
 
     let idStatus: StatusCodeEnum;
 
