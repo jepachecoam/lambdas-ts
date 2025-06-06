@@ -1,6 +1,12 @@
 import { ICharge } from "../../shared/databases/models/charge";
 import Dao from "./dao";
-import { getCarrierConf, operationTypeEnum, StatusCodeEnum } from "./types";
+import ChargesFormula from "./formula";
+import {
+  ICustomChargeReconciliation,
+  IdCarriers,
+  operationTypeEnum,
+  StatusCodeEnum
+} from "./types";
 
 class Model {
   private dao: Dao;
@@ -40,6 +46,9 @@ class Model {
       return null;
     }
 
+    console.log("order =>>>", order);
+    console.log("orderSource =>>>", orderSource);
+
     return { order, orderSource };
   }
 
@@ -57,9 +66,7 @@ class Model {
         console.error(`Order not found for idCharge: ${idCharge}`);
         await this.dao.upsertChargeReconciliation({
           idCharge,
-          idStatus: StatusCodeEnum.ORDER_NOT_FOUND,
-          carrierChargeAmount: carrierChargeAmount,
-          balanceResult: -carrierChargeAmount
+          idStatus: StatusCodeEnum.ORDER_NOT_FOUND
         });
         return null;
       }
@@ -93,71 +100,36 @@ class Model {
     idCarrier: number;
     orderData: any;
     carrierChargeAmount: number;
-  }) {
-    const order = orderData.order;
-    const idOrder = order.idOrder;
-    const idOrderReturn = orderData.idOrderReturn ?? undefined;
-    const userChargeAmount = order.shippingRate;
+  }): ICustomChargeReconciliation {
+    const { order } = orderData;
 
     if (!order.carrierInfo || !order.carrierInfo.profitMargin) {
       return {
         idStatus: StatusCodeEnum.MISSING_DATA,
-        idOrder,
-        idOrderReturn,
-        carrierChargeAmount,
-        userChargeAmount,
-        balanceResult: -carrierChargeAmount
+        idOrder: order.idOrder,
+        idOrderReturn: order.idOrderReturn
       };
     }
 
-    const profitMargin = order.carrierInfo.profitMargin;
-    const discount = order.carrierInfo.discount ?? 0;
-    const collectionFee = order.carrierInfo.collectionFee ?? 0;
-
-    const baseDifference = userChargeAmount - carrierChargeAmount;
-
-    const expectedProfit = profitMargin - discount;
-
-    const result = baseDifference - expectedProfit;
-
-    const adjustedResult = baseDifference - (expectedProfit + collectionFee);
-
-    const tolerance =
-      getCarrierConf(idCarrier)?.copToleranceForUnderCharge ?? 0;
-
-    let idStatus: StatusCodeEnum;
-
-    if (result === 0) {
-      idStatus = StatusCodeEnum.MATCHED;
-    } else if (result < 0) {
-      idStatus = StatusCodeEnum.UNDERCHARGED;
-    } else {
-      if (adjustedResult === 0) {
-        idStatus = StatusCodeEnum.MATCHED;
-      } else if (adjustedResult > 0) {
-        idStatus = StatusCodeEnum.OVERCHARGED;
-      } else if (adjustedResult < 0 && adjustedResult >= -tolerance) {
-        idStatus = StatusCodeEnum.ACCEPTABLE_UNDERCHARGE;
-      } else if (adjustedResult < -tolerance) {
-        idStatus = StatusCodeEnum.UNDERCHARGED;
-      } else {
-        idStatus = StatusCodeEnum.UNKNOWN;
-      }
-    }
-
-    const response = {
-      idStatus,
-      idOrder,
-      idOrderReturn,
-      carrierChargeAmount,
-      userChargeAmount,
-      specialAdjustment: collectionFee,
-      balanceResult: adjustedResult
+    const carrierFormulas: Record<number, any> = {
+      [IdCarriers.TCC]: ChargesFormula.Tcc,
+      [IdCarriers.ENVIA]: ChargesFormula.Envia,
+      [IdCarriers.COORDINADORA]: ChargesFormula.Coordinadora,
+      [IdCarriers.SWAYP]: ChargesFormula.Swayp,
+      [IdCarriers.INTERRAPIDISIMO]: ChargesFormula.InterRapidisimo
     };
 
-    console.log("response =>>>", JSON.stringify(response, null, 2));
+    const formula = carrierFormulas[idCarrier];
 
-    return response;
+    if (!formula) {
+      return {
+        idStatus: StatusCodeEnum.UNEXPECTED_DATA,
+        idOrder: order.idOrder,
+        idOrderReturn: order.idOrderReturn
+      };
+    }
+
+    return formula({ orderData, carrierChargeAmount });
   }
 }
 

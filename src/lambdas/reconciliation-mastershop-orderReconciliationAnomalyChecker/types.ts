@@ -1,3 +1,5 @@
+import { IChargeReconciliation } from "../../shared/databases/models/chargeReconciliation";
+
 export enum StatusCodeEnum {
   MATCHED = 1,
   ORDER_NOT_FOUND = 2,
@@ -8,7 +10,16 @@ export enum StatusCodeEnum {
   UNKNOWN = 7,
   ERROR = 8,
   ACCEPTABLE_UNDERCHARGE = 9,
-  MISSING_DATA = 10
+  MISSING_DATA = 10,
+  UNEXPECTED_DATA = 11
+}
+
+export enum IdCarriers {
+  TCC = 4,
+  COORDINADORA = 6,
+  ENVIA = 7,
+  SWAYP = 8,
+  INTERRAPIDISIMO = 9
 }
 
 export enum operationTypeEnum {
@@ -16,17 +27,13 @@ export enum operationTypeEnum {
   PAYMENTS = "PAYMENTS"
 }
 
-export const getCarrierConf = (idCarrier: number) => {
-  const carrierConfigurations: Record<number, any> = {
-    4: { copToleranceForUnderCharge: 100 },
-    6: { copToleranceForUnderCharge: 100 },
-    7: { copToleranceForUnderCharge: 100 },
-    8: { copToleranceForUnderCharge: 100 },
-    9: { copToleranceForUnderCharge: 100 }
-  };
-  return carrierConfigurations[idCarrier] || null;
-};
-
 export enum Envs {
   ENVIRONMENT = "ENVIRONMENT"
 }
+
+export type ICustomChargeReconciliation = Omit<
+  IChargeReconciliation,
+  "idCharge"
+> & {
+  idCharge?: number;
+};

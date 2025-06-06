@@ -6,10 +6,10 @@ export interface IChargeReconciliation {
   idStatus: number;
   idOrder?: number | null;
   idOrderReturn?: number | null;
-  carrierChargeAmount: number;
+  carrierChargeAmount?: number;
   userChargeAmount?: number | null;
   specialAdjustment?: number | null;
-  balanceResult: number;
+  balanceResult?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -47,7 +47,7 @@ export const initChargeReconciliationModel = (sequelize: Sequelize) => {
       },
       carrierChargeAmount: {
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
+        allowNull: true,
         field: "carrierChargeAmount"
       },
       userChargeAmount: {
@@ -62,7 +62,7 @@ export const initChargeReconciliationModel = (sequelize: Sequelize) => {
       },
       balanceResult: {
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
+        allowNull: true,
         field: "balanceResult"
       }
     },

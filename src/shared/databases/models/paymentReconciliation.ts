@@ -6,9 +6,9 @@ export interface IPaymentReconciliation {
   idStatus: number;
   idOrder?: number | null;
   idOrderReturn?: number | null;
-  expectedAmount: number;
-  receivedAmount: number;
-  balanceResult: number;
+  expectedAmount?: number;
+  receivedAmount?: number;
+  balanceResult?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -46,17 +46,17 @@ export const initPaymentReconciliationModel = (sequelize: Sequelize) => {
       },
       expectedAmount: {
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
+        allowNull: true,
         field: "expectedAmount"
       },
       receivedAmount: {
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
+        allowNull: true,
         field: "receivedAmount"
       },
       balanceResult: {
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
+        allowNull: true,
         field: "balanceResult"
       }
     },
