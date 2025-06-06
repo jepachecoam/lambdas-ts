@@ -64,7 +64,6 @@ class ChargesFormula {
       idOrderReturn,
       carrierChargeAmount,
       userChargeAmount,
-      specialAdjustment: collectionFee,
       balanceResult: balanceResult
     };
   }
@@ -132,7 +131,6 @@ class ChargesFormula {
       idOrderReturn,
       carrierChargeAmount,
       userChargeAmount,
-      specialAdjustment: collectionFee,
       balanceResult: balanceResult
     };
   }
@@ -202,7 +200,6 @@ class ChargesFormula {
       idOrderReturn,
       carrierChargeAmount,
       userChargeAmount,
-      specialAdjustment: collectionFee,
       balanceResult: balanceResult
     };
   }
@@ -221,7 +218,6 @@ class ChargesFormula {
 
     const profitMargin = order.carrierInfo.profitMargin;
     const discount = order.carrierInfo.discount ?? 0;
-    const collectionFee = order.carrierInfo.collectionFee ?? 0;
 
     const baseDifference = userChargeAmount - carrierChargeAmount;
 
@@ -245,7 +241,6 @@ class ChargesFormula {
       idOrderReturn,
       carrierChargeAmount,
       userChargeAmount,
-      specialAdjustment: collectionFee,
       balanceResult: result
     };
   }
@@ -264,7 +259,6 @@ class ChargesFormula {
 
     const profitMargin = order.carrierInfo.profitMargin;
     const discount = order.carrierInfo.discount ?? 0;
-    const collectionFee = order.carrierInfo.collectionFee ?? 0;
 
     const baseDifference = userChargeAmount - carrierChargeAmount;
 
@@ -288,7 +282,6 @@ class ChargesFormula {
       idOrderReturn,
       carrierChargeAmount,
       userChargeAmount,
-      specialAdjustment: collectionFee,
       balanceResult: result
     };
   }
