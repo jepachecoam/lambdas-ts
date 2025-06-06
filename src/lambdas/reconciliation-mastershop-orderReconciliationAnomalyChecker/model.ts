@@ -124,6 +124,7 @@ class Model {
     const formula = carrierFormulas[idCarrier];
 
     if (!formula) {
+      console.error("Unknown carrier id:", idCarrier);
       return {
         idStatus: StatusCodeEnum.UNEXPECTED_DATA,
         idOrder: order.idOrder,
