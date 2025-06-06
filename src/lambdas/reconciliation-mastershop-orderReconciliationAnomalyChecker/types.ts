@@ -1,4 +1,5 @@
 import { IChargeReconciliation } from "../../shared/databases/models/chargeReconciliation";
+import { IPaymentReconciliation } from "../../shared/databases/models/paymentReconciliation";
 
 export enum StatusCodeEnum {
   MATCHED = 1,
@@ -11,7 +12,9 @@ export enum StatusCodeEnum {
   ERROR = 8,
   ACCEPTABLE_UNDERCHARGE = 9,
   MISSING_DATA = 10,
-  UNEXPECTED_DATA = 11
+  UNEXPECTED_DATA = 11,
+  UNDERPAID = 12,
+  OVERPAID = 13
 }
 
 export enum IdCarriers {
@@ -36,4 +39,11 @@ export type ICustomChargeReconciliation = Omit<
   "idCharge"
 > & {
   idCharge?: number;
+};
+
+export type ICustomPaymentReconciliation = Omit<
+  IPaymentReconciliation,
+  "idPayment"
+> & {
+  idPayment?: number;
 };

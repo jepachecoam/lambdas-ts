@@ -19,7 +19,7 @@ class Dao {
   async getOrder({ carrierTrackingCode }: { carrierTrackingCode: string }) {
     const tableName = `db_mastershop_orders${this.envoironment === "dev" ? "_dev" : ""}`;
     const query = `
-                select o.idOrder, o.shippingRate, o.carrierInfo from ${tableName}.order o where carrierTrackingCode = :carrierTrackingCode order by createdAt desc
+                select o.idOrder, o.shippingRate, o.carrierInfo, o.totalSeller from ${tableName}.order o where carrierTrackingCode = :carrierTrackingCode order by createdAt desc
     `;
     return this.db.fetchOne(query, { replacements: { carrierTrackingCode } });
   }
@@ -31,7 +31,7 @@ class Dao {
   }) {
     const tableName = `db_mastershop_orders${this.envoironment === "dev" ? "_dev" : ""}`;
     const query = `
-    select o.idOrder, ore.idOrderReturn, ore.shippingRate, o.carrierInfo
+    select o.idOrder, ore.idOrderReturn, ore.shippingRate, o.carrierInfo, o.totalSeller
     from ${tableName}.orderReturn ore
             inner join ${tableName}.order o on ore.idOrder = o.idOrder
     where o.carrierTrackingCode = :carrierTrackingCode order by ore.createdAt desc  

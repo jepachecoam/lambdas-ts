@@ -1,4 +1,8 @@
-import { StatusCodeEnum } from "./types";
+import {
+  ICustomChargeReconciliation,
+  ICustomPaymentReconciliation,
+  StatusCodeEnum
+} from "./types";
 class ChargesFormula {
   static Tcc({
     orderData,
@@ -6,7 +10,7 @@ class ChargesFormula {
   }: {
     orderData: any;
     carrierChargeAmount: number;
-  }) {
+  }): ICustomChargeReconciliation {
     const { order } = orderData;
 
     const idOrder = order.idOrder;
@@ -73,7 +77,7 @@ class ChargesFormula {
   }: {
     orderData: any;
     carrierChargeAmount: number;
-  }) {
+  }): ICustomChargeReconciliation {
     const { order } = orderData;
 
     const idOrder = order.idOrder;
@@ -140,7 +144,7 @@ class ChargesFormula {
   }: {
     orderData: any;
     carrierChargeAmount: number;
-  }) {
+  }): ICustomChargeReconciliation {
     const { order } = orderData;
 
     const idOrder = order.idOrder;
@@ -209,7 +213,7 @@ class ChargesFormula {
   }: {
     orderData: any;
     carrierChargeAmount: number;
-  }) {
+  }): ICustomChargeReconciliation {
     const { order } = orderData;
 
     const idOrder = order.idOrder;
@@ -250,7 +254,7 @@ class ChargesFormula {
   }: {
     orderData: any;
     carrierChargeAmount: number;
-  }) {
+  }): ICustomChargeReconciliation {
     const { order } = orderData;
 
     const idOrder = order.idOrder;
@@ -287,4 +291,38 @@ class ChargesFormula {
   }
 }
 
-export default ChargesFormula;
+class PaymentsFormula {
+  static base({
+    orderData,
+    receivedAmount
+  }: {
+    orderData: any;
+    receivedAmount: number;
+  }): ICustomPaymentReconciliation {
+    const { order } = orderData;
+
+    const expectedAmount = order.totalSeller;
+    const result = expectedAmount - receivedAmount;
+
+    let idStatus: StatusCodeEnum;
+
+    if (result === 0) {
+      idStatus = StatusCodeEnum.MATCHED;
+    } else if (result < 0) {
+      idStatus = StatusCodeEnum.UNDERPAID;
+    } else {
+      idStatus = StatusCodeEnum.OVERPAID;
+    }
+
+    return {
+      idStatus,
+      idOrder: order.idOrder,
+      idOrderReturn: order.idOrderReturn,
+      expectedAmount,
+      receivedAmount,
+      balanceResult: result
+    };
+  }
+}
+
+export { ChargesFormula, PaymentsFormula };

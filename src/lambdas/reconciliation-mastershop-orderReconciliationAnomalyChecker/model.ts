@@ -1,8 +1,10 @@
 import { ICharge } from "../../shared/databases/models/charge";
+import { IPayment } from "../../shared/databases/models/payment";
 import Dao from "./dao";
-import ChargesFormula from "./formula";
+import { ChargesFormula, PaymentsFormula } from "./formula";
 import {
   ICustomChargeReconciliation,
+  ICustomPaymentReconciliation,
   IdCarriers,
   operationTypeEnum,
   StatusCodeEnum
@@ -20,6 +22,9 @@ class Model {
       switch (record.operationType) {
         case operationTypeEnum.CHARGES:
           await this.processCharge({ charge: record });
+          break;
+        case operationTypeEnum.PAYMENTS:
+          await this.processPayment({ payment: record });
           break;
         default:
           console.error("Unknown operation type:", record.operationType);
@@ -133,6 +138,53 @@ class Model {
     }
 
     return formula({ orderData, carrierChargeAmount });
+  }
+
+  async processPayment({ payment }: { payment: IPayment }) {
+    const { idPayment, carrierTrackingCode, amount } = payment;
+
+    const orderData = await this.getOrderData({ carrierTrackingCode });
+    if (!orderData) {
+      console.error(`Order not found for idPayment: ${idPayment}`);
+      await this.dao.upsertPaymentReconciliation({
+        idPayment,
+        idStatus: StatusCodeEnum.ORDER_NOT_FOUND
+      });
+      return null;
+    }
+
+    const result = this.paymentReconciliation({
+      orderData,
+      receivedAmount: amount
+    });
+
+    await this.dao.upsertPaymentReconciliation({
+      idPayment,
+      ...result
+    });
+  }
+
+  paymentReconciliation({
+    orderData,
+    receivedAmount
+  }: {
+    orderData: any;
+    receivedAmount: number;
+  }): ICustomPaymentReconciliation {
+    const { order } = orderData;
+
+    if (!order.totalSeller) {
+      return {
+        idStatus: StatusCodeEnum.MISSING_DATA,
+        idOrder: order.idOrder,
+        idOrderReturn: order.idOrderReturn
+      };
+    }
+
+    return PaymentsFormula.base({
+      orderData,
+      receivedAmount
+    });
   }
 }
 
