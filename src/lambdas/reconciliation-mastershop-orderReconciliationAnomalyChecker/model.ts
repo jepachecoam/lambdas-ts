@@ -6,7 +6,9 @@ import {
   ICustomChargeReconciliation,
   ICustomPaymentReconciliation,
   IdCarriers,
+  IOrderData,
   operationTypeEnum,
+  OrderSourceEnum,
   StatusCodeEnum
 } from "./types";
 
@@ -34,27 +36,21 @@ class Model {
   }
 
   async getOrderData({ carrierTrackingCode }: { carrierTrackingCode: string }) {
-    let order: any = null;
-    let orderSource: string | null = null;
-
-    const orderReturn = await this.dao.getOrderReturn({ carrierTrackingCode });
-    if (orderReturn) {
-      order = orderReturn;
-      orderSource = "orderReturn";
-    }
-    if (!order) {
-      order = await this.dao.getOrder({ carrierTrackingCode });
-      orderSource = "order";
-    }
+    let orderSource: OrderSourceEnum = OrderSourceEnum.ORDER;
+    let order = await this.dao.getOrder({ carrierTrackingCode });
 
     if (!order) {
-      return null;
+      order = await this.dao.getOrderReturn({ carrierTrackingCode });
+      orderSource = OrderSourceEnum.ORDER_RETURN;
     }
 
-    console.log("order =>>>", order);
-    console.log("orderSource =>>>", orderSource);
+    if (order) {
+      console.log("order =>>>", order);
+      console.log("orderSource =>>>", orderSource);
+      return { order, orderSource };
+    }
 
-    return { order, orderSource };
+    return null;
   }
 
   async processCharge({ charge }: { charge: ICharge }) {
@@ -105,7 +101,7 @@ class Model {
     carrierChargeAmount
   }: {
     idCarrier: number;
-    orderData: any;
+    orderData: IOrderData;
     carrierChargeAmount: number;
   }): ICustomChargeReconciliation {
     const { order } = orderData;

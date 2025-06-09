@@ -14,7 +14,8 @@ export enum StatusCodeEnum {
   MISSING_DATA = 10,
   UNEXPECTED_DATA = 11,
   UNDERPAID = 12,
-  OVERPAID = 13
+  OVERPAID = 13,
+  NO_ACTION_REQUIRED = 14
 }
 
 export enum IdCarriers {
@@ -47,3 +48,13 @@ export type ICustomPaymentReconciliation = Omit<
 > & {
   idPayment?: number;
 };
+
+export enum OrderSourceEnum {
+  ORDER = "order",
+  ORDER_RETURN = "orderReturn"
+}
+
+export interface IOrderData {
+  order: any;
+  orderSource: OrderSourceEnum;
+}

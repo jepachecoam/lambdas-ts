@@ -1,6 +1,8 @@
 import {
   ICustomChargeReconciliation,
   ICustomPaymentReconciliation,
+  IOrderData,
+  OrderSourceEnum,
   StatusCodeEnum
 } from "./types";
 class ChargesFormula {
@@ -8,10 +10,10 @@ class ChargesFormula {
     orderData,
     carrierChargeAmount
   }: {
-    orderData: any;
+    orderData: IOrderData;
     carrierChargeAmount: number;
   }): ICustomChargeReconciliation {
-    const { order } = orderData;
+    const { order, orderSource } = orderData;
 
     const idOrder = order.idOrder;
     const idOrderReturn = order.idOrderReturn ?? undefined;
@@ -23,7 +25,8 @@ class ChargesFormula {
 
     const baseDifference = userChargeAmount - carrierChargeAmount;
 
-    const expectedProfit = profitMargin - discount;
+    const expectedProfit =
+      orderSource === OrderSourceEnum.ORDER ? profitMargin - discount : 0;
 
     const result = baseDifference - expectedProfit;
 
@@ -75,10 +78,14 @@ class ChargesFormula {
     orderData,
     carrierChargeAmount
   }: {
-    orderData: any;
+    orderData: IOrderData;
     carrierChargeAmount: number;
   }): ICustomChargeReconciliation {
-    const { order } = orderData;
+    const { order, orderSource } = orderData;
+
+    if (orderSource === OrderSourceEnum.ORDER_RETURN) {
+      return { idStatus: StatusCodeEnum.NO_ACTION_REQUIRED };
+    }
 
     const idOrder = order.idOrder;
     const idOrderReturn = order.idOrderReturn ?? undefined;
@@ -142,7 +149,7 @@ class ChargesFormula {
     orderData,
     carrierChargeAmount
   }: {
-    orderData: any;
+    orderData: IOrderData;
     carrierChargeAmount: number;
   }): ICustomChargeReconciliation {
     const { order } = orderData;
@@ -211,10 +218,10 @@ class ChargesFormula {
     orderData,
     carrierChargeAmount
   }: {
-    orderData: any;
+    orderData: IOrderData;
     carrierChargeAmount: number;
   }): ICustomChargeReconciliation {
-    const { order } = orderData;
+    const { order, orderSource } = orderData;
 
     const idOrder = order.idOrder;
     const idOrderReturn = order.idOrderReturn ?? undefined;
@@ -225,7 +232,8 @@ class ChargesFormula {
 
     const baseDifference = userChargeAmount - carrierChargeAmount;
 
-    const expectedProfit = profitMargin - discount;
+    const expectedProfit =
+      orderSource === OrderSourceEnum.ORDER ? profitMargin - discount : 0;
 
     const result = baseDifference - expectedProfit;
 
@@ -252,10 +260,14 @@ class ChargesFormula {
     orderData,
     carrierChargeAmount
   }: {
-    orderData: any;
+    orderData: IOrderData;
     carrierChargeAmount: number;
   }): ICustomChargeReconciliation {
-    const { order } = orderData;
+    const { order, orderSource } = orderData;
+
+    if (orderSource === OrderSourceEnum.ORDER_RETURN) {
+      return { idStatus: StatusCodeEnum.NO_ACTION_REQUIRED };
+    }
 
     const idOrder = order.idOrder;
     const idOrderReturn = order.idOrderReturn ?? undefined;
@@ -296,7 +308,7 @@ class PaymentsFormula {
     orderData,
     receivedAmount
   }: {
-    orderData: any;
+    orderData: IOrderData;
     receivedAmount: number;
   }): ICustomPaymentReconciliation {
     const { order } = orderData;
