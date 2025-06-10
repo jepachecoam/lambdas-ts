@@ -315,10 +315,11 @@ class PaymentsFormula {
 
     const expectedAmount = order.totalSeller;
     const result = receivedAmount - expectedAmount;
+    const tolerance = 5;
 
     let idStatus: StatusCodeEnum;
 
-    if (result === 0) {
+    if (Math.abs(result) <= tolerance) {
       idStatus = StatusCodeEnum.MATCHED;
     } else if (result < 0) {
       idStatus = StatusCodeEnum.UNDERPAID;
