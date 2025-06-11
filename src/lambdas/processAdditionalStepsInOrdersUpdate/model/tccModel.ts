@@ -9,6 +9,8 @@ const getOrdersWithIncidentsTCC = async (remesas: string[]) => {
     const URL_API =
       "https://somos.tcc.com.co/api/novedades/v2/consultarnovedades";
 
+    const accesstoken = process.env["ACCESS_TOKEN_TCC"];
+
     const currentDate = new Date();
     const formattedCurrentDate = format(currentDate, "yyyy-MM-dd");
 
@@ -27,7 +29,7 @@ const getOrdersWithIncidentsTCC = async (remesas: string[]) => {
       fuente: "PWP"
     };
     const headers = {
-      accesstoken: process.env["ACCESS_TOKEN_TCC"]
+      accesstoken: accesstoken
     };
     const response = await axios.post(URL_API, body, { headers });
 
