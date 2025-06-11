@@ -1,38 +1,6 @@
 import axios from "axios";
 
 import sharedDao from "../dao/sharedDao";
-import sharedDto from "../dto/sharedDto";
-
-const insertNewTrackingCodeIfFound = async ({ data, config }: any) => {
-  try {
-    const { idOrder, carrierData, trackingNumber } = data;
-
-    const newTrackingNumbers = sharedDto.getTrackingNumbersFromText({
-      text: carrierData,
-      exclusions: [trackingNumber],
-      config: config
-    });
-    if (!newTrackingNumbers.length) {
-      console.log("No new tracking numbers found");
-      return null;
-    }
-
-    const newCarrierTrackingCode = newTrackingNumbers[0];
-
-    const result = await sharedDao.createCarrierTrackingCodeHistory({
-      idOrder,
-      newCarrierTrackingCode
-    });
-
-    if (result) {
-      console.log(`Tracking number ${newCarrierTrackingCode} already exists`);
-      return null;
-    }
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
 
 const dispatchShipmentUpdate = async ({ carrierName, detail }: any) => {
   try {
@@ -122,4 +90,4 @@ const fetchMainOrder = async ({ idUser, idOrder, idBusiness }: any) => {
   }
 };
 
-export default { insertNewTrackingCodeIfFound, dispatchShipmentUpdate };
+export default { dispatchShipmentUpdate };

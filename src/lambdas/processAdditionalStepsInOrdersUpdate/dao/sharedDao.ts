@@ -3,34 +3,6 @@ import { QueryTypes } from "sequelize";
 
 import db from "../database/config";
 
-const createCarrierTrackingCodeHistory = async ({
-  idOrder,
-  newCarrierTrackingCode,
-  source
-}: any) => {
-  try {
-    const query = `
-            INSERT INTO carrierTrackingCodeHistory (idOrder, carrierTrackingCode, source)
-            SELECT ${idOrder}, '${newCarrierTrackingCode} ', '${source}'
-            WHERE NOT EXISTS (
-                SELECT 1 
-                FROM carrierTrackingCodeHistory
-                WHERE idOrder = ${idOrder}
-                  AND carrierTrackingCode = '${newCarrierTrackingCode}'
-            )
-        `;
-
-    const result = await db.query(query, {
-      type: QueryTypes.INSERT
-    });
-
-    return result.length > 0;
-  } catch (error) {
-    console.error("Error in Dao createCarrierTrackingCodeHistory =>>>", error);
-    throw error;
-  }
-};
-
 const getOrder = async ({ idOrder }: any) => {
   try {
     const query = `
@@ -143,7 +115,6 @@ const sendEvent = async ({ source, detailType, detail }: any) => {
 export default {
   getOrder,
   getOrderReturn,
-  createCarrierTrackingCodeHistory,
   getCarrierStatusUpdateById,
   getShipmentUpdateInfoById,
   sendEvent

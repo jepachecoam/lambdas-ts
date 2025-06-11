@@ -27,24 +27,11 @@ export const handler = async (event: any, _context: any) => {
       case Carriers.swayp:
         await controller.handleSwaypRequest({ detail, eventProcess });
         break;
-      case Carriers.interRapidisimo:
-        await controller.handleInterRapidisimoRequest({ detail, eventProcess });
-        break;
-      case Carriers.coordinadora:
-        await controller.handleCoordinadoraRequest({ detail, eventProcess });
-        break;
       default:
         throw new Error("Carrier not found");
     }
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "OK" })
-    };
-  } catch (err: any) {
-    console.error(err.message);
-    return {
-      statusCode: 500,
-      body: JSON.stringify("Internal Server Error")
-    };
+    console.log("Finished processAdditionalStepsInOrdersUpdate");
+  } catch (err) {
+    console.error("Error:", err);
   }
 };
