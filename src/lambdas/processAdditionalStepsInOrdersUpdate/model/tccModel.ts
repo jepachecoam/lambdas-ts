@@ -27,7 +27,7 @@ const getOrdersWithIncidentsTCC = async (remesas: string[]) => {
       fuente: "PWP"
     };
     const headers = {
-      accesstoken: "MEDPRIVILEGETEAM1105"
+      accesstoken: process.env["ACCESS_TOKEN_TCC"]
     };
     const response = await axios.post(URL_API, body, { headers });
 
