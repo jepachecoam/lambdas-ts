@@ -1,8 +1,8 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
-export interface ICarrierCharge {
-  idCarrierCharge: number;
-  idCarrier: string;
+export interface ICharge {
+  idCharge: number;
+  idCarrier: number;
   invoiceNumber: string;
   carrierTrackingCode: string;
   chargeDate: Date;
@@ -17,21 +17,21 @@ export interface ICarrierCharge {
   totalFreight: number;
   businessUnit: string;
   notes: string;
+  totalCharge: number;
   createdAt?: Date;
   updatedAt?: Date;
-  totalCharge?: number;
 }
 
-class CarrierCharge extends Model<ICarrierCharge> {}
+class Charge extends Model<ICharge> {}
 
-export const initCarrierChargeModel = (sequelize: Sequelize) => {
-  CarrierCharge.init(
+export const initChargeModel = (sequelize: Sequelize) => {
+  Charge.init(
     {
-      idCarrierCharge: {
+      idCharge: {
         type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,
-        field: "idCarrierCharge"
+        field: "idCharge"
       },
       idCarrier: {
         type: DataTypes.INTEGER,
@@ -46,7 +46,6 @@ export const initCarrierChargeModel = (sequelize: Sequelize) => {
       carrierTrackingCode: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        unique: true,
         field: "carrierTrackingCode"
       },
       chargeDate: {
@@ -109,18 +108,6 @@ export const initCarrierChargeModel = (sequelize: Sequelize) => {
         allowNull: true,
         field: "notes"
       },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        field: "createdAt",
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP")
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        field: "updatedAt",
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP")
-      },
       totalCharge: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
@@ -129,13 +116,20 @@ export const initCarrierChargeModel = (sequelize: Sequelize) => {
     },
     {
       sequelize,
-      modelName: "CarrierCharge",
-      tableName: "carrierCharge",
+      modelName: "Charge",
+      tableName: "charge",
       timestamps: true,
       createdAt: "createdAt",
-      updatedAt: "updatedAt"
+      updatedAt: "updatedAt",
+      indexes: [
+        {
+          unique: true,
+          name: "unique_idCarrier_carrierTrackingCode_invoiceNumber",
+          fields: ["idCarrier", "carrierTrackingCode", "invoiceNumber"]
+        }
+      ]
     }
   );
 
-  return CarrierCharge;
+  return Charge;
 };

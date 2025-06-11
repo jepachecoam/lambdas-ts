@@ -3,11 +3,12 @@ import { Router } from "express";
 import { handler as b2bAuth } from "../lambdas/b2b-auth/index";
 import { handler as b2cAuth } from "../lambdas/b2c-auth/index";
 import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-wallet/index";
-import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/checkReconciliationDocumentAndLoadItems/index";
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
-import { handler as orderReconciliationAnomalyChecker } from "../lambdas/orderReconciliationAnomalyChecker/index";
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
+import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/reconciliation-checkReconciliationDocumentAndLoadItemsToDb/index";
+import { handler as loadItemsToQueueReconciliationProcess } from "../lambdas/reconciliation-mastershop-loadItemsToQueueReconciliationProcess/index";
+import { handler as orderReconciliationAnomalyChecker } from "../lambdas/reconciliation-mastershop-orderReconciliationAnomalyChecker/index";
 import { jsonResponse } from "./middlewares";
 
 const router = Router();
@@ -47,6 +48,11 @@ router.post(
 router.post(
   "/order-reconciliation-anomaly-checker",
   jsonResponse({ handler: orderReconciliationAnomalyChecker })
+);
+
+router.post(
+  "/load-items-to-queue-reconciliation-process",
+  jsonResponse({ handler: loadItemsToQueueReconciliationProcess })
 );
 
 export default router;

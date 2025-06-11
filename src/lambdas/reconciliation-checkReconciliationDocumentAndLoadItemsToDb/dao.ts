@@ -1,11 +1,11 @@
-import { initCarrierChargeModel } from "../../shared/databases/models/carrierCharge";
-import { initCarrierPaymentModel } from "../../shared/databases/models/carrierPayment";
+import { initChargeModel } from "../../shared/databases/models/charge";
+import { initPaymentModel } from "../../shared/databases/models/payment";
 import Database from "../../shared/databases/sequelize";
 import S3 from "../../shared/services/S3";
 import { EnvironmentTypes } from "../../shared/types";
 
 class Dao {
-  private S3 = new S3();
+  private S3 = new S3("us-east-2");
   private db: Database;
 
   constructor(environment: EnvironmentTypes) {
@@ -16,13 +16,11 @@ class Dao {
   }
 
   async bulkInsertCarrierCharge(records: any[]) {
-    const dbInstance = await this.db.getInstance();
-    const carrierChargeModel = initCarrierChargeModel(dbInstance);
+    const dbInstance = this.db.getInstance();
+    const carrierChargeModel = initChargeModel(dbInstance);
     return carrierChargeModel.bulkCreate(records, {
       validate: true,
       updateOnDuplicate: [
-        "idCarrier",
-        "invoiceNumber",
         "chargeDate",
         "units",
         "actualWeight",
@@ -35,7 +33,6 @@ class Dao {
         "totalFreight",
         "businessUnit",
         "notes",
-        "createdAt",
         "updatedAt",
         "totalCharge"
       ]
@@ -43,18 +40,15 @@ class Dao {
   }
 
   async bulkInsertCarrierPayment(records: any[]) {
-    const dbInstance = await this.db.getInstance();
-    const carrierPaymentModel = initCarrierPaymentModel(dbInstance);
+    const dbInstance = this.db.getInstance();
+    const carrierPaymentModel = initPaymentModel(dbInstance);
     return carrierPaymentModel.bulkCreate(records, {
       validate: true,
       updateOnDuplicate: [
-        "idCarrier",
-        "collectionDate",
+        "paymentDate",
         "notes",
         "paymentMethod",
         "amount",
-        "paymentDate",
-        "createdAt",
         "updatedAt"
       ]
     });

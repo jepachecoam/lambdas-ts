@@ -8,11 +8,14 @@ import {
   ReturnStatisticsByStates
 } from "./types";
 
-class Dao extends Dynamo {
+class Dao {
   private db: Database;
+  private dynamo: Dynamo;
+  private environment: EnvironmentTypes;
   constructor(environment: EnvironmentTypes) {
-    super(environment, true);
     this.db = new Database(environment);
+    this.dynamo = new Dynamo("us-east-1");
+    this.environment = environment;
   }
 
   async getOriginAndDestinationStats({ minOrdersRequired }: getStatisticsInt) {
@@ -99,6 +102,13 @@ class Dao extends Dynamo {
     });
 
     return result ? (result as ReturnStatisticsByCities[]) : [];
+  }
+
+  async putItem(tableName: string, item: Record<string, any>) {
+    if (this.environment === "dev") {
+      tableName = `${tableName}-Dev`; // revisar este cambio
+    }
+    return this.dynamo.putItem(tableName, item);
   }
 }
 
