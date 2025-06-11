@@ -5,19 +5,24 @@ import db from "../database/config";
 const getOrdersWithIncidentsTccMs = async () => {
   try {
     const query = `
-        SELECT o.idOrder, oh.idCarrierStatusUpdate, o.carrierTrackingCode
-        FROM orderShipmentUpdateHistory oh
-        JOIN (
-            SELECT idOrder, MAX(createdAt) AS lastUpdate
-            FROM orderShipmentUpdateHistory
-            GROUP BY idOrder
-        ) AS lastStatus ON oh.idOrder = lastStatus.idOrder AND oh.createdAt = lastStatus.lastUpdate
-        INNER JOIN carrierStatusUpdate cs ON oh.idCarrierStatusUpdate = cs.idCarrierStatusUpdate
-        INNER JOIN \`order\` o ON oh.idOrder = o.idOrder AND o.idCarrier = 4
-        WHERE cs.statusAuxLabel = 'CON-NOVEDAD'
-          AND oh.carrierData NOT LIKE '%idNovedadTCC%';
+    with tccOrdersId as (select o.idOrder, o.carrierTrackingCode
+                        from \`order\` o
+                        where o.idCarrier = 4
+                          and o.createdAt >= date_sub(now(), interval 1 month)),
+        lastCreatedAt as (select osuh.idOrder, max(osuh.createdAt) as createdAt, tccOrdersId.carrierTrackingCode
+                          from orderShipmentUpdateHistory osuh
+                                    inner join tccOrdersId on tccOrdersId.idOrder = osuh.idOrder
+                          group by tccOrdersId.idOrder)
+    select osuh.idOrder, osuh.idCarrierStatusUpdate, lastCreatedAt.carrierTrackingCode, osuh.createdAt
+    from orderShipmentUpdateHistory osuh
+            inner join lastCreatedAt on lastCreatedAt.idOrder = osuh.idOrder and lastCreatedAt.createdAt = osuh.createdAt
+            inner join carrierStatusUpdate csu
+                        on osuh.idCarrierStatusUpdate = csu.idCarrierStatusUpdate and csu.statusAuxLabel = 'CON-NOVEDAD'
+            inner join shipmentUpdate su on osuh.idShipmentUpdate = su.idShipmentUpdate and su.typeShipmentUpdate = 'TO-MANAGE'
+    where osuh.carrierData NOT LIKE '%idNovedadTCC%';
         `;
-    return await db.query(query, { type: QueryTypes.SELECT });
+    const result = await db.query(query, { type: QueryTypes.SELECT });
+    return result.length > 0 ? result : null;
   } catch (error) {
     console.error("Error getting orders with incidents TCC:", error);
     throw error;
