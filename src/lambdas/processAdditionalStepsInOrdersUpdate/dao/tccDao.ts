@@ -13,7 +13,7 @@ const getOrdersWithIncidentsTccMs = async () => {
                           from orderShipmentUpdateHistory osuh
                                     inner join tccOrdersId on tccOrdersId.idOrder = osuh.idOrder
                           group by tccOrdersId.idOrder)
-    select osuh.idOrder, osuh.idCarrierStatusUpdate, lastCreatedAt.carrierTrackingCode, osuh.createdAt
+    select osuh.idOrder, osuh.idOrderShipmentUpdate, lastCreatedAt.carrierTrackingCode, osuh.createdAt
     from orderShipmentUpdateHistory osuh
             inner join lastCreatedAt on lastCreatedAt.idOrder = osuh.idOrder and lastCreatedAt.createdAt = osuh.createdAt
             inner join carrierStatusUpdate csu
@@ -38,9 +38,9 @@ const updateCarrierData = async ({ dataToInsert }: any) => {
     `;
 
     dataToInsert.forEach(
-      ({ idOrder, idCarrierStatusUpdate, incidentId, incidentData }: any) => {
+      ({ idOrder, idOrderShipmentUpdate, incidentId, incidentData }: any) => {
         query += `
-            WHEN idOrder = ${idOrder} AND idCarrierStatusUpdate = ${idCarrierStatusUpdate}
+            WHEN idOrder = ${idOrder} AND idOrderShipmentUpdate = ${idOrderShipmentUpdate}
             THEN JSON_SET(
                 IFNULL(carrierData, '{}'),
                 '$.idNovedadTCC', '${incidentId}',
@@ -57,8 +57,16 @@ const updateCarrierData = async ({ dataToInsert }: any) => {
         
     `;
 
-    const idOrders = dataToInsert.map((data: any) => data.idOrder).join(", ");
-    query += `WHERE idOrder IN (${idOrders});`;
+    const whereCondition = dataToInsert
+      .map(
+        ({ idOrder, idOrderShipmentUpdate }: any) =>
+          `(${idOrder}, ${idOrderShipmentUpdate})`
+      )
+      .join(", ");
+
+    query += `
+        WHERE (idOrder, idOrderShipmentUpdate) IN (${whereCondition});
+    `;
 
     console.log("query =>>>", query);
 
