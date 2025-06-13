@@ -8,8 +8,7 @@ class Model {
 
   async getOrderSource({ carrierTrackingCode, dbInstance }: any) {
     const isOrderReturn = await this.dao.checkInOrderReturn({
-      carrierTrackingCode,
-      dbInstance
+      carrierTrackingCode
     });
 
     if (isOrderReturn) {
