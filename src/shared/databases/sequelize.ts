@@ -51,7 +51,7 @@ interface QueryOptions {
   transaction?: Transaction;
 }
 
-export class Database {
+class Database {
   private db: Sequelize;
 
   constructor(environment: string) {

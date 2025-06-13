@@ -5,6 +5,7 @@ import { handler as b2cAuth } from "../lambdas/b2c-auth/index";
 import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-wallet/index";
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
+import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/index";
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
 import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/reconciliation-checkReconciliationDocumentAndLoadItemsToDb/index";
 import { handler as loadItemsToQueueReconciliationProcess } from "../lambdas/reconciliation-mastershop-loadItemsToQueueReconciliationProcess/index";
@@ -53,6 +54,11 @@ router.post(
 router.post(
   "/load-items-to-queue-reconciliation-process",
   jsonResponse({ handler: loadItemsToQueueReconciliationProcess })
+);
+
+router.post(
+  "/handle-shipment-status-updates-coordinadora",
+  jsonResponse({ handler: handleShipmentStatusUpdatesCoordinadora })
 );
 
 export default router;
