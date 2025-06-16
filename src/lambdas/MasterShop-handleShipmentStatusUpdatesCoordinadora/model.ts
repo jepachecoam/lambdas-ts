@@ -101,8 +101,8 @@ class Model {
       if (!shipmentData.solution || !shipmentData.userSolution) {
         solution = "AUTOMATIC";
         userSolution = "Mastershop-IA";
+        comments = "Novedad cerrada por el sistema automaticamente";
       }
-      comments = "Novedad cerrada por el sistema automaticamente";
     }
 
     if (orderSource === OrderSourceEnum.ORDER) {
