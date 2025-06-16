@@ -64,29 +64,25 @@ class Dao {
   }: any) {
     const fieldsToUpdate: string[] = [];
     const replacements: any = {
+      newStatus: newStatus,
       idOrderShipmentUpdate: idOrderHistory
     };
 
-    if (newStatus !== null && newStatus !== undefined) {
-      fieldsToUpdate.push("status = :newStatus");
-      replacements.newStatus = newStatus;
-    }
-
-    if (solution !== null && solution !== undefined) {
+    if (solution !== undefined) {
       fieldsToUpdate.push("solution = :solution");
       replacements.solution = solution;
     }
 
-    if (userSolution !== null && userSolution !== undefined) {
+    if (userSolution !== undefined) {
       fieldsToUpdate.push("userSolution = :userSolution");
       replacements.userSolution = userSolution;
     }
 
-    if (comments !== null && comments !== undefined) {
+    if (comments !== undefined) {
       fieldsToUpdate.push("comments = :comments");
       replacements.comments = comments;
     }
-
+    fieldsToUpdate.push("status = :newStatus");
     fieldsToUpdate.push("updatedAt = NOW()");
     fieldsToUpdate.push("updateSource = 'api_coordinadora'");
     fieldsToUpdate.push("dateSolution = NOW()");
@@ -111,29 +107,26 @@ class Dao {
   }: any) => {
     const fieldsToUpdate: string[] = [];
     const replacements: any = {
+      newStatus: newStatus,
       idOrderReturnShipmentUpdate: idOrderHistory
     };
 
-    if (newStatus !== null && newStatus !== undefined) {
-      fieldsToUpdate.push("status = :newStatus");
-      replacements.newStatus = newStatus;
-    }
-
-    if (solution !== null && solution !== undefined) {
+    if (solution !== undefined) {
       fieldsToUpdate.push("solution = :solution");
       replacements.solution = solution;
     }
 
-    if (userSolution !== null && userSolution !== undefined) {
+    if (userSolution !== undefined) {
       fieldsToUpdate.push("userSolution = :userSolution");
       replacements.userSolution = userSolution;
     }
 
-    if (comments !== null && comments !== undefined) {
+    if (comments !== undefined) {
       fieldsToUpdate.push("comments = :comments");
       replacements.comments = comments;
     }
 
+    fieldsToUpdate.push("status = :newStatus");
     fieldsToUpdate.push("updatedAt = NOW()");
     fieldsToUpdate.push("updateSource = 'api_coordinadora'");
     fieldsToUpdate.push("dateSolution = NOW()");

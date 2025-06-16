@@ -91,10 +91,10 @@ class Model {
     isApprovedSolution,
     shipmentData
   }: any) {
-    let newStatus = "TO-REVIEWED";
-    let solution = null;
-    let userSolution = null;
-    let comments = null;
+    let newStatus = "REJECTED";
+    let solution;
+    let userSolution;
+    let comments;
 
     if (isApprovedSolution) {
       newStatus = "RESOLVED";
@@ -103,6 +103,10 @@ class Model {
         userSolution = "Mastershop-IA";
         comments = "Novedad cerrada por el sistema automaticamente";
       }
+    } else {
+      solution = null;
+      userSolution = null;
+      comments = null;
     }
 
     if (orderSource === OrderSourceEnum.ORDER) {
