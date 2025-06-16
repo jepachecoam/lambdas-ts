@@ -1,104 +1,43 @@
-import enviaModel from "./model/enviaModel";
-import sharedModel from "./model/sharedModel";
-import swaypModel from "./model/swaypModel";
-import tccModel from "./model/tccModel";
-import constants from "./utils/const";
+import enviaModel from "./api/envia/model";
+import { EnviaCarrierStatusUpdateIds } from "./api/envia/types";
+import swaypModel from "./api/swayp/model";
+import { SwaypStatusUpdateIds } from "./api/swayp/types";
+import tccModel from "./api/tcc/model";
 
-const handleTccRequest = async ({ _detail, eventProcess }: any) => {
-  try {
-    console.log("handleTccRequest...");
-
-    if (eventProcess === "CRONJOB-IDNOVEDAD") {
-      await tccModel.insertIncidentId();
-    } else {
-      console.log("Process not found ");
-    }
-  } catch (err) {
-    console.error(err);
-    throw err;
+const handleTccRequest = async ({ eventProcess }: any) => {
+  if (eventProcess === "CRONJOB-IDNOVEDAD") {
+    await tccModel.insertIncidentId();
+  } else {
+    console.log("Process not found ");
   }
 };
 
-const handleEnviaRequest = async ({ detail, _eventProcess }: any) => {
-  try {
-    console.log("handleEnviaRequest...");
-
-    const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
-
-    switch (idCarrierStatusUpdate) {
-      case constants.EnviaCarrierStatusUpdateIds.Redireccionando:
-        await sharedModel.insertNewTrackingCodeIfFound({
-          data: detail,
-          config: {
-            startWith: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-            length: 12
-          }
-        });
-        break;
-      case constants.EnviaCarrierStatusUpdateIds.SolucionadoEnMalla:
-        await enviaModel.updateShipmentUpdate(detail);
-        break;
-      default:
-        console.log("Process not found ");
-        break;
-    }
-  } catch (err) {
-    console.error(err);
-    throw err;
+const handleEnviaRequest = async ({ detail }: any) => {
+  const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
+  if (
+    idCarrierStatusUpdate === EnviaCarrierStatusUpdateIds.SolucionadoEnMalla
+  ) {
+    await enviaModel.updateShipmentUpdate(detail);
+  } else {
+    console.log("Process not found ");
   }
 };
 
-const handleSwaypRequest = async ({ detail, _eventProcess }: any) => {
-  console.log("handleSwaypRequest...");
-
+const handleSwaypRequest = async ({ detail }: any) => {
   const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
 
-  switch (idCarrierStatusUpdate) {
-    case constants.SwaypStatusUpdateIds.Novedad:
-      await sharedModel.insertNewTrackingCodeIfFound({
-        data: detail,
-        config: {
-          startWith: ["1"],
-          length: 11
-        }
-      });
-      break;
-
-    case constants.SwaypStatusUpdateIds.Cancelacion ||
-      constants.SwaypStatusUpdateIds.Cancelada:
-      await swaypModel.updateCancelReason(detail);
-      break;
-
-    default:
-      break;
-  }
-};
-
-const handleInterRapidisimoRequest = async ({
-  _detail,
-  _eventProcess
-}: any) => {
-  try {
-    console.log("handleInterRapidisimoRequest...");
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
-
-const handleCoordinadoraRequest = async ({ _detail, _eventProcess }: any) => {
-  try {
-    console.log("handleCoordinadoraRequest...");
-  } catch (err) {
-    console.error(err);
-    throw err;
+  if (
+    idCarrierStatusUpdate === SwaypStatusUpdateIds.Cancelacion ||
+    idCarrierStatusUpdate === SwaypStatusUpdateIds.Cancelada
+  ) {
+    await swaypModel.updateCancelReason(detail);
+  } else {
+    console.log("Process not found ");
   }
 };
 
 export default {
   handleTccRequest,
   handleEnviaRequest,
-  handleSwaypRequest,
-  handleInterRapidisimoRequest,
-  handleCoordinadoraRequest
+  handleSwaypRequest
 };

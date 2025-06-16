@@ -1,8 +1,8 @@
 import axios from "axios";
 import { format, subMonths } from "date-fns";
 
-import dao from "../dao/tccDao";
-import dto from "../dto/tccDto";
+import dao from "./dao";
+import dto from "./dto";
 
 const getOrdersWithIncidentsTCC = async (remesas: string[]) => {
   try {

@@ -1,7 +1,7 @@
 import controller from "./controller";
-import sharedDto from "./dto/sharedDto";
-import sharedModel from "./model/sharedModel";
-import sharedUtils from "./utils/const";
+import sharedDto from "./dto";
+import sharedModel from "./model";
+import { Carriers } from "./types";
 
 export const handler = async (event: any, _context: any) => {
   try {
@@ -15,8 +15,6 @@ export const handler = async (event: any, _context: any) => {
       });
     }
 
-    const { Carriers } = sharedUtils;
-
     switch (carrier) {
       case Carriers.tcc:
         await controller.handleTccRequest({ detail, eventProcess });
@@ -26,12 +24,6 @@ export const handler = async (event: any, _context: any) => {
         break;
       case Carriers.swayp:
         await controller.handleSwaypRequest({ detail, eventProcess });
-        break;
-      case Carriers.interRapidisimo:
-        await controller.handleInterRapidisimoRequest({ detail, eventProcess });
-        break;
-      case Carriers.coordinadora:
-        await controller.handleCoordinadoraRequest({ detail, eventProcess });
         break;
       default:
         throw new Error("Carrier not found");

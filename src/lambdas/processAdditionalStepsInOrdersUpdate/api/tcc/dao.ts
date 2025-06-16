@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
 
-import db from "../database/config";
+import db from "../../database/config";
 
 const getOrdersWithIncidentsTccMs = async () => {
   try {

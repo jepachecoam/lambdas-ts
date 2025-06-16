@@ -1,5 +1,5 @@
-import swaypDao from "../dao/swaypDao";
-import constants from "../utils/const";
+import { OrderSourcesTypes } from "../../types";
+import dao from "./dao";
 
 const updateCancelReason = async ({
   idOrder,
@@ -10,8 +10,8 @@ const updateCancelReason = async ({
 }) => {
   try {
     let result = false;
-    if (source === constants.OrderSourcesTypes.Order) {
-      result = await swaypDao.updateCancelReason({ idOrder });
+    if (source === OrderSourcesTypes.Order) {
+      result = await dao.updateCancelReason({ idOrder });
     } else {
       console.log("No need to updateCancelReason");
     }
