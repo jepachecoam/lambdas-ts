@@ -89,7 +89,7 @@ class Model {
     orderSource,
     idOrderHistory,
     isApprovedSolution,
-    dbInstance
+    shipmentData
   }: any) {
     let newStatus = "TO-REVIEWED";
     let solution = null;
@@ -98,8 +98,10 @@ class Model {
 
     if (isApprovedSolution) {
       newStatus = "RESOLVED";
-      solution = "AUTOMATIC";
-      userSolution = "Mastershop-IA";
+      if (!shipmentData.solution || !shipmentData.userSolution) {
+        solution = "AUTOMATIC";
+        userSolution = "Mastershop-IA";
+      }
       comments = "Novedad cerrada por el sistema automaticamente";
     }
 
@@ -109,8 +111,7 @@ class Model {
         newStatus,
         solution,
         userSolution,
-        comments,
-        dbInstance
+        comments
       });
     } else {
       await this.dao.updateStatusInOrderReturnHistory({
@@ -118,8 +119,7 @@ class Model {
         newStatus,
         solution,
         userSolution,
-        comments,
-        dbInstance
+        comments
       });
     }
 

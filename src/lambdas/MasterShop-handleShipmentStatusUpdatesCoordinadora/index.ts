@@ -59,7 +59,8 @@ export const handler = async (event: any, context: any) => {
     await model.updateHistoryStatus({
       orderSource,
       idOrderHistory: shipmentData.idOrderHistory,
-      isApprovedSolution
+      isApprovedSolution,
+      shipmentData
     });
 
     return buildResponse(202, "Accepted");
