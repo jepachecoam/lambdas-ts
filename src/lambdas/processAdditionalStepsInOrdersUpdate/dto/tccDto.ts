@@ -2,7 +2,7 @@ const findMatches = ({ ordersIncidentsMs, ordersIncidentsTcc }: any) => {
   const matches: any = [];
 
   ordersIncidentsMs.forEach((order: any) => {
-    const { idOrder, idCarrierStatusUpdate, carrierTrackingCode } = order;
+    const { idOrder, idOrderShipmentUpdate, carrierTrackingCode } = order;
 
     const matchingAccounts = ordersIncidentsTcc.filter(
       (account: any) => account.numeroremesa === carrierTrackingCode
@@ -19,7 +19,7 @@ const findMatches = ({ ordersIncidentsMs, ordersIncidentsTcc }: any) => {
 
       matches.push({
         idOrder,
-        idCarrierStatusUpdate,
+        idOrderShipmentUpdate,
         incidentId: latestAccount.idnovedad,
         incidentData: latestAccount
       });
