@@ -29,10 +29,10 @@ class Dao {
 
   async getDataFromOrderHistory({ carrierTrackingCode }: any) {
     const query = `
-        select solution, userSolution, idShipmentUpdate, idOrderShipmentUpdate as idOrderHistory, idOrder 
+        select solution, userSolution, idShipmentUpdate, idOrderShipmentUpdate as idOrderHistory, idOrder, status  
         from orderShipmentUpdateHistory 
             where idOrder = (select idOrder from \`order\` where carrierTrackingCode = :carrierTrackingCode) 
-            and status != '' and status != 'RESOLVED'
+            and status != '' and status is not null
             order by createdAt desc limit 1;
         `;
 
@@ -43,10 +43,10 @@ class Dao {
 
   async getDataFromOrderReturnHistory({ carrierTrackingCode }: any) {
     const query = `
-        select solution, userSolution, idShipmentUpdate, idOrderReturnShipmentUpdate as idOrderHistory, idOrderReturn 
+        select solution, userSolution, idShipmentUpdate, idOrderReturnShipmentUpdate as idOrderHistory, idOrderReturn, status
         from orderReturnShipmentUpdateHistory 
             where idOrderReturn = (select idOrderReturn from orderReturn where idOrder = (select idOrder from \`order\` where carrierTrackingCode = :carrierTrackingCode)) 
-            and status != '' and status != 'RESOLVED' 
+            and status != '' and status is not null
             order by createdAt desc limit 1;
         `;
 

@@ -4,3 +4,14 @@ export enum Envs {
   APP_NAME_MS = "APP_NAME_MS",
   URL_NOTIFICATION_ALERT = "URL_NOTIFICATION_ALERT"
 }
+
+export enum orderHistoryStatusTypesEnum {
+  PENDING = "PENDING",
+  RESOLVED = "RESOLVED",
+  REJECTED = "REJECTED"
+}
+
+export enum OrderSourceEnum {
+  ORDER = "order",
+  ORDER_RETURN = "orderReturn"
+}

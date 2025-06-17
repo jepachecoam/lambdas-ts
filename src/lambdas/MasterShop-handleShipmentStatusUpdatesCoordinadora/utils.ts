@@ -15,8 +15,3 @@ export const sanitizeStatus = ({ status }: any) => {
   console.log("Sanitized status =>>>", statusSanitized);
   return statusSanitized === "aprobacion";
 };
-
-export enum OrderSourceEnum {
-  ORDER = "order",
-  ORDER_RETURN = "orderReturn"
-}

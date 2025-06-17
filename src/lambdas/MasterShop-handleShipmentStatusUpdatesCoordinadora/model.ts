@@ -1,12 +1,12 @@
 import Dao from "./dao";
-import { OrderSourceEnum } from "./utils";
+import { orderHistoryStatusTypesEnum, OrderSourceEnum } from "./types";
 class Model {
   dao: Dao;
   constructor(environment: string) {
     this.dao = new Dao(environment);
   }
 
-  async getOrderSource({ carrierTrackingCode, dbInstance }: any) {
+  async getOrderSource({ carrierTrackingCode }: any) {
     const isOrderReturn = await this.dao.checkInOrderReturn({
       carrierTrackingCode
     });
@@ -16,8 +16,7 @@ class Model {
     }
 
     const isOrder = await this.dao.checkInOrder({
-      carrierTrackingCode,
-      dbInstance
+      carrierTrackingCode
     });
 
     if (isOrder) {
@@ -33,23 +32,28 @@ class Model {
     return null;
   }
 
-  async getShipmentData({ orderSource, carrierTrackingCode, dbInstance }: any) {
-    let shipmentData = null;
+  async getShipmentData({ orderSource, carrierTrackingCode }: any) {
+    let shipmentData: any = null;
 
     if (orderSource === OrderSourceEnum.ORDER) {
       shipmentData = await this.dao.getDataFromOrderHistory({
-        carrierTrackingCode,
-        dbInstance
+        carrierTrackingCode
       });
     } else {
       shipmentData = await this.dao.getDataFromOrderReturnHistory({
-        carrierTrackingCode,
-        dbInstance
+        carrierTrackingCode
       });
     }
+
+    if (shipmentData?.status === orderHistoryStatusTypesEnum.RESOLVED) {
+      console.log(
+        `la novedad de la guia ${carrierTrackingCode} ya fue resuelta.`
+      );
+      return null;
+    }
+
     if (!shipmentData) {
-      const message = `no se encontro informacion de la guia ${carrierTrackingCode} necesaria
-                para guardar el registro de la conversacion en DynamoDB ni para actualizar el estado de la gestion.`;
+      const message = `no se encontro registro de novedad en carrierTrackingCodeHistory de la guia ${carrierTrackingCode} para actualizar.`;
 
       console.log(message);
 
@@ -91,13 +95,13 @@ class Model {
     isApprovedSolution,
     shipmentData
   }: any) {
-    let newStatus = "REJECTED";
+    let newStatus: any = orderHistoryStatusTypesEnum.REJECTED;
     let solution;
     let userSolution;
     let comments;
 
     if (isApprovedSolution) {
-      newStatus = "RESOLVED";
+      newStatus = orderHistoryStatusTypesEnum.RESOLVED;
       if (!shipmentData.solution || !shipmentData.userSolution) {
         solution = "AUTOMATIC";
         userSolution = "Mastershop-IA";
