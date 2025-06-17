@@ -1,15 +1,19 @@
-import controller from "./controller";
-import sharedDto from "./dto";
-import sharedModel from "./model";
-import { Carriers } from "./types";
+import { checkEnv } from "../../shared/envChecker";
+import { dbEnv } from "../../shared/types";
+import handleEnviaRequest from "./api/envia";
+import handleSwaypRequest from "./api/swayp";
+import handleTccRequest from "./api/tcc";
+import dto from "./dto";
+import model from "./model";
+import { Carriers, EnvsEnum } from "./types";
 
 export const handler = async (event: any, _context: any) => {
   try {
-    const { carrier, detail, eventProcess } =
-      sharedDto.extractParamsFromEvent(event);
+    checkEnv({ ...dbEnv, ...EnvsEnum });
+    const { carrier, detail, eventProcess } = dto.extractParamsFromEvent(event);
 
     if (detail) {
-      await sharedModel.dispatchShipmentUpdate({
+      await model.dispatchShipmentUpdate({
         carrierName: carrier,
         detail: detail
       });
@@ -17,26 +21,19 @@ export const handler = async (event: any, _context: any) => {
 
     switch (carrier) {
       case Carriers.tcc:
-        await controller.handleTccRequest({ detail, eventProcess });
+        await handleTccRequest({ detail, eventProcess });
         break;
       case Carriers.envia:
-        await controller.handleEnviaRequest({ detail, eventProcess });
+        await handleEnviaRequest({ detail, eventProcess });
         break;
       case Carriers.swayp:
-        await controller.handleSwaypRequest({ detail, eventProcess });
+        await handleSwaypRequest({ detail, eventProcess });
         break;
       default:
-        throw new Error("Carrier not found");
+        console.log("Not found cases to hanlde for carrier: ", carrier);
     }
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "OK" })
-    };
+    console.log("Finished");
   } catch (err: any) {
-    console.error(err.message);
-    return {
-      statusCode: 500,
-      body: JSON.stringify("Internal Server Error")
-    };
+    console.error("Error: =>>>", err);
   }
 };

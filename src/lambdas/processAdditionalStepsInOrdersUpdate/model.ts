@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import { envs } from "./conf/envs";
 import dao from "./dao";
 
 const dispatchShipmentUpdate = async ({ carrierName, detail }: any) => {
@@ -74,12 +75,12 @@ const fetchMainOrder = async ({ idUser, idOrder, idBusiness }: any) => {
       idBussiness: idBusiness
     };
     const objectResp = await axios.post(
-      `${process.env["URL_MS"]}/api/b2b/logistics/order/${idUser}`,
+      `${envs.URL_MS}/${envs.environment}/api/b2b/logistics/order/${idUser}`,
       parameter,
       {
         headers: {
-          "x-app-name": `${process.env["APP_NAME_MS"]}`,
-          "x-api-key": `${process.env["API_KEY_MS"]}`
+          "x-app-name": envs.APP_NAME_MS,
+          "x-api-key": envs.API_KEY_MS
         }
       }
     );

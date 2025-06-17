@@ -1,46 +1,28 @@
 import axios from "axios";
-import { QueryTypes } from "sequelize";
 
-import db from "./database/config";
-
+import db from "./conf/db";
+import { envs } from "./conf/envs";
 const getOrder = async ({ idOrder }: any) => {
-  try {
-    const query = `
+  const query = `
             select * from \`order\` where idOrder = ${idOrder}
             `;
-    const result = await db.query(query, {
-      type: QueryTypes.SELECT
-    });
 
-    return result.length > 0 ? result[0] : null;
-  } catch (error) {
-    console.error("Error in Dao createCarrierTrackingCodeHistory =>>>", error);
-    throw error;
-  }
+  return db.fetchOne(query);
 };
 
 const getOrderReturn = async ({ idOrderReturn }: any) => {
-  try {
-    const query = `
+  const query = `
             select * from orderReturn where idOrderReturn = ${idOrderReturn}
             `;
-    const result = await db.query(query, {
-      type: QueryTypes.SELECT
-    });
 
-    return result.length > 0 ? result[0] : null;
-  } catch (error) {
-    console.error("Error in Dao createCarrierTrackingCodeHistory =>>>", error);
-    throw error;
-  }
+  return db.fetchOne(query);
 };
 
 const getCarrierStatusUpdateById = async ({
   idCarrierStatusUpdate,
   idCarrier
 }: any) => {
-  try {
-    const query = `
+  const query = `
         select csu.idCarrierStatusUpdate,
                 csu.idCarrier,
                 csu.carrierStatus,
@@ -52,37 +34,21 @@ const getCarrierStatusUpdateById = async ({
         where idCarrier = ${idCarrier}
         and csu.idCarrierStatusUpdate = ${idCarrierStatusUpdate}
             `;
-    const result = await db.query(query, {
-      type: QueryTypes.SELECT
-    });
 
-    return result.length > 0 ? result[0] : null;
-  } catch (err) {
-    console.error("Error in Dao getCarrierStatusUpdateById =>>>", err);
-    throw err;
-  }
+  return db.fetchOne(query);
 };
 
 const getShipmentUpdateInfoById = async ({
   idShipmentUpdate,
   idCarrier
 }: any) => {
-  try {
-    const query = `
+  const query = `
         select codeCarrierShipmentUpdate, idShipmentUpdate, carrierName, notifyToCustomer, typeShipmentUpdate, templateWappMsg, name
         from shipmentUpdate
         where idCarrier = ${idCarrier}
           and idShipmentUpdate = ${idShipmentUpdate}
             `;
-    const result = await db.query(query, {
-      type: QueryTypes.SELECT
-    });
-
-    return result.length > 0 ? result[0] : null;
-  } catch (err) {
-    console.error("Error in Dao getShipmentUpdateInfoById =>>>", err);
-    throw err;
-  }
+  return db.fetchOne(query);
 };
 
 const sendEvent = async ({ source, detailType, detail }: any) => {
@@ -96,12 +62,12 @@ const sendEvent = async ({ source, detailType, detail }: any) => {
     console.log("payloadSend to MASTERSHOP-SHIPMENT-UPDATE =>>>", parameter);
 
     const response = await axios.post(
-      `${process.env["URL_API_SEND_EVENT"]}/api/b2b/logistics/processevents`,
+      `${envs.URL_API_SEND_EVENT}/${envs.environment}/api/b2b/logistics/processevents`,
       parameter,
       {
         headers: {
-          "x-api-key": `${process.env["API_KEY_MS"]}`,
-          "x-app-name": `${process.env["APP_NAME_MS"]}`
+          "x-api-key": envs.API_KEY_MS,
+          "x-app-name": envs.APP_NAME_MS
         }
       }
     );

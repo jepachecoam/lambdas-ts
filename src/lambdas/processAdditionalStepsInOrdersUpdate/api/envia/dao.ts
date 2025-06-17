@@ -1,10 +1,7 @@
-import { QueryTypes } from "sequelize";
-
-import db from "../../database/config";
+import db from "../../conf/db";
 
 const updateShipmentUpdate = async ({ idOrder }: any) => {
-  try {
-    const query = `
+  const query = `
         update orderShipmentUpdateHistory osuh
         set status       = 'RESOLVED',
             solution     = 'AUTOMATIC',
@@ -14,21 +11,12 @@ const updateShipmentUpdate = async ({ idOrder }: any) => {
         where idOrder = :idOrder
         and status = 'PENDING'
         `;
-    const result = await db.query(query, {
-      type: QueryTypes.INSERT,
-      replacements: { idOrder }
-    });
 
-    return result[1] > 0;
-  } catch (error) {
-    console.error("Error in Dao updateShipmentUpdate =>>>", error);
-    throw error;
-  }
+  return db.update(query, { replacements: { idOrder } });
 };
 
 const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
-  try {
-    const query = `
+  const query = `
         update orderReturnShipmentUpdateHistory osuh
         set status       = 'RESOLVED',
             solution     = 'AUTOMATIC',
@@ -38,16 +26,8 @@ const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
         where idOrderReturn = :idOrderReturn
         and status = 'PENDING';
           `;
-    const result = await db.query(query, {
-      type: QueryTypes.INSERT,
-      replacements: { idOrderReturn }
-    });
 
-    return result[1] > 0;
-  } catch (error) {
-    console.error("Error in Dao updateShipmentUpdate =>>>", error);
-    throw error;
-  }
+  return db.update(query, { replacements: { idOrderReturn } });
 };
 
 export default {

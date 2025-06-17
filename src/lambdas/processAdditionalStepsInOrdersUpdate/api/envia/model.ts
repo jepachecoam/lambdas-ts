@@ -8,19 +8,15 @@ const updateShipmentUpdate = async ({
   idOrder: number;
   source: string;
 }) => {
-  try {
-    let result = false;
-    if (source === OrderSourcesTypes.OrderReturn) {
-      result = await dao.updateReturnShipmentUpdate({
-        idOrderReturn: idOrder
-      });
-    } else {
-      result = await dao.updateShipmentUpdate({ idOrder });
-    }
-    console.log(`updateShipmentUpdate ${result}`);
-  } catch {
-    console.log("error");
+  let result: any = false;
+  if (source === OrderSourcesTypes.OrderReturn) {
+    result = await dao.updateReturnShipmentUpdate({
+      idOrderReturn: idOrder
+    });
+  } else {
+    result = await dao.updateShipmentUpdate({ idOrder });
   }
+  console.log(`updateShipmentUpdate ${result}`);
 };
 
 export default { updateShipmentUpdate };

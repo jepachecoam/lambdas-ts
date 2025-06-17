@@ -1,22 +1,10 @@
-import { QueryTypes } from "sequelize";
-
-import db from "../../database/config";
+import db from "../../conf/db";
 
 const updateCancelReason = async ({ idOrder }: any) => {
-  try {
-    const query = `
-        update \`order\` o set idCancelReason = 58 where idOrder = :idOrder
-        `;
-    const result = await db.query(query, {
-      type: QueryTypes.INSERT,
-      replacements: { idOrder }
-    });
+  const query =
+    "update `order` o set idCancelReason = 58 where idOrder = :idOrder";
 
-    return result[1] > 0;
-  } catch (error) {
-    console.error("Error in Dao updateCancelReason =>>>", error);
-    throw error;
-  }
+  return db.update(query, { replacements: { idOrder } });
 };
 
 export default {
