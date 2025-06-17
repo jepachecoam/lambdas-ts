@@ -2,9 +2,12 @@ import { QueryTypes } from "sequelize";
 
 import db from "../../database/config";
 
-const updateShipmentUpdate = async ({ idOrder }: any) => {
-  try {
-    const query = `
+class Dao {
+  private db = db;
+
+  async updateShipmentUpdate({ idOrder }: { idOrder: number }) {
+    try {
+      const query = `
         update orderShipmentUpdateHistory osuh
         set status       = 'RESOLVED',
             solution     = 'AUTOMATIC',
@@ -14,21 +17,21 @@ const updateShipmentUpdate = async ({ idOrder }: any) => {
         where idOrder = :idOrder
         and status = 'PENDING'
         `;
-    const result = await db.query(query, {
-      type: QueryTypes.INSERT,
-      replacements: { idOrder }
-    });
+      const result = await this.db.query(query, {
+        type: QueryTypes.INSERT,
+        replacements: { idOrder }
+      });
 
-    return result[1] > 0;
-  } catch (error) {
-    console.error("Error in Dao updateShipmentUpdate =>>>", error);
-    throw error;
+      return result[1] > 0;
+    } catch (error) {
+      console.error("Error in Dao updateShipmentUpdate =>>>", error);
+      throw error;
+    }
   }
-};
 
-const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
-  try {
-    const query = `
+  async updateReturnShipmentUpdate({ idOrderReturn }: { idOrderReturn: number }) {
+    try {
+      const query = `
         update orderReturnShipmentUpdateHistory osuh
         set status       = 'RESOLVED',
             solution     = 'AUTOMATIC',
@@ -38,19 +41,17 @@ const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
         where idOrderReturn = :idOrderReturn
         and status = 'PENDING';
           `;
-    const result = await db.query(query, {
-      type: QueryTypes.INSERT,
-      replacements: { idOrderReturn }
-    });
+      const result = await this.db.query(query, {
+        type: QueryTypes.INSERT,
+        replacements: { idOrderReturn }
+      });
 
-    return result[1] > 0;
-  } catch (error) {
-    console.error("Error in Dao updateShipmentUpdate =>>>", error);
-    throw error;
+      return result[1] > 0;
+    } catch (error) {
+      console.error("Error in Dao updateShipmentUpdate =>>>", error);
+      throw error;
+    }
   }
-};
+}
 
-export default {
-  updateShipmentUpdate,
-  updateReturnShipmentUpdate
-};
+export default Dao;

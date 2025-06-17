@@ -2,9 +2,12 @@ import { QueryTypes } from "sequelize";
 
 import db from "../../database/config";
 
-const getOrdersWithIncidentsTccMs = async () => {
-  try {
-    const query = `
+class Dao {
+  private db = db;
+
+  async getOrdersWithIncidentsTccMs() {
+    try {
+      const query = `
     with tccOrdersId as (select o.idOrder, o.carrierTrackingCode
                         from \`order\` o
                         where o.idCarrier = 4
@@ -21,25 +24,25 @@ const getOrdersWithIncidentsTccMs = async () => {
             inner join shipmentUpdate su on osuh.idShipmentUpdate = su.idShipmentUpdate and su.typeShipmentUpdate = 'TO-MANAGE'
     where osuh.carrierData NOT LIKE '%idNovedadTCC%';
         `;
-    const result = await db.query(query, { type: QueryTypes.SELECT });
-    return result.length > 0 ? result : null;
-  } catch (error) {
-    console.error("Error getting orders with incidents TCC:", error);
-    throw error;
+      const result = await this.db.query(query, { type: QueryTypes.SELECT });
+      return result.length > 0 ? result : null;
+    } catch (error) {
+      console.error("Error getting orders with incidents TCC:", error);
+      throw error;
+    }
   }
-};
 
-const updateCarrierData = async ({ dataToInsert }: any) => {
-  try {
-    let query = `
+  async updateCarrierData({ dataToInsert }: any) {
+    try {
+      let query = `
         UPDATE orderShipmentUpdateHistory
-        SET 
+        SET
             carrierData = CASE
     `;
 
     dataToInsert.forEach(
       ({ idOrder, idOrderShipmentUpdate, incidentId, incidentData }: any) => {
-        query += `
+      query += `
             WHEN idOrder = ${idOrder} AND idOrderShipmentUpdate = ${idOrderShipmentUpdate}
             THEN JSON_SET(
                 IFNULL(carrierData, '{}'),
@@ -50,34 +53,31 @@ const updateCarrierData = async ({ dataToInsert }: any) => {
         `;
       }
     );
-    query += `
+      query += `
             ELSE carrierData
         END,
         updatedAt = NOW()
-        
+
     `;
 
-    const whereCondition = dataToInsert
-      .map(
-        ({ idOrder, idOrderShipmentUpdate }: any) =>
-          `(${idOrder}, ${idOrderShipmentUpdate})`
-      )
-      .join(", ");
+      const whereCondition = dataToInsert
+        .map(
+          ({ idOrder, idOrderShipmentUpdate }: any) =>
+            `(${idOrder}, ${idOrderShipmentUpdate})`
+        )
+        .join(", ");
 
-    query += `
+      query += `
         WHERE (idOrder, idOrderShipmentUpdate) IN (${whereCondition});
     `;
+      console.log("query =>>>", query);
 
-    console.log("query =>>>", query);
-
-    return await db.query(query, { type: QueryTypes.UPDATE });
-  } catch (error) {
-    console.error("Error updating carrier data:", error);
-    throw error;
+      return await this.db.query(query, { type: QueryTypes.UPDATE });
+    } catch (error) {
+      console.error("Error updating carrier data:", error);
+      throw error;
+    }
   }
-};
+}
 
-export default {
-  updateCarrierData,
-  getOrdersWithIncidentsTccMs
-};
+export default Dao;

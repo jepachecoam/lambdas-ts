@@ -1,93 +1,79 @@
-import axios from "axios";
+import Dao from "./dao";
+import Request from "./request";
 
-import dao from "./dao";
+class Model {
+  private dao: Dao;
+  private request: Request;
 
-const dispatchShipmentUpdate = async ({ carrierName, detail }: any) => {
-  try {
-    let mainOrder: any = null;
-    let returnData: any = null;
-    let orderLogistic = null;
-    let shipmentUpdateInfo = null;
+  constructor() {
+    this.dao = new Dao();
+    this.request = new Request();
+  }
 
-    if (detail.source === "orderReturn") {
-      returnData = await dao.getOrderReturn({
-        idOrderReturn: detail.idOrder
-      });
-      if (returnData) {
-        mainOrder = await dao.getOrder({ idOrder: returnData.idOrder });
+  async dispatchShipmentUpdate({ carrierName, detail }: any) {
+    try {
+      let mainOrder: any = null;
+      let returnData: any = null;
+      let orderLogistic = null;
+      let shipmentUpdateInfo = null;
+
+      if (detail.source === "orderReturn") {
+        returnData = await this.dao.getOrderReturn({
+          idOrderReturn: detail.idOrder
+        });
+        if (returnData) {
+          mainOrder = await this.dao.getOrder({ idOrder: returnData.idOrder });
+        }
+      } else {
+        mainOrder = await this.dao.getOrder({ idOrder: detail.idOrder });
       }
-    } else {
-      mainOrder = await dao.getOrder({ idOrder: detail.idOrder });
-    }
 
-    if (mainOrder) {
-      orderLogistic = await fetchMainOrder({
-        idUser: mainOrder.idUser,
-        idBusiness: mainOrder.idBusiness,
-        idOrder: mainOrder.idOrder
-      });
-    }
+      if (mainOrder) {
+        orderLogistic = await this.request.fetchMainOrder({
+          idUser: mainOrder.idUser,
+          idBusiness: mainOrder.idBusiness,
+          idOrder: mainOrder.idOrder
+        });
+      }
 
-    const carrierStatusUpdate = await dao.getCarrierStatusUpdateById({
-      idCarrierStatusUpdate: detail.idCarrierStatusUpdate,
-      idCarrier: detail.idCarrier
-    });
-
-    if (detail && detail.idShipmentUpdate) {
-      shipmentUpdateInfo = await dao.getShipmentUpdateInfoById({
-        idShipmentUpdate: detail.idShipmentUpdate,
+      const carrierStatusUpdate = await this.dao.getCarrierStatusUpdateById({
+        idCarrierStatusUpdate: detail.idCarrierStatusUpdate,
         idCarrier: detail.idCarrier
       });
-    }
 
-    const payloadEvent = {
-      carrierName,
-      detail,
-      carrierStatusUpdateData: carrierStatusUpdate,
-      shipmentUpdateInfo: shipmentUpdateInfo,
-      orderLogisticData: orderLogistic,
-      returnData: returnData
-    };
-
-    console.log(
-      "dispatchShipmentUpdate payload =>>>",
-      JSON.stringify(payloadEvent)
-    );
-
-    const sendEventResult = await dao.sendEvent({
-      source: "MASTERSHOP-SHIPMENT-UPDATE",
-      detailType: `SHIPMENT-UPDATE-${carrierName.toUpperCase()}`,
-      detail: payloadEvent
-    });
-
-    return sendEventResult;
-  } catch (err) {
-    console.error("Error sending event:", err);
-    throw err;
-  }
-};
-
-const fetchMainOrder = async ({ idUser, idOrder, idBusiness }: any) => {
-  try {
-    const parameter = {
-      orderId: idOrder,
-      idBussiness: idBusiness
-    };
-    const objectResp = await axios.post(
-      `${process.env["URL_MS"]}/api/b2b/logistics/order/${idUser}`,
-      parameter,
-      {
-        headers: {
-          "x-app-name": `${process.env["APP_NAME_MS"]}`,
-          "x-api-key": `${process.env["API_KEY_MS"]}`
-        }
+      if (detail && detail.idShipmentUpdate) {
+        shipmentUpdateInfo = await this.dao.getShipmentUpdateInfoById({
+          idShipmentUpdate: detail.idShipmentUpdate,
+          idCarrier: detail.idCarrier
+        });
       }
-    );
-    return objectResp.data.data;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
 
-export default { dispatchShipmentUpdate };
+      const payloadEvent = {
+        carrierName,
+        detail,
+        carrierStatusUpdateData: carrierStatusUpdate,
+        shipmentUpdateInfo: shipmentUpdateInfo,
+        orderLogisticData: orderLogistic,
+        returnData: returnData
+      };
+
+      console.log(
+        "dispatchShipmentUpdate payload =>>>",
+        JSON.stringify(payloadEvent)
+      );
+
+      const sendEventResult = await this.request.sendEvent({
+        source: "MASTERSHOP-SHIPMENT-UPDATE",
+        detailType: `SHIPMENT-UPDATE-${carrierName.toUpperCase()}`,
+        detail: payloadEvent
+      });
+
+      return sendEventResult;
+    } catch (err) {
+      console.error("Error sending event:", err);
+      throw err;
+    }
+  }
+}
+
+export default Model;

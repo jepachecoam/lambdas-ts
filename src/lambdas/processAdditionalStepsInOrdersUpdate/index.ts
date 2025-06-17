@@ -1,15 +1,19 @@
+import { checkEnv } from "../../shared/envChecker";
+import http from "../../shared/http";
 import controller from "./controller";
 import sharedDto from "./dto";
-import sharedModel from "./model";
-import { Carriers } from "./types";
+import Model from "./model";
+import { Carriers, Envs } from "./types";
 
 export const handler = async (event: any, _context: any) => {
   try {
+    checkEnv(Envs);
+    const model = new Model();
     const { carrier, detail, eventProcess } =
       sharedDto.extractParamsFromEvent(event);
 
     if (detail) {
-      await sharedModel.dispatchShipmentUpdate({
+      await model.dispatchShipmentUpdate({
         carrierName: carrier,
         detail: detail
       });
@@ -28,15 +32,13 @@ export const handler = async (event: any, _context: any) => {
       default:
         throw new Error("Carrier not found");
     }
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "OK" })
-    };
+    return http.jsonResponse({ statusCode: 200, message: "OK", result: {} });
   } catch (err: any) {
     console.error(err.message);
-    return {
+    return http.jsonResponse({
       statusCode: 500,
-      body: JSON.stringify("Internal Server Error")
-    };
+      message: "Internal Server Error",
+      result: {}
+    });
   }
 };
