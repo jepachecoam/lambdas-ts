@@ -1,38 +1,7 @@
 import axios from "axios";
 
-import sharedDao from "../dao/sharedDao";
-import sharedDto from "../dto/sharedDto";
-
-const insertNewTrackingCodeIfFound = async ({ data, config }: any) => {
-  try {
-    const { idOrder, carrierData, trackingNumber } = data;
-
-    const newTrackingNumbers = sharedDto.getTrackingNumbersFromText({
-      text: carrierData,
-      exclusions: [trackingNumber],
-      config: config
-    });
-    if (!newTrackingNumbers.length) {
-      console.log("No new tracking numbers found");
-      return null;
-    }
-
-    const newCarrierTrackingCode = newTrackingNumbers[0];
-
-    const result = await sharedDao.createCarrierTrackingCodeHistory({
-      idOrder,
-      newCarrierTrackingCode
-    });
-
-    if (result) {
-      console.log(`Tracking number ${newCarrierTrackingCode} already exists`);
-      return null;
-    }
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
+import { envs } from "./conf/envs";
+import dao from "./dao";
 
 const dispatchShipmentUpdate = async ({ carrierName, detail }: any) => {
   try {
@@ -42,14 +11,14 @@ const dispatchShipmentUpdate = async ({ carrierName, detail }: any) => {
     let shipmentUpdateInfo = null;
 
     if (detail.source === "orderReturn") {
-      returnData = await sharedDao.getOrderReturn({
+      returnData = await dao.getOrderReturn({
         idOrderReturn: detail.idOrder
       });
       if (returnData) {
-        mainOrder = await sharedDao.getOrder({ idOrder: returnData.idOrder });
+        mainOrder = await dao.getOrder({ idOrder: returnData.idOrder });
       }
     } else {
-      mainOrder = await sharedDao.getOrder({ idOrder: detail.idOrder });
+      mainOrder = await dao.getOrder({ idOrder: detail.idOrder });
     }
 
     if (mainOrder) {
@@ -60,13 +29,13 @@ const dispatchShipmentUpdate = async ({ carrierName, detail }: any) => {
       });
     }
 
-    const carrierStatusUpdate = await sharedDao.getCarrierStatusUpdateById({
+    const carrierStatusUpdate = await dao.getCarrierStatusUpdateById({
       idCarrierStatusUpdate: detail.idCarrierStatusUpdate,
       idCarrier: detail.idCarrier
     });
 
     if (detail && detail.idShipmentUpdate) {
-      shipmentUpdateInfo = await sharedDao.getShipmentUpdateInfoById({
+      shipmentUpdateInfo = await dao.getShipmentUpdateInfoById({
         idShipmentUpdate: detail.idShipmentUpdate,
         idCarrier: detail.idCarrier
       });
@@ -86,7 +55,7 @@ const dispatchShipmentUpdate = async ({ carrierName, detail }: any) => {
       JSON.stringify(payloadEvent)
     );
 
-    const sendEventResult = await sharedDao.sendEvent({
+    const sendEventResult = await dao.sendEvent({
       source: "MASTERSHOP-SHIPMENT-UPDATE",
       detailType: `SHIPMENT-UPDATE-${carrierName.toUpperCase()}`,
       detail: payloadEvent
@@ -106,12 +75,12 @@ const fetchMainOrder = async ({ idUser, idOrder, idBusiness }: any) => {
       idBussiness: idBusiness
     };
     const objectResp = await axios.post(
-      `${process.env["URL_MS"]}/api/b2b/logistics/order/${idUser}`,
+      `${envs.URL_MS}/${envs.environment}/api/b2b/logistics/order/${idUser}`,
       parameter,
       {
         headers: {
-          "x-app-name": `${process.env["APP_NAME_MS"]}`,
-          "x-api-key": `${process.env["API_KEY_MS"]}`
+          "x-app-name": envs.APP_NAME_MS,
+          "x-api-key": envs.API_KEY_MS
         }
       }
     );
@@ -122,4 +91,4 @@ const fetchMainOrder = async ({ idUser, idOrder, idBusiness }: any) => {
   }
 };
 
-export default { insertNewTrackingCodeIfFound, dispatchShipmentUpdate };
+export default { dispatchShipmentUpdate };

@@ -2,8 +2,7 @@ import { checkEnv } from "../../shared/envChecker";
 import { dbEnv } from "../../shared/types";
 import dto from "./dto";
 import Model from "./model";
-import { Envs } from "./types";
-import { OrderSourceEnum } from "./utils";
+import { Envs, OrderSourceEnum } from "./types";
 
 export const handler = async (event: any, context: any) => {
   try {
