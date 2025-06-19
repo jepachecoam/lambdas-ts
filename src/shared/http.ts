@@ -1,16 +1,14 @@
-const jsonResponse = ({
+const httpResponse = ({
   statusCode,
-  message,
-  result
+  body
 }: {
   statusCode: number;
-  message: string;
-  result: any;
+  body: any;
 }) => {
   return {
     statusCode,
-    body: JSON.stringify({ message, result })
+    body: JSON.stringify(body)
   };
 };
 
-export default { jsonResponse };
+export default httpResponse;

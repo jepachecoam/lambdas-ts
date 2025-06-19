@@ -1,11 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 
-function jsonResponse({
+type ResponseType = "http" | "excel" | "pdf" | "void";
+
+function serverResponse({
   handler,
-  customResponse
+  responseType
 }: {
   handler: (event: any, context?: any) => Promise<any>;
-  customResponse?: boolean;
+  responseType: ResponseType;
 }) {
   return async function (
     req: Request,
@@ -18,24 +20,47 @@ function jsonResponse({
 
       const result = await handler(event, context);
 
-      if (customResponse) {
-        return res.status(200).json(result);
+      switch (responseType) {
+        case "http": {
+          if (result.headers) {
+            for (const [key, value] of Object.entries(result.headers)) {
+              res.setHeader(key, value as string | number | string[]);
+            }
+          }
+
+          const body = result.body;
+          return res.status(result.statusCode).send(body);
+        }
+
+        case "excel": {
+          const buffer = Buffer.from(result.body, "base64");
+          res.setHeader("Content-Type", result.headers["Content-Type"]);
+          res.setHeader(
+            "Content-Disposition",
+            result.headers["Content-Disposition"]
+          );
+          return res.status(result.statusCode).send(buffer);
+        }
+
+        case "pdf": {
+          const buffer = Buffer.from(result.body, "base64");
+          res.setHeader("Content-Type", result.headers["Content-Type"]);
+          res.setHeader(
+            "Content-Disposition",
+            result.headers["Content-Disposition"]
+          );
+          return res.status(result.statusCode).send(buffer);
+        }
+
+        case "void": {
+          return res.status(result.statusCode).send();
+        }
       }
-
-      if (!result || !result.statusCode || !result.body) {
-        return res
-          .status(500)
-          .json({ message: "Function should return statusCode and body" });
-      }
-
-      const responseBody = result.body ? JSON.parse(result.body) : {};
-
-      return res.status(result.statusCode).json(responseBody);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error in serverResponse:", error);
       return res.status(500).send("Internal server error");
     }
   };
 }
 
-export { jsonResponse };
+export { serverResponse };

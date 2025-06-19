@@ -15,7 +15,10 @@ export const handler = async (event: any) => {
       bucket,
       key
     );
+
     await model.processWorksheet(workbookReaderStream, conciliationType);
+
+    console.log("Finished processWorksheet");
   } catch (err: any) {
     console.error(err);
     await Model.sendSlackNotification({

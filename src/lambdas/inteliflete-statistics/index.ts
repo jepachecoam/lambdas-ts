@@ -12,18 +12,8 @@ export const handler = async (event: any, _context: any): Promise<any> => {
 
     const model = new Model(environment);
     await model.updateStatistics();
-
-    return http.jsonResponse({
-      statusCode: 200,
-      message: "ok",
-      result: {}
-    });
+    console.log("Finished updateStatistics");
   } catch (error) {
     console.error("Error:", error);
-    return http.jsonResponse({
-      statusCode: 500,
-      message: "Internal server error",
-      result: {}
-    });
   }
 };

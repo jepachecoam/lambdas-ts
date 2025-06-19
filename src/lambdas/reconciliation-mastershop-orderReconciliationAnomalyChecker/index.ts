@@ -11,6 +11,8 @@ export const handler = async (event: any, _context: any) => {
     const model = new Model(environment);
 
     await model.processRecords(records);
+
+    console.log("Finished processRecords");
   } catch (err: any) {
     console.error(err);
     throw err;
