@@ -1,6 +1,6 @@
 import Dynamo from "../../shared/databases/dynamo";
 import Database from "../../shared/databases/sequelize";
-import { EnvironmentTypes } from "../../shared/types";
+import { EnvironmentTypes } from "../../shared/types/database";
 import {
   getStatisticsInt,
   OriginAndDestinationStat,

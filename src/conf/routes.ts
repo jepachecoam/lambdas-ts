@@ -10,55 +10,73 @@ import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/proc
 import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/reconciliation-checkReconciliationDocumentAndLoadItemsToDb/index";
 import { handler as loadItemsToQueueReconciliationProcess } from "../lambdas/reconciliation-mastershop-loadItemsToQueueReconciliationProcess/index";
 import { handler as orderReconciliationAnomalyChecker } from "../lambdas/reconciliation-mastershop-orderReconciliationAnomalyChecker/index";
-import { jsonResponse } from "./middlewares";
+import { serverResponse } from "./middlewares";
 
 const router = Router();
 
-router.post("/example", jsonResponse({ handler: example }));
+router.post(
+  "/example",
+  serverResponse({ handler: example, responseType: "http" })
+);
 
 router.post(
   "/blacklist-monitor-wallet",
-  jsonResponse({ handler: blacklistMonitorWallet })
+  serverResponse({ handler: blacklistMonitorWallet, responseType: "void" })
 );
 
 router.post(
   "/inteliflete-statistics",
-  jsonResponse({ handler: intelifleteStatistics })
+  serverResponse({ handler: intelifleteStatistics, responseType: "void" })
 );
 
 router.post(
   "/b2c-auth",
-  jsonResponse({ handler: b2cAuth, customResponse: true })
+  serverResponse({ handler: b2cAuth, responseType: "void" })
 );
 
 router.post(
   "/b2b-auth",
-  jsonResponse({ handler: b2bAuth, customResponse: true })
+  serverResponse({ handler: b2bAuth, responseType: "void" })
 );
 
 router.post(
   "/process-additional-steps-in-orders-update",
-  jsonResponse({ handler: processAdditionalStepsInOrdersUpdate })
+  serverResponse({
+    handler: processAdditionalStepsInOrdersUpdate,
+    responseType: "void"
+  })
 );
 
 router.post(
   "/check-reconciliation-document-and-load-items",
-  jsonResponse({ handler: getReconciliationDocumentAndLoadItems })
+  serverResponse({
+    handler: getReconciliationDocumentAndLoadItems,
+    responseType: "void"
+  })
 );
 
 router.post(
   "/order-reconciliation-anomaly-checker",
-  jsonResponse({ handler: orderReconciliationAnomalyChecker })
+  serverResponse({
+    handler: orderReconciliationAnomalyChecker,
+    responseType: "void"
+  })
 );
 
 router.post(
   "/load-items-to-queue-reconciliation-process",
-  jsonResponse({ handler: loadItemsToQueueReconciliationProcess })
+  serverResponse({
+    handler: loadItemsToQueueReconciliationProcess,
+    responseType: "void"
+  })
 );
 
 router.post(
   "/handle-shipment-status-updates-coordinadora",
-  jsonResponse({ handler: handleShipmentStatusUpdatesCoordinadora })
+  serverResponse({
+    handler: handleShipmentStatusUpdatesCoordinadora,
+    responseType: "http"
+  })
 );
 
 export default router;

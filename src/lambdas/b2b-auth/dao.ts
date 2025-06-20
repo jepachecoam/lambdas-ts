@@ -1,6 +1,6 @@
 import Dynamo from "../../shared/databases/dynamo";
 import SecretManager from "../../shared/services/secretManager";
-import { EnvironmentTypes } from "../../shared/types";
+import { EnvironmentTypes } from "../../shared/types/database";
 
 class Dao {
   private secretManager: SecretManager;

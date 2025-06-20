@@ -1,6 +1,6 @@
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 
-import { dbEnv } from "../types";
+import { dbEnv } from "../types/database";
 
 const dbConfig = {
   dev: {

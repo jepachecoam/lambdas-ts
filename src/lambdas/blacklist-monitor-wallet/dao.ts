@@ -1,5 +1,5 @@
 import Database from "../../shared/databases/sequelize";
-import { EnvironmentTypes } from "../../shared/types";
+import { EnvironmentTypes } from "../../shared/types/database";
 
 class Dao {
   private db: Database;

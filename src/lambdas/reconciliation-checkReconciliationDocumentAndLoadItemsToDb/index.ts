@@ -1,5 +1,5 @@
-import { checkEnv } from "../../shared/envChecker";
-import { dbEnv } from "../../shared/types";
+import { dbEnv } from "../../shared/types/database";
+import { checkEnv } from "../../shared/validation/envChecker";
 import Dto from "./dto";
 import Model from "./model";
 import { Envs } from "./types";
@@ -15,7 +15,10 @@ export const handler = async (event: any) => {
       bucket,
       key
     );
+
     await model.processWorksheet(workbookReaderStream, conciliationType);
+
+    console.log("Finished processWorksheet");
   } catch (err: any) {
     console.error(err);
     await Model.sendSlackNotification({

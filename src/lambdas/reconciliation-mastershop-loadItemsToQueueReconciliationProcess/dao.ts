@@ -1,7 +1,7 @@
 import axios from "axios";
 
 import Database from "../../shared/databases/sequelize";
-import { EnvironmentTypes } from "../../shared/types";
+import { EnvironmentTypes } from "../../shared/types/database";
 import { config } from "./types";
 
 class Dao {

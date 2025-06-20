@@ -1,25 +1,20 @@
-import { checkEnv } from "../../shared/envChecker";
-import http from "../../shared/http";
-import { EnvVariables } from "./types";
+import httpResponse from "../../shared/responses/http";
 export const handler = async (
   event: unknown,
   _context: unknown
 ): Promise<any> => {
   try {
-    checkEnv(EnvVariables);
     console.log("Event =>>>", event);
 
-    return http.jsonResponse({
+    return httpResponse({
       statusCode: 200,
-      message: "hello word from lambda",
-      result: {}
+      body: "hello word from lambda"
     });
   } catch (error) {
     console.error("Error:", error);
-    return http.jsonResponse({
+    return httpResponse({
       statusCode: 500,
-      message: "Internal server error",
-      result: {}
+      body: error
     });
   }
 };

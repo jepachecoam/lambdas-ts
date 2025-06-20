@@ -1,4 +1,4 @@
-import { EnvironmentTypes } from "../../shared/types";
+import { EnvironmentTypes } from "../../shared/types/database";
 import Dao from "./dao";
 import Request from "./request";
 

@@ -1,5 +1,5 @@
-import { checkEnv } from "../../shared/envChecker";
-import { dbEnv } from "../../shared/types";
+import { dbEnv } from "../../shared/types/database";
+import { checkEnv } from "../../shared/validation/envChecker";
 import dto from "./dto";
 import Model from "./model";
 import { Envs } from "./types";
