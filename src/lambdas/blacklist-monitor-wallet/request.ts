@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
-import { EnvironmentTypes } from "../../shared/types";
+import { EnvironmentTypes } from "../../shared/types/database";
 import {
   AddItemToBlacklistParams,
   AddUserToBlacklistParams,

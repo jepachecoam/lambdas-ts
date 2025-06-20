@@ -1,4 +1,4 @@
-import { EnvironmentTypes } from "../../shared/types";
+import { EnvironmentTypes } from "../../shared/types/database";
 import Dao from "./dao";
 import { statisticCategories } from "./types";
 import { formattedDate } from "./utils";

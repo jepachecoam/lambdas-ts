@@ -1,20 +1,4 @@
-import httpResponse from "../../shared/http";
-export const handler = async (
-  event: unknown,
-  _context: unknown
-): Promise<any> => {
-  try {
-    console.log("Event =>>>", event);
+import { handler as excelReport } from "./excelReport/index";
+// import { handler as standardHandler } from "./standar";
 
-    return httpResponse({
-      statusCode: 200,
-      body: "hello word from lambda"
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    return httpResponse({
-      statusCode: 500,
-      body: error
-    });
-  }
-};
+export const handler = excelReport;

@@ -1,5 +1,5 @@
-import { checkEnv } from "../../shared/envChecker";
-import { dbEnv } from "../../shared/types";
+import { dbEnv } from "../../shared/types/database";
+import { checkEnv } from "../../shared/validation/envChecker";
 import handleEnviaRequest from "./api/envia";
 import handleSwaypRequest from "./api/swayp";
 import handleTccRequest from "./api/tcc";

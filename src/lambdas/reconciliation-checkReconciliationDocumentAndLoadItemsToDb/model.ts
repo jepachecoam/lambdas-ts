@@ -1,7 +1,7 @@
 import axios from "axios";
 import ExcelJS from "exceljs";
 
-import { EnvironmentTypes } from "../../shared/types";
+import { EnvironmentTypes } from "../../shared/types/database";
 import Dao from "./dao";
 import Dto from "./dto";
 import schemas from "./schemas";

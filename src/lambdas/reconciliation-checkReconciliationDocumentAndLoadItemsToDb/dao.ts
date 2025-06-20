@@ -2,7 +2,7 @@ import { initChargeModel } from "../../shared/databases/models/charge";
 import { initPaymentModel } from "../../shared/databases/models/payment";
 import Database from "../../shared/databases/sequelize";
 import S3 from "../../shared/services/S3";
-import { EnvironmentTypes } from "../../shared/types";
+import { EnvironmentTypes } from "../../shared/types/database";
 
 class Dao {
   private S3 = new S3("us-east-2");

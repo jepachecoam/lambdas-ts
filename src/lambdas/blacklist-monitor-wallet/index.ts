@@ -1,6 +1,6 @@
-import { checkEnv } from "../../shared/envChecker";
-import http from "../../shared/http";
-import { dbEnv } from "../../shared/types";
+import http from "../../shared/responses/http";
+import { dbEnv } from "../../shared/types/database";
+import { checkEnv } from "../../shared/validation/envChecker";
 import dto from "./dto";
 import Model from "./model";
 import { statusType } from "./types/types";

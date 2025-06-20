@@ -1,4 +1,4 @@
-import { checkEnv } from "../../shared/envChecker";
+import { checkEnv } from "../../shared/validation/envChecker";
 import dto from "./dto";
 import model from "./model";
 import types from "./types";
