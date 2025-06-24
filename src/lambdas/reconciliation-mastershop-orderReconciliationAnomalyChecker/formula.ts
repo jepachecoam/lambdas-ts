@@ -32,36 +32,32 @@ class ChargesFormula {
 
     const adjustedResult = baseDifference - (expectedProfit + collectionFee);
 
-    const copToleranceForUnderCharge = -100;
-
     let idStatus: StatusCodeEnum;
     let balanceResult: number;
 
-    if (result === 0) {
+    const tolerance = 5;
+    const resultInAcceptableTolerance = Math.abs(result) <= tolerance;
+    const adjustedInAcceptableTolerance = Math.abs(adjustedResult) <= tolerance;
+
+    if (resultInAcceptableTolerance) {
       idStatus = StatusCodeEnum.MATCHED;
       balanceResult = result;
-    } else if (result < 0) {
+    } else if (result < -tolerance) {
       idStatus = StatusCodeEnum.UNDERCHARGED;
       balanceResult = result;
     } else {
-      if (adjustedResult === 0) {
+      if (adjustedInAcceptableTolerance) {
         idStatus = StatusCodeEnum.MATCHED;
         balanceResult = adjustedResult;
-      } else if (adjustedResult > 0) {
+      } else if (adjustedResult > tolerance) {
         idStatus = StatusCodeEnum.OVERCHARGED;
         balanceResult = adjustedResult;
-      } else if (
-        adjustedResult < 0 &&
-        adjustedResult >= copToleranceForUnderCharge
-      ) {
+      } else if (adjustedResult < -tolerance) {
         idStatus = StatusCodeEnum.ACCEPTABLE_UNDERCHARGE;
         balanceResult = adjustedResult;
-      } else if (adjustedResult < copToleranceForUnderCharge) {
-        idStatus = StatusCodeEnum.UNDERCHARGED;
-        balanceResult = result;
       } else {
         idStatus = StatusCodeEnum.UNKNOWN;
-        balanceResult = result;
+        balanceResult = adjustedResult;
       }
     }
 
@@ -103,36 +99,32 @@ class ChargesFormula {
 
     const adjustedResult = baseDifference - (expectedProfit + collectionFee);
 
-    const copToleranceForUnderCharge = -100;
-
     let idStatus: StatusCodeEnum;
     let balanceResult: number;
 
-    if (result === 0) {
+    const tolerance = 5;
+    const resultInAcceptableTolerance = Math.abs(result) <= tolerance;
+    const adjustedInAcceptableTolerance = Math.abs(adjustedResult) <= tolerance;
+
+    if (resultInAcceptableTolerance) {
       idStatus = StatusCodeEnum.MATCHED;
       balanceResult = result;
-    } else if (result < 0) {
+    } else if (result < -tolerance) {
       idStatus = StatusCodeEnum.UNDERCHARGED;
       balanceResult = result;
     } else {
-      if (adjustedResult === 0) {
+      if (adjustedInAcceptableTolerance) {
         idStatus = StatusCodeEnum.MATCHED;
         balanceResult = adjustedResult;
-      } else if (adjustedResult > 0) {
+      } else if (adjustedResult > tolerance) {
         idStatus = StatusCodeEnum.OVERCHARGED;
         balanceResult = adjustedResult;
-      } else if (
-        adjustedResult < 0 &&
-        adjustedResult >= copToleranceForUnderCharge
-      ) {
+      } else if (adjustedResult < -tolerance) {
         idStatus = StatusCodeEnum.ACCEPTABLE_UNDERCHARGE;
         balanceResult = adjustedResult;
-      } else if (adjustedResult < copToleranceForUnderCharge) {
-        idStatus = StatusCodeEnum.UNDERCHARGED;
-        balanceResult = result;
       } else {
         idStatus = StatusCodeEnum.UNKNOWN;
-        balanceResult = result;
+        balanceResult = adjustedResult;
       }
     }
 
@@ -172,36 +164,32 @@ class ChargesFormula {
 
     const adjustedResult = baseDifference - (expectedProfit + collectionFee);
 
-    const copToleranceForUnderCharge = -100;
-
     let idStatus: StatusCodeEnum;
     let balanceResult: number;
 
-    if (result === 0) {
+    const tolerance = 5;
+    const resultInAcceptableTolerance = Math.abs(result) <= tolerance;
+    const adjustedInAcceptableTolerance = Math.abs(adjustedResult) <= tolerance;
+
+    if (resultInAcceptableTolerance) {
       idStatus = StatusCodeEnum.MATCHED;
       balanceResult = result;
-    } else if (result < 0) {
+    } else if (result < -tolerance) {
       idStatus = StatusCodeEnum.UNDERCHARGED;
       balanceResult = result;
     } else {
-      if (adjustedResult === 0) {
+      if (adjustedInAcceptableTolerance) {
         idStatus = StatusCodeEnum.MATCHED;
         balanceResult = adjustedResult;
-      } else if (adjustedResult > 0) {
+      } else if (adjustedResult > tolerance) {
         idStatus = StatusCodeEnum.OVERCHARGED;
         balanceResult = adjustedResult;
-      } else if (
-        adjustedResult < 0 &&
-        adjustedResult >= copToleranceForUnderCharge
-      ) {
+      } else if (adjustedResult < -tolerance) {
         idStatus = StatusCodeEnum.ACCEPTABLE_UNDERCHARGE;
         balanceResult = adjustedResult;
-      } else if (adjustedResult < copToleranceForUnderCharge) {
-        idStatus = StatusCodeEnum.UNDERCHARGED;
-        balanceResult = result;
       } else {
         idStatus = StatusCodeEnum.UNKNOWN;
-        balanceResult = result;
+        balanceResult = adjustedResult;
       }
     }
 
@@ -239,7 +227,11 @@ class ChargesFormula {
 
     let idStatus: StatusCodeEnum;
 
-    if (result === 0) {
+    const tolerance = 5;
+
+    const resultInAcceptableTolerance = Math.abs(result) <= tolerance;
+
+    if (resultInAcceptableTolerance) {
       idStatus = StatusCodeEnum.MATCHED;
     } else if (result < 0) {
       idStatus = StatusCodeEnum.UNDERCHARGED;
@@ -284,7 +276,11 @@ class ChargesFormula {
 
     let idStatus: StatusCodeEnum;
 
-    if (result === 0) {
+    const tolerance = 5;
+
+    const resultInAcceptableTolerance = Math.abs(result) <= tolerance;
+
+    if (resultInAcceptableTolerance) {
       idStatus = StatusCodeEnum.MATCHED;
     } else if (result < 0) {
       idStatus = StatusCodeEnum.UNDERCHARGED;
@@ -315,11 +311,14 @@ class PaymentsFormula {
 
     const expectedAmount = order.totalSeller;
     const result = receivedAmount - expectedAmount;
-    const tolerance = 5;
 
     let idStatus: StatusCodeEnum;
 
-    if (Math.abs(result) <= tolerance) {
+    const tolerance = 5;
+
+    const resultInAcceptableTolerance = Math.abs(result) <= tolerance;
+
+    if (resultInAcceptableTolerance) {
       idStatus = StatusCodeEnum.MATCHED;
     } else if (result < 0) {
       idStatus = StatusCodeEnum.UNDERPAID;
