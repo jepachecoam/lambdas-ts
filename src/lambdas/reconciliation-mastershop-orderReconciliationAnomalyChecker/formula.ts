@@ -250,7 +250,7 @@ class ChargesFormula {
         idStatus = StatusCodeEnum.OVERCHARGED;
         balanceResult = adjustedResult;
       } else {
-        idStatus = StatusCodeEnum.ACCEPTABLE_UNDERCHARGE;
+        idStatus = StatusCodeEnum.UNDERCHARGED;
         balanceResult = adjustedResult;
       }
     }
