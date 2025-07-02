@@ -225,18 +225,34 @@ class ChargesFormula {
 
     const result = baseDifference - expectedProfit;
 
-    let idStatus: StatusCodeEnum;
+    const fourPerThousand = 0.004 * order.totalSeller;
+    const adjustedResult = baseDifference - (expectedProfit + fourPerThousand);
 
     const tolerance = 5;
 
     const resultInAcceptableTolerance = Math.abs(result) <= tolerance;
+    const adjustedInAcceptableTolerance = Math.abs(adjustedResult) <= tolerance;
+
+    let idStatus: StatusCodeEnum;
+    let balanceResult: number;
 
     if (resultInAcceptableTolerance) {
       idStatus = StatusCodeEnum.MATCHED;
-    } else if (result < 0) {
+      balanceResult = result;
+    } else if (result < -tolerance) {
       idStatus = StatusCodeEnum.UNDERCHARGED;
+      balanceResult = result;
     } else {
-      idStatus = StatusCodeEnum.OVERCHARGED;
+      if (adjustedInAcceptableTolerance) {
+        idStatus = StatusCodeEnum.MATCHED;
+        balanceResult = adjustedResult;
+      } else if (adjustedResult > tolerance) {
+        idStatus = StatusCodeEnum.OVERCHARGED;
+        balanceResult = adjustedResult;
+      } else {
+        idStatus = StatusCodeEnum.ACCEPTABLE_UNDERCHARGE;
+        balanceResult = adjustedResult;
+      }
     }
 
     return {
@@ -245,9 +261,10 @@ class ChargesFormula {
       idOrderReturn,
       carrierChargeAmount,
       userChargeAmount,
-      balanceResult: result
+      balanceResult
     };
   }
+
   static Swayp({
     orderData,
     carrierChargeAmount
