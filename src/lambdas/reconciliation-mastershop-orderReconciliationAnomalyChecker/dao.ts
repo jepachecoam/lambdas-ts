@@ -34,7 +34,8 @@ class Dao {
     select o.idOrder, ore.idOrderReturn, ore.shippingRate, o.carrierInfo, o.totalSeller
     from ${tableName}.orderReturn ore
             inner join ${tableName}.order o on ore.idOrder = o.idOrder
-    where o.carrierTrackingCode = :carrierTrackingCode order by ore.createdAt desc  
+    where o.carrierTrackingCode = :carrierTrackingCode or ore.carrierTrackingCode = :carrierTrackingCode
+    order by ore.createdAt desc  
 `;
     return this.db.fetchOne(query, { replacements: { carrierTrackingCode } });
   }
