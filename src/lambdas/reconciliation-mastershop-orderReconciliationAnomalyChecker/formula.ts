@@ -79,10 +79,6 @@ class ChargesFormula {
   }): ICustomChargeReconciliation {
     const { order, orderSource } = orderData;
 
-    if (orderSource === OrderSourceEnum.ORDER_RETURN) {
-      return { idStatus: StatusCodeEnum.NO_ACTION_REQUIRED };
-    }
-
     const idOrder = order.idOrder;
     const idOrderReturn = order.idOrderReturn ?? undefined;
     const userChargeAmount = order.shippingRate;
@@ -108,6 +104,9 @@ class ChargesFormula {
 
     if (resultInAcceptableTolerance) {
       idStatus = StatusCodeEnum.MATCHED;
+      balanceResult = result;
+    } else if (orderSource === OrderSourceEnum.ORDER_RETURN) {
+      idStatus = StatusCodeEnum.NO_ACTION_REQUIRED;
       balanceResult = result;
     } else if (result < -tolerance) {
       idStatus = StatusCodeEnum.UNDERCHARGED;
