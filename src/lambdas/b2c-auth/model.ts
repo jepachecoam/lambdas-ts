@@ -1,7 +1,10 @@
 import { CognitoJwtVerifier } from "aws-jwt-verify";
+import axios from "axios";
 import jwt from "jsonwebtoken";
 
+import Dao from "./dao";
 import types from "./types";
+
 async function verifyToken(
   token: string,
   cognitoUserPoolId: string,
@@ -56,4 +59,49 @@ const generatePolicy = (principalId: any, effect: any, resource: any) => {
   return authResponse;
 };
 
-export default { verifyToken, generatePolicy };
+async function getUserBusinessData(idBusiness: string, stage: string) {
+  try {
+    const response = await axios.get(
+      `${process.env["MS_API_URL"]}/${stage}/api/b2b/business/userBusiness/business/${idBusiness}`,
+      {
+        headers: {
+          "x-app-name": `${process.env["MS_APP_NAME"]}`,
+          "x-api-key": `${process.env["MS_API_KEY"]}`
+        }
+      }
+    );
+    return response.data;
+  } catch (_error) {
+    throw new Error("Error in getUserBusinessData!!!");
+  }
+}
+
+async function getKey(key: string, environment: string) {
+  try {
+    const dao = new Dao(environment);
+    const data = await dao.getCachedItem({ key });
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error("Redis GetKey Error: ", error);
+    return null;
+  }
+}
+
+async function setData(key: string, value: string, environment: string) {
+  try {
+    const dao = new Dao(environment);
+    const data = await dao.storeCachedItem({ key, value });
+    return data ? data : null;
+  } catch (error) {
+    console.error("Redis setData Error: ", error);
+    return null;
+  }
+}
+
+export default {
+  verifyToken,
+  generatePolicy,
+  getUserBusinessData,
+  getKey,
+  setData
+};
