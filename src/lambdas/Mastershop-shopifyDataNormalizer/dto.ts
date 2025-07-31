@@ -586,7 +586,7 @@ export function convertToOrderSchemaExpected(input: NormalizedOrderOutput): {
     return value;
   };
 
-  const orderSchemaExpected = {
+  const orderSchemaExpected: OrderSchemaExpected = {
     billing_address: {
       country: checkCritical(billingAddress.country),
       city: checkCritical(billingAddress.city),
