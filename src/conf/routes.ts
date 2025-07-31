@@ -6,6 +6,7 @@ import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
 import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/index";
+import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
 import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/reconciliation-checkReconciliationDocumentAndLoadItemsToDb/index";
 import { handler as loadItemsToQueueReconciliationProcess } from "../lambdas/reconciliation-mastershop-loadItemsToQueueReconciliationProcess/index";
@@ -75,6 +76,14 @@ router.post(
   "/handle-shipment-status-updates-coordinadora",
   serverResponse({
     handler: handleShipmentStatusUpdatesCoordinadora,
+    responseType: "http"
+  })
+);
+
+router.post(
+  "/shopify-data-normalizer",
+  serverResponse({
+    handler: shopifyDataNormalizer,
     responseType: "http"
   })
 );

@@ -3,7 +3,11 @@ dotenvConfig();
 
 const serverConf = {
   server: {
-    PORT: process.env["PORT"] || 3000
+    PORT: process.env["PORT"]
+  },
+  redis: {
+    HOST: process.env["REDIS_HOST"],
+    PORT: process.env["REDIS_PORT"]
   }
 };
 

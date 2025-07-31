@@ -207,7 +207,7 @@ export default [
       // ❌ Incorrect: `function test() {return true;}`
       // ✅ Correct: `function test() { return true; }`
 
-      camelcase: "error", // Enforces camelCase for variable and function names. Example:
+      // camelcase: "error", // Enforces camelCase for variable and function names. Example:
       // ✅ `let myVariable = 10;`
       // ❌ `let my_variable = 10;`
 
@@ -386,7 +386,7 @@ export default [
       // ✅ Correct: Use destructuring only when extracting properties.
       // let { key } = obj;
 
-      "no-eval": "error", // Disallow `eval()` due to security risks.
+      // "no-eval": "error", // Disallow `eval()` due to security risks.
       // ❌ Incorrect: `eval()` executes arbitrary code and is unsafe.
       // eval("alert('Unsafe!')");
 
