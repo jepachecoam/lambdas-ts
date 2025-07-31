@@ -67,14 +67,18 @@ export const handler = async (event: any) => {
           idBusinessRequest,
           event.requestContext["stage"]
         );
-        if (data.length === 0) throw new Error("Business not found!!!");
+        if (data.length === 0) {
+          throw new Error("Business not found!!!");
+        }
 
         let userBusiness = data.find(
           (i: any) =>
             i.idUser === Number(idUserRequest["custom:idUserMastershop"]) &&
             i.idBussiness === Number(idBusinessRequest)
         );
-        if (!userBusiness) throw new Error("User not found in business!!!");
+        if (!userBusiness) {
+          throw new Error("User not found in business!!!");
+        }
 
         // If relation is equal to COLLABORATOR, find the relation is OWNER
         if (userBusiness.status === "COLLABORATOR") {
@@ -82,8 +86,9 @@ export const handler = async (event: any) => {
         }
 
         // Validate when case the business is Inactive OWNER
-        if (data[0].status === "INACTIVE")
+        if (data[0].status === "INACTIVE") {
           throw new Error("Business is currently inactive!!!");
+        }
 
         const dataRedis = {
           idBusiness: idBusinessRequest,
