@@ -106,6 +106,30 @@ class Dao {
               name
             }
           }
+          totalDiscounts
+          lineItems(first: 250) {
+            edges {
+                node {
+                    title
+                    quantity
+                    variant {
+                        price
+                        id
+                        inventoryItem {
+                            measurement {
+                                weight {
+                                    unit
+                                    value
+                                }
+                            }
+                        }
+                    }
+                    product {
+                        id
+                    }
+                }
+            }
+          }
         }
       }
     `;
