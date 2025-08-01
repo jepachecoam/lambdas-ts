@@ -5,10 +5,10 @@ import { NormalizeOrderParams, NormalizeOrderResult } from "./types";
 import { cleanHtmlEscapedContent, parseJsonIfNeeded } from "./utils";
 
 class Model {
-  private dataAccess: Dao;
+  private dao: Dao;
 
   constructor(environment: string) {
-    this.dataAccess = new Dao(environment);
+    this.dao = new Dao(environment);
   }
 
   async normalizeShopifyOrder(
@@ -19,7 +19,7 @@ class Model {
       if (!orderData) {
         return {
           success: false,
-          message: "Orden no encontrada en Shopify",
+          message: "No se pudo obtener la order de Shopify",
           data: null
         };
       }
@@ -65,13 +65,22 @@ class Model {
   }
 
   private async fetchOrderFromShopify(params: NormalizeOrderParams) {
-    console.log("🛍️ [SHOPIFY] Obteniendo datos de la orden:", params.orderId);
-    const response = await this.dataAccess.fetchShopifyOrderById({
-      orderId: params.orderId,
-      accessToken: params.accessToken,
-      storeUrl: params.storeUrl
-    });
-    return response?.data?.data?.order;
+    try {
+      console.log("🛍️ [SHOPIFY] Obteniendo datos de la orden:", params.orderId);
+      const validatedStoreUrl = params.storeUrl.startsWith("https://")
+        ? params.storeUrl
+        : `https://${params.storeUrl}`;
+
+      const response = await this.dao.fetchShopifyOrderById({
+        orderId: params.orderId,
+        accessToken: params.accessToken,
+        storeUrl: validatedStoreUrl
+      });
+      return response?.data?.data?.order;
+    } catch (error) {
+      console.error("💥 [ERROR] Error obteniendo orden de Shopify:", error);
+      return null;
+    }
   }
 
   private tryDirectNormalization(orderData: any) {
@@ -173,7 +182,7 @@ class Model {
     accessToken: string
   ): Promise<string[] | null> {
     try {
-      const cached = await this.dataAccess.getCachedItem({ key: accessToken });
+      const cached = await this.dao.getCachedItem({ key: accessToken });
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
       console.error("💥 [CACHE] Error obteniendo funciones cacheadas:", error);
@@ -182,8 +191,7 @@ class Model {
   }
 
   private async generateNormalizationFunction(orderData: any): Promise<string> {
-    const response =
-      await this.dataAccess.generateNormalizationWithAI(orderData);
+    const response = await this.dao.generateNormalizationWithAI(orderData);
     const rawFunction = response.data.data || response.data;
     console.log("rawFunction", rawFunction);
     const cleanedFunction = cleanHtmlEscapedContent(rawFunction);
@@ -199,7 +207,7 @@ class Model {
         (await this.getCachedNormalizationFunctions(accessToken)) || [];
       existingFunctions.push(functionCode);
 
-      await this.dataAccess.storeCachedItem({
+      await this.dao.storeCachedItem({
         key: accessToken,
         value: JSON.stringify(existingFunctions)
       });

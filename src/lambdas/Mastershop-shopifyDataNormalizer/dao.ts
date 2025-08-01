@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import CacheDB from "../../shared/databases/cache";
 import { b2bRequest } from "../../shared/services/httpRequest";
 import { prompt } from "./utils";
@@ -108,7 +110,7 @@ class Dao {
       }
     `;
 
-    return b2bRequest.post(
+    return axios.post(
       `${storeUrl}/admin/api/2025-07/graphql.json`,
       { query: graphqlQuery },
       {
