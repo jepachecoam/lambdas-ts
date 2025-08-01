@@ -95,7 +95,7 @@ class Model {
     return {
       success: validation.success,
       data: {
-        order: orderSchemaExpected,
+        order: validation.data,
         usedFallback,
         usedDefaultValuesInCriticalFields
       }

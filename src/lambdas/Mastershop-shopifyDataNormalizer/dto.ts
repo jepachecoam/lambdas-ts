@@ -2,12 +2,11 @@ import Fuse from "fuse.js";
 
 import { OrderSchemaExpected } from "./schema";
 import {
-  Address,
-  CustomAttribute,
-  Customer,
-  ExtractedData,
-  NormalizedOrderOutput,
-  ShopifyOrder
+  IFallbackData,
+  IShopifyAddress,
+  IShopifyCustomAttribute,
+  IShopifyCustomer,
+  IShopifyOrder
 } from "./types";
 
 const validateEvent = (event: any): boolean => {
@@ -19,21 +18,36 @@ const validateEvent = (event: any): boolean => {
 };
 
 const getParams = (event: any) => {
+  const shopifyOrderId = event.pathParameters?.shopifyOrderId;
+  const shopifyAccessToken = event.headers?.["x-shopify-access-token"];
+  const body = JSON.parse(event.body);
+  const shopifyStoreUrl = body["X-Shopify-Url-Store"];
+  const msApiKey = body.msApiKey;
+  const configTool = {
+    idUser: body.configTool?.idUser,
+    idConfTool: body.configTool?.idConfTool
+  };
   return {
-    shopifyAccessToken: event.headers?.["x-shopify-access-token"],
-    shopifyStoreUrl: event.queryStringParameters?.["X-Shopify-Url-Store"],
-    shopifyOrderId: event.pathParameters?.shopifyOrderId,
-    environment: event.requestContext?.stage ?? "dev"
+    shopifyAccessToken,
+    shopifyStoreUrl,
+    shopifyOrderId,
+    environment: event.requestContext?.stage ?? "dev",
+    msApiKey,
+    configTool
   };
 };
 
-const normalizeOrderData = (order: ShopifyOrder) => {
+const normalizeOrderData = (order: IShopifyOrder) => {
   const billing = order?.billingAddress;
   const shipping = order?.shippingAddress;
   const addressesMatch = order?.billingAddressMatchesShippingAddress;
   const customer = order?.customer;
   const tags = order?.tags;
   const customAttributes = extractFromCustomAttributes(order?.customAttributes);
+  const note = order?.note;
+  const totalDiscounts = order?.totalDiscounts;
+  const subtotalPrice = order?.subtotalPrice;
+  const lineItems = order?.lineItems;
 
   const { billingAddr, shippingAddr } = normalizeAddresses(
     billing,
@@ -55,27 +69,26 @@ const normalizeOrderData = (order: ShopifyOrder) => {
     createAddressWithFallbackTracking(shippingAddr, fallbackData);
 
   const { customer: normalizedCustomer, usedFallback: customerUsedFallback } =
-    createCustomerWithFallbackTracking(
-      customer,
-      customAttributes,
-      fallbackData
-    );
+    createCustomerWithFallbackTracking(customer, fallbackData);
 
   const paymentMethod = createPaymentMethod(order?.paymentGatewayNames);
-
-  const normalizedOrder: NormalizedOrderOutput = {
-    billingAddress: billingAddress,
-    shippingAddress: shippingAddress,
-    customer: normalizedCustomer,
-    notes: [],
-    tags,
-    paymentMethod: paymentMethod
-  };
 
   return {
     usedFallback:
       billingUsedFallback || shippingUsedFallback || customerUsedFallback,
-    data: normalizedOrder
+    data: {
+      billingAddress: billingAddress,
+      shippingAddress: shippingAddress,
+      customer: normalizedCustomer,
+      tags,
+      paymentMethod: paymentMethod,
+      note,
+      totalDiscounts,
+      subtotalPrice,
+      lineItems,
+      documentType: fallbackData.documentType,
+      documentNumber: fallbackData.documentNumber
+    }
   };
 };
 
@@ -135,44 +148,88 @@ const createFallbackData = (
   billing: any,
   shipping: any,
   customer: any,
-  ca: ExtractedData | null
-) => {
+  ca: IFallbackData | null
+): IFallbackData => {
+  const country = shipping?.country || billing?.country || ca?.country || null;
+
+  const city = shipping?.city || billing?.city || ca?.city || null;
+
+  const address =
+    shipping?.address1 ||
+    billing?.address1 ||
+    ca?.address ||
+    shipping?.address2 ||
+    billing?.address2 ||
+    null;
+
+  const latitude =
+    shipping?.latitude || billing?.latitude || ca?.latitude || null;
+
+  const longitude =
+    shipping?.longitude || billing?.longitude || ca?.longitude || null;
+
+  const firstName =
+    shipping?.firstName ||
+    billing?.firstName ||
+    customer?.firstName ||
+    ca?.firstName ||
+    null;
+
+  const lastName =
+    shipping?.lastName ||
+    billing?.lastName ||
+    customer?.lastName ||
+    ca?.lastName ||
+    null;
+
+  const fullName =
+    shipping?.name ||
+    billing?.name ||
+    customer?.displayName ||
+    ca?.fullName ||
+    firstName ||
+    null;
+
+  const phone =
+    shipping?.phone || billing?.phone || customer?.phone || ca?.phone || null;
+
+  const email =
+    shipping?.email || billing?.email || customer?.email || ca?.email || null;
+
+  const state = shipping?.province || billing?.province || ca?.state || null;
+
+  const stateCode =
+    shipping?.provinceCode || billing?.provinceCode || ca?.stateCode || null;
+
+  const documentType = ca?.documentType || null;
+
+  const documentNumber = ca?.documentNumber || null;
+
   return {
-    country: shipping?.country || billing?.country || ca?.country || null,
-    city: shipping?.city || billing?.city || ca?.city || null,
-    address: shipping?.address1 || billing?.address1 || ca?.address || null,
-    latitude: shipping?.latitude || billing?.latitude || ca?.latitude || null,
-    longitude:
-      shipping?.longitude || billing?.longitude || ca?.longitude || null,
-    firstName:
-      shipping?.firstName ||
-      billing?.firstName ||
-      customer?.firstName ||
-      ca?.firstName ||
-      null,
-    lastName:
-      shipping?.lastName ||
-      billing?.lastName ||
-      customer?.lastName ||
-      ca?.lastName ||
-      null,
-    fullName:
-      shipping?.name ||
-      billing?.name ||
-      customer?.displayName ||
-      ca?.fullName ||
-      null,
-    phone:
-      shipping?.phone || billing?.phone || customer?.phone || ca?.phone || null,
-    email:
-      shipping?.email || billing?.email || customer?.email || ca?.email || null,
-    state: shipping?.province || billing?.province || ca?.state || null,
-    stateCode:
-      shipping?.provinceCode || billing?.provinceCode || ca?.stateCode || null
+    documentNumber,
+    documentType,
+    country,
+    city,
+    address,
+    latitude,
+    longitude,
+    firstName,
+    lastName,
+    fullName,
+    phone,
+    email,
+    state,
+    stateCode
   };
 };
 
-const createAddressWithFallbackTracking = (addr: any, fallback: any) => {
+const createAddressWithFallbackTracking = (
+  addr: any,
+  fallback: any
+): {
+  address: IShopifyAddress;
+  usedFallback: boolean;
+} => {
   let usedFallback = false;
 
   let country = addr?.country;
@@ -241,8 +298,7 @@ const createAddressWithFallbackTracking = (addr: any, fallback: any) => {
     usedFallback = true;
   }
 
-  const address: Address = {
-    zip: addr?.zip || null,
+  const address: IShopifyAddress = {
     country: country || null,
     city: city || null,
     address1: address1 || null,
@@ -250,12 +306,11 @@ const createAddressWithFallbackTracking = (addr: any, fallback: any) => {
     latitude: latitude || null,
     longitude: longitude || null,
     firstName: firstName || null,
+    name: fullName || null,
     lastName: lastName || null,
-    fullName: fullName || null,
     phone: phone || null,
-    company: addr?.company || null,
-    state: state || null,
-    stateCode: stateCode || null,
+    province: state || null,
+    provinceCode: stateCode || null,
     countryCode: addr?.countryCode || null
   };
 
@@ -264,9 +319,11 @@ const createAddressWithFallbackTracking = (addr: any, fallback: any) => {
 
 const createCustomerWithFallbackTracking = (
   customer: any,
-  ca: ExtractedData | null,
-  fallback: any
-) => {
+  fallback: IFallbackData
+): {
+  customer: IShopifyCustomer;
+  usedFallback: boolean;
+} => {
   let usedFallback = false;
 
   let fullName = customer?.displayName;
@@ -299,23 +356,21 @@ const createCustomerWithFallbackTracking = (
     usedFallback = true;
   }
 
-  const customerData: Customer = {
-    fullName: fullName || null,
+  const customerData: IShopifyCustomer = {
+    displayName: fullName || null,
     firstName: firstName || null,
     lastName: lastName || null,
     phone: phone || null,
-    email: email || null,
-    documentType: ca?.documentType || null,
-    documentNumber: ca?.documentNumber || null
+    email: email || null
   };
 
   return { customer: customerData, usedFallback };
 };
 
 const extractFromCustomAttributes = (
-  customAttributes: CustomAttribute[] | null | undefined
-): ExtractedData | null => {
-  const result: ExtractedData = {
+  customAttributes: IShopifyCustomAttribute[] | null | undefined
+): IFallbackData => {
+  const result: IFallbackData = {
     country: null,
     city: null,
     address: null,
@@ -336,7 +391,7 @@ const extractFromCustomAttributes = (
     !Array.isArray(customAttributes) ||
     customAttributes.length === 0
   ) {
-    return null;
+    return result;
   }
 
   const keyMappings = {
@@ -570,7 +625,7 @@ const extractFromCustomAttributes = (
   return result;
 };
 
-export function convertToOrderSchemaExpected(input: NormalizedOrderOutput): {
+export function convertToOrderSchemaExpected(input: any): {
   orderSchemaExpected: OrderSchemaExpected;
   usedDefaultValuesInCriticalFields: boolean;
 } {
@@ -586,6 +641,24 @@ export function convertToOrderSchemaExpected(input: NormalizedOrderOutput): {
     return value;
   };
 
+  const line_items =
+    input.lineItems?.edges?.map((edge: any) => {
+      const node = edge.node;
+      const variant = node.variant;
+      const productId = parseInt(node.product.id.split("/").pop() || "0");
+      const variantId = parseInt(variant.id.split("/").pop() || "0");
+
+      return {
+        name: productId,
+        current_quantity: node.quantity,
+        grams: variant.inventoryItem?.measurement?.weight?.value || 0,
+        price: parseFloat(variant.price),
+        title: node.title,
+        product_id: productId,
+        variant_id: variantId
+      };
+    }) || [];
+
   const orderSchemaExpected: OrderSchemaExpected = {
     billing_address: {
       country: checkCritical(billingAddress.country),
@@ -596,10 +669,10 @@ export function convertToOrderSchemaExpected(input: NormalizedOrderOutput): {
       longitude: billingAddress.longitude || 0,
       first_name: billingAddress.firstName || "Sin datos",
       last_name: billingAddress.lastName || "Sin datos",
-      full_name: checkCritical(billingAddress.fullName),
+      full_name: checkCritical(billingAddress.name),
       phone: checkCritical(billingAddress.phone),
-      state: checkCritical(billingAddress.state),
-      state_code: billingAddress.stateCode || "Sin datos"
+      state: checkCritical(billingAddress.province),
+      state_code: billingAddress.provinceCode || "Sin datos"
     },
     shipping_address: {
       country: checkCritical(shippingAddress.country),
@@ -610,23 +683,24 @@ export function convertToOrderSchemaExpected(input: NormalizedOrderOutput): {
       longitude: shippingAddress.longitude || 0,
       first_name: shippingAddress.firstName || "Sin datos",
       last_name: shippingAddress.lastName || "Sin datos",
-      full_name: checkCritical(shippingAddress.fullName),
+      full_name: checkCritical(shippingAddress.name),
       phone: checkCritical(shippingAddress.phone),
-      state: checkCritical(shippingAddress.state),
-      state_code: shippingAddress.stateCode || "Sin datos"
+      state: checkCritical(shippingAddress.province),
+      state_code: shippingAddress.provinceCode || "Sin datos"
     },
     customer: {
-      full_name: checkCritical(input.customer.fullName),
+      full_name: checkCritical(input.customer.displayName),
       first_name: input.customer.firstName || "Sin datos",
       last_name: input.customer.lastName || "Sin datos",
       phone: input.customer.phone || "Sin datos",
       email: input.customer.email || "Sin datos",
-      documentType: input.customer.documentType || "Sin datos",
-      documentNumber: input.customer.documentNumber || "Sin datos"
+      documentType: input.documentType || "Sin datos",
+      documentNumber: input.documentNumber || "Sin datos"
     },
-    notes: input.notes || [],
+    notes: input.note ? [input.note] : ["Shopify Order"],
     tags: input.tags || [],
-    payment_method: checkCritical(input.paymentMethod)
+    payment_method: checkCritical(input.paymentMethod),
+    line_items
   };
 
   return {

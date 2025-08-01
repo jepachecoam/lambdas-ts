@@ -8,8 +8,7 @@ export enum Envs {
   SLACK_URL_NOTIFICATION = "SLACK_URL_NOTIFICATION"
 }
 
-// Interfaces para objetos del API externa (Shopify)
-export interface ShopifyAddress {
+export interface IShopifyAddress {
   city: string | null;
   address1: string | null;
   address2: string | null;
@@ -25,7 +24,7 @@ export interface ShopifyAddress {
   provinceCode: string | null;
 }
 
-export interface ShopifyCustomer {
+export interface IShopifyCustomer {
   email: string | null;
   firstName: string | null;
   lastName: string | null;
@@ -33,58 +32,53 @@ export interface ShopifyCustomer {
   phone: string | null;
 }
 
-export interface ShopifyCustomAttribute {
+export interface IShopifyCustomAttribute {
   key: string;
   value: string;
 }
 
-export interface ShopifyOrder {
+export interface IShopifyVariant {
+  price: string;
+  id: string;
+  inventoryItem: {
+    measurement: {
+      weight: {
+        unit: string;
+        value: number;
+      };
+    };
+  };
+}
+
+export interface IShopifyProduct {
+  id: string;
+}
+
+export interface IShopifyLineItem {
+  title: string;
+  quantity: number;
+  variant: IShopifyVariant;
+  product: IShopifyProduct;
+}
+
+export interface ILineItems {
+  edges: {
+    node: IShopifyLineItem;
+  }[];
+}
+
+export interface IShopifyOrder {
   billingAddressMatchesShippingAddress: boolean;
-  tags: string[];
-  paymentGatewayNames: string[];
-  note: string;
-  customAttributes: ShopifyCustomAttribute[] | null;
-  billingAddress: ShopifyAddress | null;
-  shippingAddress: ShopifyAddress | null;
-  customer: ShopifyCustomer | null;
-}
-
-// Interfaces para datos normalizados (camelCase)
-export interface Address {
-  zip: string | null;
-  country: string;
-  city: string;
-  address1: string;
-  address2: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  phone: string;
-  company: string | null;
-  state: string;
-  stateCode: string | null;
-  countryCode: string;
-}
-
-export interface Customer {
-  fullName: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string | null;
-  documentType: string | null;
-  documentNumber: string | null;
-}
-
-export interface NormalizedOrderOutput {
-  billingAddress: Address;
-  shippingAddress: Address;
-  customer: Customer;
-  notes: string[];
-  tags: string[];
-  paymentMethod: string;
+  tags: string[] | null;
+  paymentGatewayNames: string[] | null;
+  note: string | null;
+  customAttributes: IShopifyCustomAttribute[] | null;
+  billingAddress: IShopifyAddress | null;
+  shippingAddress: IShopifyAddress | null;
+  customer: IShopifyCustomer | null;
+  totalDiscounts: string | null;
+  subtotalPrice: string | null;
+  lineItems: ILineItems;
 }
 
 export interface NormalizeOrderParams {
@@ -99,7 +93,7 @@ export interface NormalizeOrderResult {
   data: any;
 }
 
-export interface ExtractedData {
+export interface IFallbackData {
   country: string | null;
   city: string | null;
   address: string | null;
@@ -114,9 +108,4 @@ export interface ExtractedData {
   stateCode: string | null;
   documentType: string | null;
   documentNumber: string | null;
-}
-
-export interface CustomAttribute {
-  key: string;
-  value: string;
 }

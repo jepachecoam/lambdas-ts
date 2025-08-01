@@ -25,13 +25,26 @@ const CustomerSchema = z.object({
   documentNumber: z.string().nullable().default(null)
 });
 
+const LineItemsSchema = z.array(
+  z.object({
+    name: z.number(),
+    current_quantity: z.number(),
+    grams: z.number(),
+    price: z.number(),
+    title: z.string(),
+    product_id: z.number(),
+    variant_id: z.number()
+  })
+);
+
 export const ShopifyDataSchema = z.object({
   billing_address: AddressSchema,
   shipping_address: AddressSchema,
   customer: CustomerSchema,
   notes: z.array(z.string()).nullable().default([]),
   tags: z.array(z.string()).nullable().default([]),
-  payment_method: z.string()
+  payment_method: z.string(),
+  line_items: LineItemsSchema
 });
 
 export type OrderSchemaExpected = z.infer<typeof ShopifyDataSchema>;

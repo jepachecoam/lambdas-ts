@@ -52,6 +52,7 @@ class Dao {
         order(id: "gid://shopify/Order/${orderId}") {
           billingAddressMatchesShippingAddress
           tags
+          subtotalPrice
           paymentGatewayNames
           note
           customAttributes {
@@ -93,18 +94,7 @@ class Dao {
             firstName
             lastName
             displayName
-            multipassIdentifier
-            note
-            numberOfOrders
             phone
-            productSubscriberStatus
-            state
-            tags
-            validEmailAddress
-            verifiedEmail
-            addresses {
-              name
-            }
           }
           totalDiscounts
           lineItems(first: 250) {
