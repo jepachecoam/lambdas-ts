@@ -1,51 +1,113 @@
-# Lambda Project Documentation
+# BeMaster Lambda Functions Repository
 
-This documentation provides a comprehensive guide for setting up, building, and working with Lambda projects. It includes instructions for building the Lambda function and configuring your Visual Studio Code (VSCode) environment.
+This repository contains a collection of Lambda functions developed in TypeScript for the BeMaster ecosystem. It provides a unified environment for development, local testing, compilation, and deployment of serverless functions.
 
----
+## Project Purpose
 
-## Table of Contents
+This repository serves as:
+- **Development Center**: Unified environment for all BeMaster Lambda functions
+- **Local Testing**: Capability to test functions locally before deployment
+- **Optimized Compilation**: Uses NCC to minify and optimize code
+- **Automated Deployment**: Scripts to facilitate the deployment process
 
-1. [Building the Lambda Function](#building-the-lambda-function)
-2. [Setting Up Visual Studio Code (VSCode)](#setting-up-visual-studio-code-vscode)
-3. [Additional Notes](#additional-notes)
+## Project Architecture
 
----
+The project is organized as follows:
 
-## Building the Lambda Function
+```
+src/
+├── lambdas/           # Individual Lambda functions
+├── shared/            # Shared code between lambdas
+│   ├── databases/     # Database configurations
+│   ├── responses/     # HTTP response utilities
+│   ├── services/      # External services (S3, Secrets Manager)
+│   └── validation/    # Common validators
+└── conf/              # Global configurations
+```
 
-To build your Lambda function, follow these steps:
+## Available Lambda Functions
 
-1. Open a terminal in the root directory of your project.
-2. Run the following command:
-   ```bash
-   npm run build
-   ```
-3. When prompted, enter the name of the folder containing your source code.
+### Authentication
+- **b2b-auth**: Authorization for B2B clients
+- **b2c-auth**: Authorization for B2C clients using Cognito
 
-## This script will compile and package your Lambda function for deployment in ./dist/index.js
+### Monitoring and Security
+- **blacklist-monitor-wallet**: Wallet blacklist management
 
-## Setting Up Visual Studio Code (VSCode)
+### Logistics and Shipping
+- **MasterShop-handleShipmentStatusUpdatesCoordinadora**: Shipment status update handling
+- **MasterShop-handleShipmentUpdatesCoordinadora**: Shipment update processing
+- **processAdditionalStepsInOrdersUpdate**: Additional processing for order updates
 
-To ensure a consistent and efficient development environment, you can import a predefined VSCode profile. This profile includes all the necessary extensions and settings for working with Lambda projects.
+### Statistics and Reports
+- **inteliflete-statistics**: Inteliflete statistics generation
 
-### Steps to Import the VSCode Profile
+### Reconciliation
+- **reconciliation-checkReconciliationDocumentAndLoadItemsToDb**: Reconciliation document verification and loading
+- **reconciliation-mastershop-loadItemsToQueueReconciliationProcess**: Loading items to reconciliation queue
+- **reconciliation-mastershop-orderReconciliationAnomalyChecker**: Reconciliation anomaly detector
 
-1. Open Visual Studio Code.
-2. Navigate to the **Command Palette**:
-   - Windows/Linux: Press `Ctrl+Shift+P`
-   - Mac: Press `Cmd+Shift+P`
-3. Search for and select **"Preferences: Import Profile"**.
-4. Choose the file located at `.vsc/BeMaster.code-profile` in your project directory.
-5. Follow the prompts to complete the import process.
+## Development Environment Setup
 
-Once imported, your VSCode environment will be configured with all the required extensions and settings for Lambda development.
+### Prerequisites
+- Node.js (recommended version in package.json)
+- npm or yarn
+- AWS CLI configured
 
----
+### Installation
+```bash
+npm install
+```
+
+### Environment Variables
+Copy `.example.env` to `.env` and configure the necessary variables:
+```bash
+cp .example.env .env
+```
+
+## Compilation and Deployment
+
+### Compile a Lambda
+```bash
+npm run build
+```
+When prompted, enter the name of the folder containing the lambda source code.
+
+### Compilation Result
+The script will compile and package the Lambda function in `./dist/index.js` using NCC for optimization.
+
+## Visual Studio Code Configuration
+
+For a consistent development environment:
+
+1. Open Visual Studio Code
+2. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
+3. Search for "Preferences: Import Profile"
+4. Select the `.vsc/BeMaster.code-profile` file
+5. Follow the instructions to complete the import
+
+## Lambda Structure
+
+Each lambda follows a standard structure:
+```
+lambda-name/
+├── index.ts          # Main entry point
+├── model.ts          # Business logic
+├── dto.ts            # Data transformation
+├── dao.ts            # Data access (optional)
+├── types.ts          # Type definitions
+└── README.md         # Specific documentation
+```
+
+## Local Testing
+
+Each lambda can be tested locally using the `index.ts` file in the project root.
 
 ## Additional Notes
 
-- Ensure you have the necessary permissions to execute the `build-lambda.sh` script. If needed, run:
+- Make sure you have execution permissions for `build-lambda.sh`:
   ```bash
   chmod +x build-lambda.sh
   ```
+- Lambdas share common code through the `shared/` directory
+- Each lambda has its own detailed documentation in its respective README.md
