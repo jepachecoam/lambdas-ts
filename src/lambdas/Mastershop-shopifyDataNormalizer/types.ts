@@ -77,14 +77,14 @@ export interface IShopifyOrder {
   shippingAddress: IShopifyAddress | null;
   customer: IShopifyCustomer | null;
   totalDiscounts: string | null;
-  subtotalPrice: string | null;
+  totalPrice: string | null;
   lineItems: ILineItems;
 }
 
 export interface NormalizeOrderParams {
-  orderId: number;
-  accessToken: string;
-  storeUrl: string;
+  shopifyOrderId: number;
+  shopifyAccessToken: string;
+  shopifyStoreUrl: string;
 }
 
 export interface NormalizeOrderResult {

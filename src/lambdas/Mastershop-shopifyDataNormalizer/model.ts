@@ -11,9 +11,7 @@ class Model {
     this.dao = new Dao(environment);
   }
 
-  async normalizeShopifyOrder(
-    params: NormalizeOrderParams
-  ): Promise<NormalizeOrderResult> {
+  async normalizeAndProcessOrder(params: any) {
     try {
       const orderData = await this.fetchOrderFromShopify(params);
       if (!orderData) {
@@ -24,56 +22,61 @@ class Model {
         };
       }
 
-      console.log("Shopify order", JSON.stringify(orderData, null, 2));
-
       const directResult = this.tryDirectNormalization(orderData);
-      if (directResult.success) {
-        return {
-          success: true,
-          message: "Normalización exitosa con DTO",
-          data: directResult.data
-        };
+      if (!directResult.success) {
+        return { success: false, message: "No se pudo normalizar", data: null };
       }
-      return { success: false, message: "No se pudo normalizar", data: null };
 
-      // const cachedResult = await this.tryNormalizationWithCache(
-      //   orderData,
-      //   params.accessToken
-      // );
+      // 1. Armar body para primer endpoint getNormalizeProducts
+      const normalizeProductsBody = Dto.buildNormalizeProductsBody(
+        directResult.data,
+        params.configTool
+      );
 
-      // if (cachedResult.success) {
-      //   return {
-      //     success: true,
-      //     data: cachedResult.data,
-      //     message: "Normalización con cache exitosa"
-      //   };
-      // }
+      const normalizeProductsResp = await this.dao.postNormalizeProducts(
+        normalizeProductsBody
+      );
 
-      // const aiResult = await this.tryNormalizationWithAI(
-      //   orderData,
-      //   params.accessToken
-      // );
-      // return aiResult;
+      // 2. Segundo body para process order
+      const processOrderBody = Dto.buildProcessOrderBody(
+        directResult.data,
+        normalizeProductsResp.data,
+        params.shopifyOrderId
+      );
+
+      const processOrderResp = await this.dao.postProcessOrder(
+        processOrderBody,
+        params.msApiKey
+      );
+
+      return {
+        success: true,
+        message: "Order processed successfully",
+        data: processOrderResp.data
+      };
     } catch (error) {
-      console.error("💥 [ERROR] Error normalizando orden de Shopify:", error);
+      console.error("error", error);
       return {
         success: false,
-        message: "Error interno procesando datos",
-        data: null
+        message: "Error en el procesamiento de la orden",
+        data: error
       };
     }
   }
 
   private async fetchOrderFromShopify(params: NormalizeOrderParams) {
     try {
-      console.log("🛍️ [SHOPIFY] Obteniendo datos de la orden:", params.orderId);
-      const validatedStoreUrl = params.storeUrl.startsWith("https://")
-        ? params.storeUrl
-        : `https://${params.storeUrl}`;
+      console.log(
+        "🛍️ [SHOPIFY] Obteniendo datos de la orden:",
+        params.shopifyOrderId
+      );
+      const validatedStoreUrl = params.shopifyStoreUrl.startsWith("https://")
+        ? params.shopifyStoreUrl
+        : `https://${params.shopifyStoreUrl}`;
 
       const response = await this.dao.fetchShopifyOrderById({
-        orderId: params.orderId,
-        accessToken: params.accessToken,
+        orderId: params.shopifyOrderId,
+        accessToken: params.shopifyAccessToken,
         storeUrl: validatedStoreUrl
       });
       return response?.data?.data?.order;

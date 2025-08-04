@@ -14,10 +14,11 @@ export const handler = async (event: any, context: any): Promise<any> => {
 
     const requestParams = Dto.getParams(event);
 
-    const { shopifyAccessToken, shopifyStoreUrl, shopifyOrderId, environment } =
-      requestParams;
-
-    if (!shopifyOrderId || !environment || !shopifyStoreUrl) {
+    if (
+      !requestParams.shopifyOrderId ||
+      !requestParams.environment ||
+      !requestParams.shopifyStoreUrl
+    ) {
       return httpResponse({
         statusCode: 400,
         body: {
@@ -27,7 +28,7 @@ export const handler = async (event: any, context: any): Promise<any> => {
       });
     }
 
-    if (!shopifyAccessToken) {
+    if (!requestParams.shopifyAccessToken) {
       return httpResponse({
         statusCode: 400,
         body: {
@@ -37,13 +38,9 @@ export const handler = async (event: any, context: any): Promise<any> => {
       });
     }
 
-    const model = new Model(environment);
+    const model = new Model(requestParams.environment);
 
-    const result = await model.normalizeShopifyOrder({
-      orderId: shopifyOrderId,
-      accessToken: shopifyAccessToken,
-      storeUrl: shopifyStoreUrl
-    });
+    const result = await model.normalizeAndProcessOrder(requestParams);
 
     console.log("Result: >>>", JSON.stringify(result, null, 2));
 

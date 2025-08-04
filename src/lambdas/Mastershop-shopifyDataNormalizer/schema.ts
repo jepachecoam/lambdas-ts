@@ -44,7 +44,9 @@ export const ShopifyDataSchema = z.object({
   notes: z.array(z.string()).nullable().default([]),
   tags: z.array(z.string()).nullable().default([]),
   payment_method: z.string(),
-  line_items: LineItemsSchema
+  line_items: LineItemsSchema,
+  total_discounts: z.string().nullable().default(null),
+  total_price: z.string().nullable().default(null)
 });
 
 export type OrderSchemaExpected = z.infer<typeof ShopifyDataSchema>;
