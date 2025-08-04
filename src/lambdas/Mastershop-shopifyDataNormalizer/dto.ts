@@ -700,7 +700,9 @@ export function convertToOrderSchemaExpected(input: any): {
     notes: input.note ? [input.note] : ["Shopify Order"],
     tags: input.tags || [],
     payment_method: checkCritical(input.paymentMethod),
-    line_items
+    line_items,
+    total_discounts: input?.totalDiscounts?.toString(),
+    subtotal_price: input?.subtotalPrice?.toString()
   };
 
   return {
@@ -709,9 +711,114 @@ export function convertToOrderSchemaExpected(input: any): {
   };
 }
 
+const buildNormalizeProductsBody = (directResult: any, configTool: any) => {
+  const result = {
+    data: {
+      destination: "mastershop",
+      additionalData: {
+        discountAmount: directResult?.order?.total_discounts,
+        shippingAmount: directResult?.order?.subtotal_price
+      },
+      origin: "shopify",
+      products: directResult?.order?.line_items
+    },
+    configTool
+  };
+
+  return result;
+};
+
+const buildProcessOrderBody = (
+  directResult: any,
+  normalizeProductsResp: any,
+  shopifyOrderId: string
+) => {
+  const order = directResult.order;
+
+  const result = {
+    additional_charge: normalizeProductsResp.additional_charge || [],
+    notes: order.notes || [],
+    origin_address: {
+      zip: "0000",
+      country: "CO",
+      city: order.billing_address?.city || null,
+      address2: order.billing_address?.address2 || null,
+      address1: order.billing_address?.address1 || null,
+      latitude: order.billing_address?.latitude || null,
+      last_name: order.billing_address?.last_name || null,
+      country_code: "CO",
+      full_name: order.billing_address?.full_name || null,
+      phone: order.billing_address?.phone || null,
+      company: null,
+      state: order.billing_address?.state || null,
+      state_code: order.billing_address?.state_code || null,
+      first_name: order.billing_address?.first_name || null,
+      longitude: order.billing_address?.longitude || null
+    },
+    shipping_address: {
+      zip: "0000",
+      country: "CO",
+      city: order.shipping_address?.city || null,
+      address2: order.shipping_address?.address2 || null,
+      address1: order.shipping_address?.address1 || null,
+      latitude: order.shipping_address?.latitude || null,
+      last_name: order.shipping_address?.last_name || null,
+      country_code: "CO",
+      full_name: order.shipping_address?.full_name || null,
+      phone: order.shipping_address?.phone || null,
+      company: null,
+      state: order.shipping_address?.state || null,
+      state_code: order.shipping_address?.state_code || null,
+      first_name: order.shipping_address?.first_name || null,
+      longitude: order.shipping_address?.longitude || null
+    },
+    billing_address: {
+      zip: "0000",
+      country: "CO",
+      city: order.billing_address?.city || null,
+      address2: order.billing_address?.address2 || null,
+      address1: order.billing_address?.address1 || null,
+      latitude: order.billing_address?.latitude || null,
+      last_name: order.billing_address?.last_name || null,
+      country_code: "CO",
+      full_name: order.billing_address?.full_name || null,
+      phone: order.billing_address?.phone || null,
+      company: null,
+      state: order.billing_address?.state || null,
+      state_code: order.billing_address?.state_code || null,
+      first_name: order.billing_address?.first_name || null,
+      longitude: order.billing_address?.longitude || null
+    },
+    tags: order.tags || [],
+    id_order: shopifyOrderId,
+    order_transaction: {
+      total: parseFloat(order.subtotal_price || "0"),
+      currency: "COP",
+      payment_method: order.payment_method || "COD"
+    },
+    date_created_order: new Date().toISOString().replace(/\.\d{3}Z$/, "+0000"),
+    order_package: normalizeProductsResp.order_package || { weight: 1 },
+    status: "Por Confirmar",
+    customer: {
+      full_name: order.customer?.full_name || null,
+      phone: order.customer?.phone || null,
+      documentType: order.customer?.documentType || null,
+      documentNumber: order.customer?.documentNumber || null,
+      last_name: order.customer?.last_name || null,
+      first_name: order.customer?.first_name || null,
+      email: order.customer?.email || null
+    },
+    order_items: normalizeProductsResp.order_items || []
+  };
+
+  return result;
+};
+
 export default {
   convertToOrderSchemaExpected,
   validateEvent,
   getParams,
-  normalizeOrderData
+  normalizeOrderData,
+  buildNormalizeProductsBody,
+  buildProcessOrderBody
 };

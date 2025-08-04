@@ -38,6 +38,26 @@ class Dao {
     );
   }
 
+  async postNormalizeProducts(body: any) {
+    return axios.post(
+      "https://5cowkssv0f.execute-api.us-east-1.amazonaws.com/newProd/integration/connectool/getNormalizeProducts",
+      body
+    );
+  }
+
+  async postProcessOrder(body: any, msApiKey: string) {
+    return axios.post(
+      "https://l7tmtzztq1.execute-api.us-east-1.amazonaws.com/qa/logistics/order/process",
+      body,
+      {
+        headers: {
+          "MS-API-KEY": msApiKey,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+  }
+
   async fetchShopifyOrderById({
     storeUrl,
     accessToken,
@@ -53,6 +73,7 @@ class Dao {
           billingAddressMatchesShippingAddress
           tags
           subtotalPrice
+          totalDiscounts
           paymentGatewayNames
           note
           customAttributes {
@@ -96,7 +117,6 @@ class Dao {
             displayName
             phone
           }
-          totalDiscounts
           lineItems(first: 250) {
             edges {
                 node {

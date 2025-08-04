@@ -82,9 +82,9 @@ export interface IShopifyOrder {
 }
 
 export interface NormalizeOrderParams {
-  orderId: number;
-  accessToken: string;
-  storeUrl: string;
+  shopifyOrderId: number;
+  shopifyAccessToken: string;
+  shopifyStoreUrl: string;
 }
 
 export interface NormalizeOrderResult {
