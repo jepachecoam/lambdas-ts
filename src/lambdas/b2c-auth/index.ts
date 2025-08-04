@@ -1,7 +1,10 @@
+import jwt from "jsonwebtoken";
+
 import { checkEnv } from "../../shared/validation/envChecker";
 import dto from "./dto";
 import model from "./model";
 import types from "./types";
+import { IDecodedToken } from "./utils";
 
 export const handler = async (event: any) => {
   console.log("Event received:", JSON.stringify(event, null, 2));
@@ -12,7 +15,7 @@ export const handler = async (event: any) => {
 
   try {
     // Check required environment variables
-    checkEnv(types.Envs);
+    checkEnv(types.EnvsEnum);
 
     // Validate and extract headers
     const { authorizationToken, idToken } = dto.validateHeaders(event);
@@ -41,6 +44,53 @@ export const handler = async (event: any) => {
       throw new Error("Token mismatch");
     }
 
+    // Validate if exist x-idUser-Owner and x-idUser-request in the request
+    model.validateForbiddenHeaders(event.headers);
+
+    // This validation is temporally - Delete IF in future
+    let extraDataContext;
+    if (event.headers["x-idbusiness"]) {
+      const idBusinessRequest = event.headers["x-idbusiness"];
+      const stage = event.requestContext["stage"];
+      const idUserRequest = jwt.decode(
+        event.headers["x-auth-id"]
+      ) as IDecodedToken;
+      const keyUser = `${idUserRequest["custom:idUserMastershop"]}-${idBusinessRequest}-${stage}`;
+      // validate key exist in redis
+      const keyExist = await model.getKey(keyUser, stage);
+      if (!keyExist) {
+        const { data } = await model.getUserBusinessData(
+          idBusinessRequest,
+          stage
+        );
+        if (data.length === 0) {
+          throw new Error("Business not found!!!");
+        }
+
+        const userBusiness = model.validateUserBusiness(
+          data,
+          String(idUserRequest["custom:idUserMastershop"]),
+          idBusinessRequest
+        );
+
+        const dataRedis = {
+          idBusiness: idBusinessRequest,
+          idUserRequest: idUserRequest["custom:idUserMastershop"],
+          idUserOwner: userBusiness.idUser
+        };
+        await model.setData(keyUser, JSON.stringify(dataRedis), stage);
+        extraDataContext = {
+          "x-iduser-owner": dataRedis["idUserOwner"],
+          "x-iduser-request": dataRedis["idUserRequest"]
+        };
+      } else {
+        extraDataContext = {
+          "x-iduser-owner": keyExist["idUserOwner"],
+          "x-iduser-request": keyExist["idUserRequest"]
+        };
+      }
+    }
+
     // Generate allow policy
     response = {
       ...model.generatePolicy(
@@ -50,7 +100,8 @@ export const handler = async (event: any) => {
       ),
       isAuthorized: true,
       context: {
-        clientType: "B2C"
+        clientType: "B2C",
+        ...(event.headers["x-idbusiness"] && { ...extraDataContext })
       }
     };
   } catch (error: any) {

@@ -6,8 +6,14 @@ enum Constants {
   DENY = "Deny"
 }
 
-enum Envs {
-  JWT_SECRET = "JWT_SECRET"
+enum EnvsEnum {
+  JWT_SECRET = "JWT_SECRET",
+  REDIS_HOST = "REDIS_HOST",
+  REDIS_PORT = "REDIS_PORT",
+  REDIS_TTL_IN_MINUTES = "REDIS_TTL_IN_MINUTES",
+  MS_API_URL = "MS_API_URL",
+  MS_APP_NAME = "MS_APP_NAME",
+  MS_API_KEY = "MS_API_KEY"
 }
 
-export default { Constants, Envs };
+export default { Constants, EnvsEnum };
