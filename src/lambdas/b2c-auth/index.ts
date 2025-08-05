@@ -80,13 +80,13 @@ export const handler = async (event: any) => {
         };
         await model.setData(keyUser, JSON.stringify(dataRedis), stage);
         extraDataContext = {
-          "x-iduser-owner": dataRedis["idUserOwner"],
-          "x-iduser-request": dataRedis["idUserRequest"]
+          idUserOwner: dataRedis["idUserOwner"],
+          idUserRequest: dataRedis["idUserRequest"]
         };
       } else {
         extraDataContext = {
-          "x-iduser-owner": keyExist["idUserOwner"],
-          "x-iduser-request": keyExist["idUserRequest"]
+          idUserOwner: keyExist["idUserOwner"],
+          idUserRequest: keyExist["idUserRequest"]
         };
       }
     }
