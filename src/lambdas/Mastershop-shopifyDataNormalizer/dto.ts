@@ -733,11 +733,22 @@ const buildProcessOrderBody = (
   normalizeProductsResp: any,
   shopifyOrderId: string
 ) => {
+  const alerts = [];
+
+  if (directResult.usedDefaultValuesInCriticalFields) {
+    alerts.push(67);
+  }
+
+  if (directResult.usedFallback) {
+    alerts.push(68);
+  }
+
   const order = directResult.order;
 
   const result = {
     additional_charge: normalizeProductsResp.additional_charge || [],
     notes: order.notes || [],
+    alerts: alerts,
     origin_address: {
       zip: "0000",
       country: "CO",
