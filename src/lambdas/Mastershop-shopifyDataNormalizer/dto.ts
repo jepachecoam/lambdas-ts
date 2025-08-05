@@ -808,7 +808,7 @@ const buildProcessOrderBody = (
       currency: "COP",
       payment_method: order.payment_method || "COD"
     },
-    date_created_order: new Date().toISOString().replace(/\.\d{3}Z$/, "+0000"),
+    date_created_order: new Date().toISOString(),
     order_package: normalizeProductsResp.order_package || { weight: 1 },
     status: "Por Confirmar",
     customer: {
