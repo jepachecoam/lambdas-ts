@@ -74,9 +74,9 @@ export const handler = async (event: any) => {
         );
 
         const dataRedis = {
-          idBusiness: idBusinessRequest,
-          idUserRequest: idUserRequest["custom:idUserMastershop"],
-          idUserOwner: userBusiness.idUser
+          idBusiness: Number(idBusinessRequest),
+          idUserRequest: Number(idUserRequest["custom:idUserMastershop"]),
+          idUserOwner: Number(userBusiness.idUser)
         };
         await model.setData(keyUser, JSON.stringify(dataRedis), stage);
         extraDataContext = {
