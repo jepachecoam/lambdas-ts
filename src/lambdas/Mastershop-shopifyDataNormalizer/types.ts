@@ -77,7 +77,7 @@ export interface IShopifyOrder {
   shippingAddress: IShopifyAddress | null;
   customer: IShopifyCustomer | null;
   totalDiscounts: string | null;
-  subtotalPrice: string | null;
+  totalPrice: string | null;
   lineItems: ILineItems;
 }
 

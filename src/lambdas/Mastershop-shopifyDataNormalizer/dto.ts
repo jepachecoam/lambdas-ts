@@ -46,7 +46,7 @@ const normalizeOrderData = (order: IShopifyOrder) => {
   const customAttributes = extractFromCustomAttributes(order?.customAttributes);
   const note = order?.note;
   const totalDiscounts = order?.totalDiscounts;
-  const subtotalPrice = order?.subtotalPrice;
+  const totalPrice = order?.totalPrice;
   const lineItems = order?.lineItems;
 
   const { billingAddr, shippingAddr } = normalizeAddresses(
@@ -84,7 +84,7 @@ const normalizeOrderData = (order: IShopifyOrder) => {
       paymentMethod: paymentMethod,
       note,
       totalDiscounts,
-      subtotalPrice,
+      totalPrice,
       lineItems,
       documentType: fallbackData.documentType,
       documentNumber: fallbackData.documentNumber
@@ -702,7 +702,7 @@ export function convertToOrderSchemaExpected(input: any): {
     payment_method: checkCritical(input.paymentMethod),
     line_items,
     total_discounts: input?.totalDiscounts?.toString(),
-    subtotal_price: input?.subtotalPrice?.toString()
+    total_price: input?.totalPrice?.toString()
   };
 
   return {
@@ -717,7 +717,7 @@ const buildNormalizeProductsBody = (directResult: any, configTool: any) => {
       destination: "mastershop",
       additionalData: {
         discountAmount: directResult?.order?.total_discounts,
-        shippingAmount: directResult?.order?.subtotal_price
+        shippingAmount: directResult?.order?.total_price
       },
       origin: "shopify",
       products: directResult?.order?.line_items
@@ -749,6 +749,7 @@ const buildProcessOrderBody = (
     additional_charge: normalizeProductsResp.additional_charge || [],
     notes: order.notes || [],
     alerts: alerts,
+    test: "false",
     origin_address: {
       zip: "0000",
       country: "CO",
@@ -803,7 +804,7 @@ const buildProcessOrderBody = (
     tags: order.tags || [],
     id_order: shopifyOrderId,
     order_transaction: {
-      total: parseFloat(order.subtotal_price || "0"),
+      total: parseFloat(order.total_price || "0"),
       currency: "COP",
       payment_method: order.payment_method || "COD"
     },

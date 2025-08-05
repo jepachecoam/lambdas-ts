@@ -72,7 +72,7 @@ class Dao {
         order(id: "gid://shopify/Order/${orderId}") {
           billingAddressMatchesShippingAddress
           tags
-          subtotalPrice
+          totalPrice
           totalDiscounts
           paymentGatewayNames
           note
