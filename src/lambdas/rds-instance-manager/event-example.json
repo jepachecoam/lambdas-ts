@@ -1,0 +1,101 @@
+{
+  "examples": {
+    "start_single_instance": {
+      "action": "start",
+      "rdsArns": [
+        "arn:aws:rds:us-east-1:123456789012:db:my-dev-database"
+      ]
+    },
+    "start_multiple_instances": {
+      "action": "start",
+      "rdsArns": [
+        "arn:aws:rds:us-east-1:123456789012:db:dev-database",
+        "arn:aws:rds:us-east-1:123456789012:db:staging-database",
+        "arn:aws:rds:us-east-1:123456789012:db:test-database"
+      ]
+    },
+    "stop_single_instance": {
+      "action": "stop",
+      "rdsArns": [
+        "arn:aws:rds:us-east-1:123456789012:db:my-dev-database"
+      ]
+    },
+    "stop_multiple_instances": {
+      "action": "stop",
+      "rdsArns": [
+        "arn:aws:rds:us-east-1:123456789012:db:dev-database",
+        "arn:aws:rds:us-east-1:123456789012:db:staging-database",
+        "arn:aws:rds:us-east-1:123456789012:db:test-database"
+      ]
+    }
+  },
+  "eventbridge_rule_examples": {
+    "stop_weekday_evening": {
+      "schedule_expression": "cron(0 18 * * MON-FRI *)",
+      "description": "Stop RDS instances every weekday at 6 PM",
+      "event_payload": {
+        "action": "stop",
+        "rdsArns": [
+          "arn:aws:rds:us-east-1:123456789012:db:dev-database",
+          "arn:aws:rds:us-east-1:123456789012:db:staging-database"
+        ]
+      }
+    },
+    "start_weekday_morning": {
+      "schedule_expression": "cron(0 8 * * MON-FRI *)",
+      "description": "Start RDS instances every weekday at 8 AM",
+      "event_payload": {
+        "action": "start",
+        "rdsArns": [
+          "arn:aws:rds:us-east-1:123456789012:db:dev-database",
+          "arn:aws:rds:us-east-1:123456789012:db:staging-database"
+        ]
+      }
+    },
+    "weekend_shutdown": {
+      "schedule_expression": "cron(0 20 * * FRI *)",
+      "description": "Stop all development instances on Friday evening",
+      "event_payload": {
+        "action": "stop",
+        "rdsArns": [
+          "arn:aws:rds:us-east-1:123456789012:db:dev-database",
+          "arn:aws:rds:us-east-1:123456789012:db:staging-database",
+          "arn:aws:rds:us-east-1:123456789012:db:test-database",
+          "arn:aws:rds:us-east-1:123456789012:db:qa-database"
+        ]
+      }
+    },
+    "monday_startup": {
+      "schedule_expression": "cron(0 7 * * MON *)",
+      "description": "Start all development instances on Monday morning",
+      "event_payload": {
+        "action": "start",
+        "rdsArns": [
+          "arn:aws:rds:us-east-1:123456789012:db:dev-database",
+          "arn:aws:rds:us-east-1:123456789012:db:staging-database",
+          "arn:aws:rds:us-east-1:123456789012:db:test-database",
+          "arn:aws:rds:us-east-1:123456789012:db:qa-database"
+        ]
+      }
+    }
+  },
+  "arn_format_examples": {
+    "standard_rds_instance": "arn:aws:rds:us-east-1:123456789012:db:my-database-instance",
+    "different_regions": [
+      "arn:aws:rds:us-west-2:123456789012:db:west-database",
+      "arn:aws:rds:eu-west-1:123456789012:db:europe-database",
+      "arn:aws:rds:ap-southeast-1:123456789012:db:asia-database"
+    ],
+    "naming_conventions": [
+      "arn:aws:rds:us-east-1:123456789012:db:dev-myapp-database",
+      "arn:aws:rds:us-east-1:123456789012:db:staging-myapp-database",
+      "arn:aws:rds:us-east-1:123456789012:db:prod-myapp-database"
+    ]
+  },
+  "notes": {
+    "arn_format": "RDS ARN format: arn:aws:rds:region:account-id:db:db-instance-identifier",
+    "action_values": "Valid action values are 'start' and 'stop'",
+    "array_requirement": "rdsArns must be a non-empty array of valid RDS ARNs",
+    "processing": "Instances are processed sequentially, failures in one instance don't stop processing of others"
+  }
+}

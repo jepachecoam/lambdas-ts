@@ -1,0 +1,112 @@
+# Regla de Documentación Primero
+
+## Propósito
+
+Leer y entender la documentación existente antes de implementar cambios para mantener consistencia con la arquitectura y patrones establecidos.
+
+## Principio Fundamental
+
+**SIEMPRE LEE LA DOCUMENTACIÓN DEL MÓDULO PRIMERO** - Antes de escribir código, revisa exhaustivamente la documentación existente.
+
+## Proceso de Análisis
+
+### 1. Descubrimiento de Documentación
+
+- **README.md**: Descripción general y configuración
+- **API.md**: Contratos y endpoints
+- **ARCHITECTURE.md**: Decisiones de diseño
+- **Comentarios JSDoc**: Documentación en línea
+- **Ejemplos**: Patrones de uso
+
+### 2. Análisis de Contenido
+
+- **Propósito del módulo**: ¿Para qué está diseñado?
+- **Patrones de diseño**: ¿Qué convenciones usa?
+- **Contratos de API**: ¿Cómo interactúa con otros módulos?
+- **Dependencias**: ¿Qué requiere y qué proporciona?
+- **Flujo de datos**: ¿Cómo procesa la información?
+
+## Lista de Verificación Pre-Implementación
+
+- [ ] ¿Cuál es el propósito principal del módulo?
+- [ ] ¿Cuáles son los principios de diseño clave?
+- [ ] ¿Qué patrones existen para funcionalidad similar?
+- [ ] ¿Cómo interactúa con otros módulos?
+- [ ] ¿Cuáles son las restricciones de rendimiento?
+- [ ] ¿Qué patrones de prueba están establecidos?
+
+## Desarrollo Dirigido por Documentación
+
+### ✅ Buenas Prácticas
+
+- **Seguir patrones establecidos**: Usar las mismas convenciones
+- **Mantener consistencia**: Alinear con la arquitectura documentada
+- **Respetar límites**: No violar decisiones arquitectónicas
+- **Actualizar documentación**: Corregir inconsistencias encontradas
+
+### ❌ Malas Prácticas
+
+- **Implementar sin revisar**: Crear código sin entender el contexto
+- **Ignorar patrones**: No seguir convenciones establecidas
+- **Violar arquitectura**: Modificar sin considerar el diseño existente
+
+## Cuando Falta Documentación
+
+1. **Documentar lo encontrado**: Crear documentación mientras aprendes
+2. **Solicitar contexto**: Pedir aclaración al equipo
+3. **Seguir convenciones**: Usar patrones de otros módulos
+4. **Proponer documentación**: Sugerir qué debería documentarse
+
+## Integración con Otras Reglas
+
+- **Simplicidad de código**: La documentación define qué es "simple"
+- **Niveles de abstracción**: Muestra patrones establecidos
+- **Estándares TypeScript**: Revela convenciones de tipos
+
+## Cumplimiento
+
+- **Obligatorio**: Aplicar en cada cambio de código
+- **Verificación**: Declarar qué documentación se revisó
+- **Consistencia**: Asegurar alineación con patrones documentados
+- **Actualizaciones**: Mantener documentación sincronizada
+
+## Archivos de Referencia del Proyecto
+
+### Documentación Principal
+
+- [README.md](mdc:README.md) - Documentación general del proyecto
+- [package.json](mdc:package.json) - Dependencias y scripts del proyecto
+- [tsconfig.json](mdc:tsconfig.json) - Configuración de TypeScript
+
+### Estructura de Lambdas
+
+- [src/lambdas/](mdc:src/lambdas/) - Directorio principal de lambdas
+- [src/conf/](mdc:src/conf/) - Configuración y rutas
+- [src/shared/](mdc:src/shared/) - Servicios y utilidades compartidas
+
+### Ejemplos de Documentación por Módulo
+
+- [src/lambdas/b2b-auth/README.md](mdc:src/lambdas/b2b-auth/README.md)
+- [src/lambdas/b2c-auth/README.md](mdc:src/lambdas/b2c-auth/README.md)
+- [src/lambdas/blacklist-monitor-wallet/README.md](mdc:src/lambdas/blacklist-monitor-wallet/README.md)
+- [src/lambdas/inteliflete-statistics/README.md](mdc:src/lambdas/inteliflete-statistics/README.md)
+- [src/lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/README.md](mdc:src/lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/README.md)
+- [src/lambdas/MasterShop-handleShipmentUpdatesCoordinadora/README.md](mdc:src/lambdas/MasterShop-handleShipmentUpdatesCoordinadora/README.md)
+- [src/lambdas/processAdditionalStepsInOrdersUpdate/README.md](mdc:src/lambdas/processAdditionalStepsInOrdersUpdate/README.md)
+- [src/lambdas/rds-instance-manager/README.md](mdc:src/lambdas/rds-instance-manager/README.md)
+- [src/lambdas/reconciliation-checkReconciliationDocumentAndLoadItemsToDb/README.md](mdc:src/lambdas/reconciliation-checkReconciliationDocumentAndLoadItemsToDb/README.md)
+- [src/lambdas/reconciliation-mastershop-loadItemsToQueueReconciliationProcess/README.md](mdc:src/lambdas/reconciliation-mastershop-loadItemsToQueueReconciliationProcess/README.md)
+- [src/lambdas/reconciliation-mastershop-orderReconciliationAnomalyChecker/README.md](mdc:src/lambdas/reconciliation-mastershop-orderReconciliationAnomalyChecker/README.md)
+
+## Instrucciones para el AI
+
+**ANTES de implementar cualquier cambio:**
+
+1. **Buscar y leer** la documentación existente del módulo específico
+2. **Analizar** los patrones de diseño y arquitectura establecidos
+3. **Verificar** la consistencia con otros módulos similares
+4. **Declarar** qué documentación se revisó antes de proceder
+5. **Seguir** las convenciones y patrones documentados
+6. **Actualizar** la documentación si se encuentran inconsistencias
+
+**SIEMPRE** comienza tu respuesta declarando qué documentación has revisado antes de implementar cambios.
