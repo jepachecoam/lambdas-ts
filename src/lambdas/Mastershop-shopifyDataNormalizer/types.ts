@@ -1,10 +1,4 @@
 export enum Envs {
-  REDIS_HOST = "REDIS_HOST",
-  REDIS_PORT = "REDIS_PORT",
-  B2B_BASE_URL = "B2B_BASE_URL",
-  API_KEY_MS = "API_KEY_MS",
-  APP_NAME_MS = "APP_NAME_MS",
-  REDIS_TTL_IN_MINUTES = "REDIS_TTL_IN_MINUTES",
   SLACK_URL_NOTIFICATION = "SLACK_URL_NOTIFICATION"
 }
 
@@ -85,12 +79,6 @@ export interface NormalizeOrderParams {
   shopifyOrderId: number;
   shopifyAccessToken: string;
   shopifyStoreUrl: string;
-}
-
-export interface NormalizeOrderResult {
-  success: boolean;
-  message: string;
-  data: any;
 }
 
 export interface IFallbackData {

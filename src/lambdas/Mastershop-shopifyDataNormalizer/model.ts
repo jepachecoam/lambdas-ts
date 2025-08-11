@@ -1,8 +1,7 @@
 import Dao from "./dao";
 import Dto from "./dto";
 import { ShopifyDataSchema } from "./schema";
-import { NormalizeOrderParams, NormalizeOrderResult } from "./types";
-import { cleanHtmlEscapedContent, parseJsonIfNeeded } from "./utils";
+import { NormalizeOrderParams } from "./types";
 
 class Model {
   private dao: Dao;
@@ -103,120 +102,6 @@ class Model {
         usedDefaultValuesInCriticalFields
       }
     };
-  }
-
-  private async tryNormalizationWithCache(
-    orderData: any,
-    accessToken: string
-  ): Promise<{ success: boolean; data?: any }> {
-    const cachedFunctions =
-      await this.getCachedNormalizationFunctions(accessToken);
-
-    if (!cachedFunctions || cachedFunctions.length === 0) {
-      console.log("⚠️ [CACHE] No se encontraron funciones cacheadas");
-      return { success: false };
-    }
-
-    console.log(
-      "📋 [CACHE] Probando",
-      cachedFunctions.length,
-      "funciones cacheadas"
-    );
-    for (let i = 0; i < cachedFunctions.length; i++) {
-      const result = this.executeNormalizationFunction(
-        cachedFunctions[i],
-        orderData
-      );
-      if (result.success) {
-        console.log("✅ [CACHE] Función", i + 1, "ejecutada exitosamente");
-        return { success: true, data: result.data };
-      }
-      console.log("❌ [CACHE] Función", i + 1, "falló");
-    }
-
-    console.log("❌ [CACHE] Ninguna función cacheada fue exitosa");
-    return { success: false };
-  }
-
-  private async tryNormalizationWithAI(
-    orderData: any,
-    accessToken: string
-  ): Promise<NormalizeOrderResult> {
-    try {
-      const aiFunction = await this.generateNormalizationFunction(orderData);
-
-      const result = this.executeNormalizationFunction(aiFunction, orderData);
-
-      if (result.success) {
-        await this.saveNormalizationFunction(accessToken, aiFunction);
-        return {
-          success: true,
-          data: result.data,
-          message: "Normalizada Con AI"
-        };
-      }
-      return { success: false, message: "Función de IA no válida", data: null };
-    } catch (error) {
-      console.error("💥 [AI ERROR] Error generando con IA:", error);
-      return {
-        success: false,
-        message: "Error generando normalización con IA",
-        data: null
-      };
-    }
-  }
-
-  private executeNormalizationFunction(functionCode: string, orderData: any) {
-    try {
-      const normalizationFunction = eval(`(${functionCode})`);
-      const normalizedData = normalizationFunction(orderData);
-      const validation = ShopifyDataSchema.safeParse(normalizedData);
-      return {
-        success: validation.success,
-        data: normalizedData
-      };
-    } catch (error) {
-      console.warn("⚠️ [EXEC] Error ejecutando función:", error);
-      return { success: false };
-    }
-  }
-
-  private async getCachedNormalizationFunctions(
-    accessToken: string
-  ): Promise<string[] | null> {
-    try {
-      const cached = await this.dao.getCachedItem({ key: accessToken });
-      return cached ? JSON.parse(cached) : null;
-    } catch (error) {
-      console.error("💥 [CACHE] Error obteniendo funciones cacheadas:", error);
-      return null;
-    }
-  }
-
-  private async generateNormalizationFunction(orderData: any): Promise<string> {
-    const response = await this.dao.generateNormalizationWithAI(orderData);
-    const rawFunction = response.data.data || response.data;
-    console.log("rawFunction", rawFunction);
-    const cleanedFunction = cleanHtmlEscapedContent(rawFunction);
-    return parseJsonIfNeeded(cleanedFunction);
-  }
-
-  private async saveNormalizationFunction(
-    accessToken: string,
-    functionCode: string
-  ) {
-    try {
-      const existingFunctions =
-        (await this.getCachedNormalizationFunctions(accessToken)) || [];
-      existingFunctions.push(functionCode);
-
-      await this.dao.storeCachedItem({
-        key: accessToken,
-        value: JSON.stringify(existingFunctions)
-      });
-    } catch (error) {
-      console.error("💥 [CACHE] Error guardando función:", error);
-    }
   }
 }
 
