@@ -12,6 +12,17 @@ interface RequestBody {
 interface DaneLookupResult {
   message: string;
   data: DaneData | null;
+  ambiguousResult?: boolean;
+}
+
+interface DepartmentSearchResult {
+  result: DepartmentData | null;
+  isAmbiguous: boolean;
+}
+
+interface CitySearchResult {
+  result: CityData | null;
+  isAmbiguous: boolean;
 }
 
 interface DaneData {
@@ -97,11 +108,16 @@ const createDepartmentSearchData = (): string[] => {
   return searchData;
 };
 
-const findDepartmentByQuery = (query: string): DepartmentData | null => {
+const findDepartmentByQuery = (query: string): DepartmentSearchResult => {
   const normalizedQuery = sanitizeInput(query);
 
   if (!normalizedQuery) {
-    return null;
+    return { result: null, isAmbiguous: false };
+  }
+
+  // Reject very short queries that are likely to produce false positives
+  if (normalizedQuery.length < 3) {
+    return { result: null, isAmbiguous: false };
   }
 
   // Create search data for Fuse.js
@@ -110,7 +126,8 @@ const findDepartmentByQuery = (query: string): DepartmentData | null => {
   const fuse = new Fuse(searchData, {
     threshold: 0.05, // 95% similarity
     includeScore: true,
-    isCaseSensitive: false
+    isCaseSensitive: false,
+    minMatchCharLength: 3 // Minimum characters that must match
   });
 
   const searchResult = fuse.search(normalizedQuery);
@@ -120,34 +137,47 @@ const findDepartmentByQuery = (query: string): DepartmentData | null => {
     !searchResult[0] ||
     searchResult[0].score! > 0.05
   ) {
-    return null;
+    return { result: null, isAmbiguous: false };
   }
 
-  // Find the original department that matches
+  // Additional validation: ensure the match makes sense
   const matchedText = searchResult[0].item;
+  const matchScore = searchResult[0].score!;
 
+  // For very short queries, require exact or near-exact matches
+  if (normalizedQuery.length <= 4 && matchScore > 0.01) {
+    return { result: null, isAmbiguous: false };
+  }
+
+  // Check for ambiguous results: if 3 or more results have the same score
+  const sameScoreCount = searchResult.filter(
+    (result) => Math.abs(result.score! - matchScore) < 0.001
+  ).length;
+  const isAmbiguous = sameScoreCount >= 3;
+
+  // Find the original department that matches
   for (const dept of daneData) {
     // Check if it matches the name
     if (normalizeText(dept.name) === matchedText) {
-      return dept as DepartmentData;
+      return { result: dept as DepartmentData, isAmbiguous };
     }
 
     // Check if it matches the code
     if (dept.code && normalizeText(dept.code) === matchedText) {
-      return dept as DepartmentData;
+      return { result: dept as DepartmentData, isAmbiguous };
     }
 
     // Check if it matches any alias
     if (dept.alias && Array.isArray(dept.alias)) {
       for (const alias of dept.alias) {
         if (normalizeText(alias) === matchedText) {
-          return dept as DepartmentData;
+          return { result: dept as DepartmentData, isAmbiguous };
         }
       }
     }
   }
 
-  return null;
+  return { result: null, isAmbiguous: false };
 };
 
 // City fuzzy search functionality
@@ -172,7 +202,7 @@ const createCitySearchData = (department: DepartmentData): string[] => {
 const findCityInDepartment = (
   query: string,
   department: DepartmentData
-): CityData | null => {
+): CitySearchResult => {
   const normalizedQuery = sanitizeInput(query);
 
   if (
@@ -180,7 +210,12 @@ const findCityInDepartment = (
     !department.cities ||
     department.cities.length === 0
   ) {
-    return null;
+    return { result: null, isAmbiguous: false };
+  }
+
+  // Reject very short queries that are likely to produce false positives
+  if (normalizedQuery.length < 4) {
+    return { result: null, isAmbiguous: false };
   }
 
   // Create search data for Fuse.js
@@ -189,7 +224,8 @@ const findCityInDepartment = (
   const fuse = new Fuse(searchData, {
     threshold: 0.1, // 90% similarity
     includeScore: true,
-    isCaseSensitive: false
+    isCaseSensitive: false,
+    minMatchCharLength: 4 // Minimum characters that must match
   });
 
   const searchResult = fuse.search(normalizedQuery);
@@ -199,29 +235,42 @@ const findCityInDepartment = (
     !searchResult[0] ||
     searchResult[0].score! > 0.1
   ) {
-    return null;
+    return { result: null, isAmbiguous: false };
   }
 
-  // Find the original city that matches
+  // Additional validation: ensure the match makes sense
   const matchedText = searchResult[0].item;
+  const matchScore = searchResult[0].score!;
 
+  // For short queries, require much better matches
+  if (normalizedQuery.length <= 5 && matchScore > 0.05) {
+    return { result: null, isAmbiguous: false };
+  }
+
+  // Check for ambiguous results: if 3 or more results have the same score
+  const sameScoreCount = searchResult.filter(
+    (result) => Math.abs(result.score! - matchScore) < 0.001
+  ).length;
+  const isAmbiguous = sameScoreCount >= 3;
+
+  // Find the original city that matches
   for (const city of department.cities) {
     // Check if it matches the name
     if (normalizeText(city.name) === matchedText) {
-      return city as CityData;
+      return { result: city as CityData, isAmbiguous };
     }
 
     // Check if it matches any alias
     if (city.alias && Array.isArray(city.alias)) {
       for (const alias of city.alias) {
         if (normalizeText(alias) === matchedText) {
-          return city as CityData;
+          return { result: city as CityData, isAmbiguous };
         }
       }
     }
   }
 
-  return null;
+  return { result: null, isAmbiguous: false };
 };
 
 // DANE code resolution with carrier support
@@ -272,9 +321,9 @@ const findDaneCode = (
     }
 
     // Find department using fuzzy search
-    const foundDepartment = findDepartmentByQuery(department);
+    const departmentSearchResult = findDepartmentByQuery(department);
 
-    if (!foundDepartment) {
+    if (!departmentSearchResult.result) {
       return {
         message: "department is missing",
         data: null
@@ -282,9 +331,12 @@ const findDaneCode = (
     }
 
     // Find city within the found department
-    const foundCity = findCityInDepartment(city, foundDepartment);
+    const citySearchResult = findCityInDepartment(
+      city,
+      departmentSearchResult.result
+    );
 
-    if (!foundCity) {
+    if (!citySearchResult.result) {
       return {
         message: "city is missing",
         data: null
@@ -292,16 +344,21 @@ const findDaneCode = (
     }
 
     // Resolve DANE code with carrier support
-    const daneCode = resolveDaneCode(foundCity, idCarrier);
+    const daneCode = resolveDaneCode(citySearchResult.result, idCarrier);
+
+    // Check if either search was ambiguous
+    const isAmbiguous =
+      departmentSearchResult.isAmbiguous || citySearchResult.isAmbiguous;
 
     // Return successful result
     return {
       message: "success",
       data: {
-        department: foundDepartment.name,
-        city: foundCity.name,
+        department: departmentSearchResult.result.name,
+        city: citySearchResult.result.name,
         daneCode: daneCode
-      }
+      },
+      ambiguousResult: isAmbiguous
     };
   } catch (error) {
     console.error("Error in findDaneCode:", error);
