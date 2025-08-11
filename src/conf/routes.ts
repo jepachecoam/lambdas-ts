@@ -4,6 +4,7 @@ import { handler as b2bAuth } from "../lambdas/b2b-auth/index";
 import { handler as b2cAuth } from "../lambdas/b2c-auth/index";
 import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-wallet/index";
 import { handler as example } from "../lambdas/example/index";
+import { handler as getDaneCode } from "../lambdas/getDaneCode/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
 import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/index";
 import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
@@ -84,6 +85,14 @@ router.post(
   "/shopify-data-normalizer",
   serverResponse({
     handler: shopifyDataNormalizer,
+    responseType: "http"
+  })
+);
+
+router.post(
+  "/get-dane-code",
+  serverResponse({
+    handler: getDaneCode,
     responseType: "http"
   })
 );
