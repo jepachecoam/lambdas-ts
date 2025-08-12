@@ -13,23 +13,43 @@ import {
 class Model {
   private dao = new Dao();
   // Text normalization utility functions
-  private removeAccents(text: string): string {
-    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  }
-
-  private removeSpecialCharacters(text: string): string {
-    return text.replace(/[^a-zA-Z0-9\s]/g, "");
-  }
 
   private normalizeText(text: string): string {
     if (!text || typeof text !== "string") {
       return "";
     }
 
-    return this.removeSpecialCharacters(this.removeAccents(text))
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, " ");
+    const removeParenthesesContent = (str: string): string => {
+      // Elimina todo lo que esté dentro de () incluyendo los paréntesis
+      return str.replace(/\([^)]*\)/g, "");
+    };
+
+    const toLowerCase = (str: string): string => str.toLowerCase();
+
+    const normalizeSpaces = (str: string): string => {
+      // Convierte múltiples espacios en uno solo
+      return str.replace(/\s+/g, " ");
+    };
+
+    const trimText = (str: string): string => str.trim();
+
+    const removeAccents = (text: string): string => {
+      return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    };
+
+    const removeSpecialCharacters = (text: string): string => {
+      return text.replace(/[^a-zA-Z0-9\s]/g, "");
+    };
+
+    let result = text;
+    result = removeParenthesesContent(result);
+    result = removeAccents(result);
+    result = removeSpecialCharacters(result);
+    result = toLowerCase(result);
+    result = normalizeSpaces(result);
+    result = trimText(result);
+
+    return result;
   }
 
   private extractFirstPart(text: string): string {
@@ -186,7 +206,7 @@ class Model {
     const searchData = this.createCitySearchData(department);
 
     const fuse = new Fuse(searchData, {
-      threshold: 0.1, // 90% similarity
+      threshold: 0.05, // 95% similarity
       includeScore: true,
       isCaseSensitive: false,
       minMatchCharLength: 4 // Minimum characters that must match
@@ -197,7 +217,7 @@ class Model {
     if (
       searchResult.length === 0 ||
       !searchResult[0] ||
-      searchResult[0].score! > 0.1
+      searchResult[0].score! > 0.05
     ) {
       return { result: null, isAmbiguous: false };
     }
@@ -211,11 +231,11 @@ class Model {
       return { result: null, isAmbiguous: false };
     }
 
-    // Check for ambiguous results: if 3 or more results have the same score
+    // Check for ambiguous results: if 2 or more results have the same score
     const sameScoreCount = searchResult.filter(
       (result) => Math.abs(result.score! - matchScore) < 0.001
     ).length;
-    const isAmbiguous = sameScoreCount >= 3;
+    const isAmbiguous = sameScoreCount >= 2;
 
     // Find the original city that matches
     for (const city of department.cities) {
