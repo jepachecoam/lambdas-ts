@@ -47,9 +47,12 @@ export const handler = async (event: any) => {
     // Validate if exist x-idUser-Owner and x-idUser-request in the request
     model.validateForbiddenHeaders(event.headers);
 
-    // This validation is temporally - Delete IF in future
+    // This validation is temporally and const isShippingQuoteRoute - Delete IF in future
     let extraDataContext;
-    if (event.headers["x-idbusiness"]) {
+    const isShippingQuoteRoute = event.rawPath.includes(
+      "/logistics/shippingQuote"
+    );
+    if (event.headers["x-idbusiness"] && !isShippingQuoteRoute) {
       const idBusinessRequest = event.headers["x-idbusiness"];
       const stage = event.requestContext["stage"];
       const idUserRequest = jwt.decode(
