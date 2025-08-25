@@ -10,24 +10,53 @@ class Dao {
 
   async getOrdersToUpdate({ idCarrier }: { idCarrier: number }) {
     const query = `
-        SELECT carrierTrackingCode
-        FROM db_mastershop_orders.order
-        WHERE carrierTrackingCode != '' AND carrierTrackingCode IS NOT NULL AND 
-                (idStatus IN (3, 4, 5, 6, 7) OR idOrder IN (
-                SELECT idOrder
-                FROM db_mastershop_orders.orderStatusLog
-                WHERE idStatus IN (8) AND DATEDIFF(NOW(), createdAt) < 3
-                )) AND idCarrier = :idCarrier;
+    WITH OrdersToCheck AS (SELECT o.idOrder, o.carrierTrackingCode
+                          FROM \`order\` o
+                          WHERE o.carrierTrackingCode != ''
+                            AND o.carrierTrackingCode IS NOT NULL
+                            AND (o.idStatus IN (3, 4, 5, 6, 7) OR o.idOrder IN (SELECT osl.idOrder
+                                                                                FROM db_mastershop_orders.orderStatusLog osl
+                                                                                WHERE osl.idStatus IN (8)
+                                                                                  AND DATEDIFF(NOW(), osl.createdAt) < 3))
+                            AND idCarrier = :idCarrier),
+        MaxCreatedAt as (select ol.idOrder, max(createdAt) as createdAt
+                          from orderLeg ol
+                                  inner join OrdersToCheck otc on otc.idOrder = ol.idOrder
+                          group by ol.idOrder),
+        LastOrdersLeg as (select ol.idOrder, ol.carrierTrackingCode
+                          from orderLeg ol
+                                    inner join MaxCreatedAt mca
+                                              on ol.idOrder = mca.idOrder and ol.createdAt = mca.createdAt)
+    select carrierTrackingCode
+    from OrdersToCheck otc
+    where idOrder not in (select idOrder from LastOrdersLeg)
+    union all
+    select carrierTrackingCode
+    from LastOrdersLeg
         `;
     return this.db.fetchMany(query, { replacements: { idCarrier } });
   }
 
   async getOrdersReturnToUpdate({ idCarrier }: { idCarrier: number }) {
     const query = `
-        select carrierTrackingCode
-        from orderReturn
-        where idOrder in (select idOrder from \`order\` where idCarrier = :idCarrier)
-          and idStatus not in (8, 9)
+    With OrdersToCheck as (select idOrderReturn, carrierTrackingCode
+                          from orderReturn
+                          where idOrder in (select idOrder from \`order\` o where idCarrier = :idCarrier)
+                            and idStatus not in (8, 9)),
+        MaxCreatedAt as (select orl.idOrderReturn, max(createdAt) as createdAt
+                          from orderReturnLeg orl
+                                  inner join OrdersToCheck otc on otc.idOrderReturn = orl.idOrderReturn
+                          group by orl.idOrderReturn),
+        LastOrdersLeg as (select orl.idOrderReturn, orl.carrierTrackingCode
+                          from orderReturnLeg orl
+                                    inner join MaxCreatedAt mca
+                                              on orl.idOrderReturn = mca.idOrderReturn and orl.createdAt = mca.createdAt)
+    select carrierTrackingCode
+    from OrdersToCheck otc
+    where idOrderReturn not in (select idOrderReturn from LastOrdersLeg)
+    union all
+    select carrierTrackingCode
+    from LastOrdersLeg
         `;
     return this.db.fetchMany(query, { replacements: { idCarrier } });
   }
