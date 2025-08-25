@@ -16,7 +16,7 @@ class Dao {
 
   async postProcessOrder(body: any, msApiKey: string) {
     return axios.post(
-      "https://l7tmtzztq1.execute-api.us-east-1.amazonaws.com/qa/logistics/order/process",
+      `https://l7tmtzztq1.execute-api.us-east-1.amazonaws.com/${this.environmentName}/logistics/order/process`,
       body,
       {
         headers: {
