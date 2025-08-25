@@ -1,3 +1,31 @@
+import { carrierNames } from "./types";
+
+const getParams = (event: any) => {
+  const {
+    carrierName,
+    idCarrier,
+    batchSizeToFetch,
+    batchSizeToSend,
+    environment = "prod"
+  } = event;
+
+  if (!carrierName || !idCarrier || !batchSizeToFetch || !batchSizeToSend) {
+    throw new Error("Missing required parameters");
+  }
+
+  if (!Object.values(carrierNames).includes(carrierName.toUpperCase())) {
+    throw new Error("Invalid carrier name");
+  }
+
+  return {
+    carrierName,
+    idCarrier,
+    batchSizeToFetch,
+    batchSizeToSend,
+    environment
+  };
+};
+
 const checkResponses = ({ ordersResponses, carrierName }: any) => {
   try {
     const result = [];
@@ -49,4 +77,4 @@ const checkResponses = ({ ordersResponses, carrierName }: any) => {
   }
 };
 
-export default { checkResponses };
+export default { checkResponses, getParams };

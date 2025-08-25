@@ -17,19 +17,19 @@ class Dao {
                 SELECT idOrder
                 FROM db_mastershop_orders.orderStatusLog
                 WHERE idStatus IN (8) AND DATEDIFF(NOW(), createdAt) < 3
-                )) AND idCarrier = ${idCarrier};
+                )) AND idCarrier = :idCarrier;
         `;
-    return this.db.fetchMany(query);
+    return this.db.fetchMany(query, { replacements: { idCarrier } });
   }
 
   async getOrdersReturnToUpdate({ idCarrier }: { idCarrier: number }) {
     const query = `
         select carrierTrackingCode
         from orderReturn
-        where idOrder in (select idOrder from \`order\` where idCarrier = ${idCarrier})
+        where idOrder in (select idOrder from \`order\` where idCarrier = :idCarrier)
           and idStatus not in (8, 9)
         `;
-    return this.db.fetchMany(query);
+    return this.db.fetchMany(query, { replacements: { idCarrier } });
   }
 
   async fetchGuideEndpoint({

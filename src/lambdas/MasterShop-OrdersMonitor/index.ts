@@ -11,8 +11,8 @@ export const handler = async (event: any) => {
       idCarrier,
       batchSizeToFetch,
       batchSizeToSend,
-      environment = "prod"
-    } = event;
+      environment
+    } = dto.getParams(event);
 
     const model = new Model(environment);
 
