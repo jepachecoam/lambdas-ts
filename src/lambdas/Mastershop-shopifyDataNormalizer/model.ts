@@ -51,7 +51,10 @@ class Model {
       return {
         success: true,
         message: "Order processed successfully",
-        data: processOrderResp.data
+        data: {
+          processOrderPayload: processOrderBody,
+          processOrderResponse: processOrderResp.data
+        }
       };
     } catch (error) {
       console.error("error", error);
