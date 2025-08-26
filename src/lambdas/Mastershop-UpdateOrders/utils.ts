@@ -1,15 +1,33 @@
-import Ajv from "ajv";
 import axios from "axios";
+import { z } from "zod";
 
 const isValidJSONObject = (data: any) => {
-  const ajv = new Ajv({ strict: false, allowUnionTypes: true });
-
   if (typeof data !== "object" || data === null || Array.isArray(data)) {
     return false;
   }
 
-  const validate = ajv.compile({ type: "object" });
-  return validate(data);
+  const schema = z.object({});
+  return schema.safeParse(data).success;
+};
+
+const validateRecordSchema = (data: any) => {
+  const recordSchema = z.object({
+    carrierData: z.any(),
+    carrierName: z.string(),
+    trackingNumber: z.string().regex(/^[0-9]+$/),
+    status: z.object({
+      statusCode: z.string().regex(/^[0-9]+$/),
+      statusName: z.union([z.string(), z.null()])
+    }),
+    novelty: z.object({
+      noveltyCode: z.union([z.string().regex(/^[0-9]+$/), z.null()])
+    }),
+    returnProcess: z.object({
+      returnTrackingNumber: z.union([z.string().regex(/^[0-9]+$/), z.null()])
+    })
+  });
+
+  return recordSchema.safeParse(data).success;
 };
 
 export const validateAndSanitizeJSON = (input: any) => {
@@ -78,66 +96,6 @@ const response = ({ statusCode, body }: any) => ({
   statusCode,
   body: JSON.stringify(body)
 });
-
-const recordSchema = {
-  type: "object",
-  properties: {
-    carrierData: {
-      anyOf: [{ type: "object" }, { type: "null" }, { type: "string" }]
-    },
-    carrierName: { type: "string" },
-    trackingNumber: {
-      type: "string",
-      pattern: "^[0-9]+$"
-    },
-    status: {
-      type: "object",
-      properties: {
-        statusCode: {
-          type: "string",
-          pattern: "^[0-9]+$"
-        },
-        statusName: {
-          anyOf: [{ type: "string" }, { type: "null" }]
-        }
-      },
-      required: ["statusCode", "statusName"]
-    },
-    novelty: {
-      type: "object",
-      properties: {
-        noveltyCode: {
-          anyOf: [{ type: "string", pattern: "^[0-9]+$" }, { type: "null" }]
-        }
-      },
-      required: ["noveltyCode"]
-    },
-    returnProcess: {
-      type: "object",
-      properties: {
-        returnTrackingNumber: {
-          anyOf: [{ type: "string", pattern: "^[0-9]+$" }, { type: "null" }]
-        }
-      },
-      required: ["returnTrackingNumber"]
-    }
-  },
-  required: [
-    "carrierData",
-    "carrierName",
-    "trackingNumber",
-    "status",
-    "novelty",
-    "returnProcess"
-  ],
-  additionalProperties: false
-};
-
-const validateRecordSchema = (data: any) => {
-  const ajv = new Ajv({ strict: false, allowUnionTypes: true });
-  const validate = ajv.compile(recordSchema);
-  return validate(data);
-};
 
 export default {
   addDelay,

@@ -4,7 +4,7 @@ import utils from "./utils";
 
 export const handler = async (event: any) => {
   try {
-    console.log("event =>>>", event);
+    console.log("event :>>>", JSON.stringify(event));
 
     const {
       carrierName,

@@ -1,8 +1,12 @@
+import { checkEnv } from "../../shared/validation/envChecker";
 import model from "./model";
+import { Envs } from "./types";
 import utils from "./utils";
 
 export const handler = async (event: any, context: any) => {
   try {
+    checkEnv({ ...Envs });
+
     const { records, logStreamId } = model.parseEventParams({ event, context });
 
     await model.processRecordsWithRetries({

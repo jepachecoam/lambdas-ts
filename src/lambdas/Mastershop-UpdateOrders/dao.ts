@@ -7,7 +7,7 @@ const putOrder = async ({ orderData }: { orderData: any }) => {
   try {
     return await utils.httpRequest({
       method: "put",
-      url: `${process.env["URL_MS"]}/api/b2b/logistics/order`,
+      url: `${process.env["BASE_URL_MS"]}${process.env["ENVIRONMENT"]}/api/b2b/logistics/order`,
       data: orderData,
       config: {
         headers: {
@@ -39,7 +39,7 @@ const getOrder = async ({
 
     return await utils.httpRequest({
       method: "post",
-      url: `${process.env["URL_MS"]}/api/b2b/logistics/order/${idUser}`,
+      url: `${process.env["BASE_URL_MS"]}${process.env["ENVIRONMENT"]}/api/b2b/logistics/order/${idUser}`,
       data: parameter,
       config: {
         headers: {
@@ -64,7 +64,7 @@ const sendEvent = async ({ source, detailType, detail }: any) => {
 
     return await utils.httpRequest({
       method: "post",
-      url: `${process.env["URL_API_SEND_EVENT"]}/api/b2b/logistics/processevents`,
+      url: `${process.env["BASE_URL_MS"]}${process.env["ENVIRONMENT"]}/api/b2b/logistics/processevents`,
       data: parameter,
       config: {
         headers: {
