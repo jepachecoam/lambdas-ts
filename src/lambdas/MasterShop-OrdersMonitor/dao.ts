@@ -4,7 +4,9 @@ import Database from "../../shared/databases/sequelize";
 
 class Dao {
   private db: Database;
+  private environmentName: string;
   constructor(environment: string) {
+    this.environmentName = environment;
     this.db = new Database(environment);
   }
 
@@ -68,7 +70,7 @@ class Dao {
     carrierTrackingCode: number;
     carrier: number;
   }) {
-    const url = `${process.env["BASE_URL"]}/prod/b2b/api/${carrier}/statusGuide/${carrierTrackingCode}`;
+    const url = `${process.env["BASE_URL"]}/${this.environmentName}/b2b/api/${carrier}/statusGuide/${carrierTrackingCode}`;
 
     try {
       const response = await axios.get(url, {
@@ -106,7 +108,7 @@ class Dao {
   async sendCarrierDataToUpdateOrder({ carrierData }: any) {
     try {
       const result = await axios.post(
-        `${process.env["URL_API_UPDATE_ORDER"]}/b2b/api/UpdateOrder`,
+        `${process.env["BASE_URL"]}/${this.environmentName}/b2b/api/UpdateOrder`,
         carrierData,
         {
           headers: {
