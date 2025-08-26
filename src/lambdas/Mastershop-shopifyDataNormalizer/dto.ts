@@ -48,6 +48,7 @@ const normalizeOrderData = (order: IShopifyOrder) => {
   const totalDiscounts = order?.totalDiscounts;
   const totalPrice = order?.totalPrice;
   const lineItems = order?.lineItems;
+  const totalShippingPriceSet = order?.totalShippingPriceSet;
 
   const { billingAddr, shippingAddr } = normalizeAddresses(
     billing,
@@ -87,7 +88,8 @@ const normalizeOrderData = (order: IShopifyOrder) => {
       totalPrice,
       lineItems,
       documentType: fallbackData.documentType,
-      documentNumber: fallbackData.documentNumber
+      documentNumber: fallbackData.documentNumber,
+      totalShippingPriceSet
     }
   };
 };
@@ -659,7 +661,10 @@ export function convertToOrderSchemaExpected(input: any): {
       };
     }) || [];
 
+  const totalShippingPriceSet = input?.totalShippingPriceSet?.shopMoney?.amount;
+
   const orderSchemaExpected: OrderSchemaExpected = {
+    total_shipping_price_set: Number(totalShippingPriceSet) || 0,
     billing_address: {
       country: checkCritical(billingAddress.country),
       city: checkCritical(billingAddress.city),
@@ -717,7 +722,7 @@ const buildNormalizeProductsBody = (directResult: any, configTool: any) => {
       destination: "mastershop",
       additionalData: {
         discountAmount: directResult?.order?.total_discounts,
-        shippingAmount: directResult?.order?.total_price
+        shippingAmount: directResult?.order?.total_shipping_price_set
       },
       origin: "shopify",
       products: directResult?.order?.line_items

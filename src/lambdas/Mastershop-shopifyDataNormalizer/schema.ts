@@ -38,6 +38,7 @@ const LineItemsSchema = z.array(
 );
 
 export const ShopifyDataSchema = z.object({
+  total_shipping_price_set: z.number().optional().default(0),
   billing_address: AddressSchema,
   shipping_address: AddressSchema,
   customer: CustomerSchema,

@@ -86,6 +86,12 @@ class Dao {
             displayName
             phone
           }
+          totalShippingPriceSet {
+            shopMoney {
+                amount
+                currencyCode
+          }
+        }
           lineItems(first: 250) {
             edges {
                 node {
