@@ -112,6 +112,12 @@ class Dao {
                     product {
                         id
                     }
+                    discountAllocations {
+                        allocatedAmount {
+                            amount
+                            currencyCode
+                        }
+                    }
                 }
             }
           }

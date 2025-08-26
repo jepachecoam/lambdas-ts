@@ -33,7 +33,8 @@ const LineItemsSchema = z.array(
     price: z.number(),
     title: z.string(),
     product_id: z.number(),
-    variant_id: z.number()
+    variant_id: z.number(),
+    discount_allocations: z.any()
   })
 );
 

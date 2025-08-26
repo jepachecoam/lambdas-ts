@@ -657,7 +657,8 @@ export function convertToOrderSchemaExpected(input: any): {
         price: parseFloat(variant.price),
         title: node.title,
         product_id: productId,
-        variant_id: variantId
+        variant_id: variantId,
+        discount_allocations: node.discountAllocations
       };
     }) || [];
 
