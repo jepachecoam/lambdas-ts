@@ -33,11 +33,13 @@ const LineItemsSchema = z.array(
     price: z.number(),
     title: z.string(),
     product_id: z.number(),
-    variant_id: z.number()
+    variant_id: z.number(),
+    discount_allocations: z.any()
   })
 );
 
 export const ShopifyDataSchema = z.object({
+  total_shipping_price_set: z.number().optional().default(0),
   billing_address: AddressSchema,
   shipping_address: AddressSchema,
   customer: CustomerSchema,

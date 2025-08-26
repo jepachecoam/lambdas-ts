@@ -21,6 +21,11 @@ class Model {
         };
       }
 
+      console.log(
+        "OrderData From Shopify:>>>",
+        JSON.stringify(orderData, null, 2)
+      );
+
       const directResult = this.tryDirectNormalization(orderData);
       if (!directResult.success) {
         return { success: false, message: "No se pudo normalizar", data: null };

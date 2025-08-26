@@ -72,6 +72,12 @@ export interface IShopifyOrder {
   customer: IShopifyCustomer | null;
   totalDiscounts: string | null;
   totalPrice: string | null;
+  totalShippingPriceSet: {
+    shopMoney: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
   lineItems: ILineItems;
 }
 
