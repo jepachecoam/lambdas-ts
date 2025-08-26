@@ -18,8 +18,8 @@ class Dao {
                                                                                 FROM db_mastershop_orders.orderStatusLog osl
                                                                                 WHERE osl.idStatus IN (8)
                                                                                   AND DATEDIFF(NOW(), osl.createdAt) < 3))
-                            AND idCarrier = :idCarrier),
-        MaxCreatedAt as (select ol.idOrder, max(createdAt) as createdAt
+                            AND o.idCarrier = :idCarrier),
+        MaxCreatedAt as (select ol.idOrder, max(ol.createdAt) as createdAt
                           from orderLeg ol
                                   inner join OrdersToCheck otc on otc.idOrder = ol.idOrder
                           group by ol.idOrder),
@@ -27,23 +27,23 @@ class Dao {
                           from orderLeg ol
                                     inner join MaxCreatedAt mca
                                               on ol.idOrder = mca.idOrder and ol.createdAt = mca.createdAt)
-    select carrierTrackingCode
+    select otc.carrierTrackingCode
     from OrdersToCheck otc
-    where idOrder not in (select idOrder from LastOrdersLeg)
+    where idOrder not in (select log.idOrder from LastOrdersLeg log)
     union all
-    select carrierTrackingCode
-    from LastOrdersLeg
+    select log.carrierTrackingCode
+    from LastOrdersLeg log
         `;
     return this.db.fetchMany(query, { replacements: { idCarrier } });
   }
 
   async getOrdersReturnToUpdate({ idCarrier }: { idCarrier: number }) {
     const query = `
-    With OrdersToCheck as (select idOrderReturn, carrierTrackingCode
-                          from orderReturn
-                          where idOrder in (select idOrder from \`order\` o where idCarrier = :idCarrier)
-                            and idStatus not in (8, 9)),
-        MaxCreatedAt as (select orl.idOrderReturn, max(createdAt) as createdAt
+    With OrdersToCheck as (select ore.idOrderReturn, ore.carrierTrackingCode
+                          from orderReturn ore
+                          where ore.idOrder in (select o.idOrder from \`order\` o where o.idCarrier = :idCarrier)
+                            and ore.idStatus not in (8, 9)),
+        MaxCreatedAt as (select orl.idOrderReturn, max(orl.createdAt) as createdAt
                           from orderReturnLeg orl
                                   inner join OrdersToCheck otc on otc.idOrderReturn = orl.idOrderReturn
                           group by orl.idOrderReturn),
@@ -51,12 +51,12 @@ class Dao {
                           from orderReturnLeg orl
                                     inner join MaxCreatedAt mca
                                               on orl.idOrderReturn = mca.idOrderReturn and orl.createdAt = mca.createdAt)
-    select carrierTrackingCode
+    select otc.carrierTrackingCode
     from OrdersToCheck otc
-    where idOrderReturn not in (select idOrderReturn from LastOrdersLeg)
+    where otc.idOrderReturn not in (select log.idOrderReturn from LastOrdersLeg log)
     union all
-    select carrierTrackingCode
-    from LastOrdersLeg
+    select log.carrierTrackingCode
+    from LastOrdersLeg log
         `;
     return this.db.fetchMany(query, { replacements: { idCarrier } });
   }
