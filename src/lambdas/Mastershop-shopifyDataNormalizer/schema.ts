@@ -27,7 +27,7 @@ const CustomerSchema = z.object({
 
 const LineItemsSchema = z.array(
   z.object({
-    name: z.number(),
+    name: z.string(),
     current_quantity: z.number(),
     grams: z.number(),
     price: z.number(),
