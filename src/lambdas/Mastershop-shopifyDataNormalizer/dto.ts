@@ -700,8 +700,8 @@ export function convertToOrderSchemaExpected(input: any): {
       last_name: input.customer.lastName || "Sin datos",
       phone: input.customer.phone || "Sin datos",
       email: input.customer.email || "Sin datos",
-      documentType: input.documentType || "Sin datos",
-      documentNumber: input.documentNumber || "Sin datos"
+      documentType: input.documentType || null,
+      documentNumber: input.documentNumber || null
     },
     notes: input.note ? [input.note] : ["Shopify Order"],
     tags: input.tags || [],
