@@ -651,7 +651,7 @@ export function convertToOrderSchemaExpected(input: any): {
       const variantId = parseInt(variant.id.split("/").pop() || "0");
 
       return {
-        name: productId,
+        name: node.title,
         current_quantity: node.quantity,
         grams: variant.inventoryItem?.measurement?.weight?.value || 0,
         price: parseFloat(variant.price),
