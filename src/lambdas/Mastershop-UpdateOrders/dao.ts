@@ -19,16 +19,13 @@ const putOrder = async ({ orderData }: { orderData: any }) => {
 
 const getOrder = async ({
   idUser,
-  idOrder,
-  idBusiness
+  idOrder
 }: {
   idUser: number;
   idOrder: number;
-  idBusiness: number;
 }) => {
   const parameter = {
-    orderId: idOrder,
-    idBussiness: idBusiness
+    orderId: idOrder
   };
 
   return utils.httpRequest({

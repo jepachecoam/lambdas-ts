@@ -273,7 +273,6 @@ const handleOrder = async ({ data, returnCodes }: any) => {
     idOrder,
     idStatus,
     idUser,
-    idBusiness,
     trackingNumber,
     idCarrierStatusUpdate,
     carrierData,
@@ -308,7 +307,7 @@ const handleOrder = async ({ data, returnCodes }: any) => {
     return null;
   }
 
-  await updateOrder({ idOrder, idStatus, idUser, idBusiness, statusName });
+  await updateOrder({ idOrder, idStatus, idUser, statusName });
 
   if (requiresReturnProcess) {
     const createOrderReturnResult = await createOrderReturn({
@@ -346,14 +345,8 @@ const updateOrderReturn = async ({ idOrder, idStatus }: any) => {
   );
 };
 
-const updateOrder = async ({
-  idOrder,
-  idStatus,
-  idUser,
-  idBusiness,
-  statusName
-}: any) => {
-  const responseGetOrder = await dao.getOrder({ idUser, idOrder, idBusiness });
+const updateOrder = async ({ idOrder, idStatus, idUser, statusName }: any) => {
+  const responseGetOrder = await dao.getOrder({ idUser, idOrder });
   if (!responseGetOrder) {
     console.log(`Order ${idOrder} error on getOrder`);
     return null;
