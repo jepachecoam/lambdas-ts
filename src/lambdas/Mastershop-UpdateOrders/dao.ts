@@ -4,22 +4,17 @@ import db from "./database/config";
 import utils from "./utils";
 
 const putOrder = async ({ orderData }: { orderData: any }) => {
-  try {
-    return await utils.httpRequest({
-      method: "put",
-      url: `${process.env["BASE_URL_MS"]}${process.env["ENVIRONMENT"]}/api/b2b/logistics/order`,
-      data: orderData,
-      config: {
-        headers: {
-          "x-app-name": `${process.env["APP_NAME_MS"]}`,
-          "x-api-key": `${process.env["API_KEY_MS"]}`
-        }
+  return utils.httpRequest({
+    method: "put",
+    url: `${process.env["BASE_URL_MS"]}/${process.env["ENVIRONMENT"]}/api/b2b/logistics/order`,
+    data: orderData,
+    config: {
+      headers: {
+        "x-app-name": `${process.env["APP_NAME_MS"]}`,
+        "x-api-key": `${process.env["API_KEY_MS"]}`
       }
-    });
-  } catch (err) {
-    console.error("Error in putOrder dao =>>>", err);
-    throw err;
-  }
+    }
+  });
 };
 
 const getOrder = async ({
@@ -31,70 +26,55 @@ const getOrder = async ({
   idOrder: number;
   idBusiness: number;
 }) => {
-  try {
-    const parameter = {
-      orderId: idOrder,
-      idBussiness: idBusiness
-    };
+  const parameter = {
+    orderId: idOrder,
+    idBussiness: idBusiness
+  };
 
-    return await utils.httpRequest({
-      method: "post",
-      url: `${process.env["BASE_URL_MS"]}${process.env["ENVIRONMENT"]}/api/b2b/logistics/order/${idUser}`,
-      data: parameter,
-      config: {
-        headers: {
-          "x-app-name": `${process.env["APP_NAME_MS"]}`,
-          "x-api-key": `${process.env["API_KEY_MS"]}`
-        }
+  return utils.httpRequest({
+    method: "post",
+    url: `${process.env["BASE_URL_MS"]}/${process.env["ENVIRONMENT"]}/api/b2b/logistics/order/${idUser}`,
+    data: parameter,
+    config: {
+      headers: {
+        "x-app-name": `${process.env["APP_NAME_MS"]}`,
+        "x-api-key": `${process.env["API_KEY_MS"]}`
       }
-    });
-  } catch (err) {
-    console.error("Error in getOrder dao =>>>", err);
-    throw err;
-  }
+    }
+  });
 };
 
 const sendEvent = async ({ source, detailType, detail }: any) => {
-  try {
-    const parameter = {
-      source,
-      detailType,
-      detail
-    };
+  const parameter = {
+    source,
+    detailType,
+    detail
+  };
 
-    return await utils.httpRequest({
-      method: "post",
-      url: `${process.env["BASE_URL_MS"]}${process.env["ENVIRONMENT"]}/api/b2b/logistics/processevents`,
-      data: parameter,
-      config: {
-        headers: {
-          "x-api-key": `${process.env["API_KEY_MS"]}`,
-          "x-app-name": `${process.env["APP_NAME_MS"]}`
-        }
+  return utils.httpRequest({
+    method: "post",
+    url: `${process.env["BASE_URL_MS"]}/${process.env["ENVIRONMENT"]}/api/b2b/logistics/processevents`,
+    data: parameter,
+    config: {
+      headers: {
+        "x-api-key": `${process.env["API_KEY_MS"]}`,
+        "x-app-name": `${process.env["APP_NAME_MS"]}`
       }
-    });
-  } catch (err) {
-    console.error("Error in sendEvent dao =>>>", err);
-    throw err;
-  }
+    }
+  });
 };
 
 const sendErrorNotification = async (data: any) => {
-  try {
-    return await utils.httpRequest({
-      method: "post",
-      url: process.env["URL_WEBHOOK_ERROR_LOGS"],
-      data: { ...data },
-      config: {
-        headers: {
-          "Content-Type": "application/json"
-        }
+  return utils.httpRequest({
+    method: "post",
+    url: process.env["URL_WEBHOOK_ERROR_LOGS"],
+    data: { ...data },
+    config: {
+      headers: {
+        "Content-Type": "application/json"
       }
-    });
-  } catch (err) {
-    console.error("Error in sendErrorNotification dao =>>>", err);
-    throw err;
-  }
+    }
+  });
 };
 
 const getDataInReturnTableByTrackingNumbers = async ({
