@@ -28,7 +28,11 @@ class Model {
 
       const directResult = this.tryDirectNormalization(orderData);
       if (!directResult.success) {
-        return { success: false, message: "No se pudo normalizar", data: null };
+        return {
+          success: false,
+          message: "No fue posible extraer los datos de la orden",
+          data: null
+        };
       }
 
       // 1. Armar body para primer endpoint getNormalizeProducts
@@ -37,14 +41,21 @@ class Model {
         params.configTool
       );
 
-      const normalizeProductsResp = await this.dao.postNormalizeProducts(
+      const normalizeItemsResult = await this.dao.normalizeItems(
         normalizeProductsBody
       );
+      if (!normalizeItemsResult.success) {
+        return {
+          success: false,
+          message: "No fue posible normalizar los productos",
+          data: normalizeItemsResult.data
+        };
+      }
 
       // 2. Segundo body para process order
       const processOrderBody = Dto.buildProcessOrderBody(
         directResult.data,
-        normalizeProductsResp.data,
+        normalizeItemsResult.data,
         params.shopifyOrderId
       );
 
@@ -52,6 +63,13 @@ class Model {
         processOrderBody,
         params.msApiKey
       );
+      if (!processOrderResp.success) {
+        return {
+          success: false,
+          message: "No fue posible procesar la orden",
+          data: processOrderResp.data
+        };
+      }
 
       return {
         success: true,

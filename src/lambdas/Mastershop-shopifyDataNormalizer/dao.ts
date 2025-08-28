@@ -7,24 +7,52 @@ class Dao {
     this.environmentName = environment;
   }
 
-  async postNormalizeProducts(body: any) {
-    return axios.post(
-      "https://5cowkssv0f.execute-api.us-east-1.amazonaws.com/newProd/integration/connectool/getNormalizeProducts",
-      body
-    );
+  async normalizeItems(body: any) {
+    try {
+      const response = await axios.post(
+        "https://5cowkssv0f.execute-api.us-east-1.amazonaws.com/newProd/integration/connectool/getNormalizeProducts",
+        body
+      );
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error: any) {
+      console.error(
+        "💥 [ERROR] Error en la normalización de productos:",
+        error
+      );
+      const message = error?.response?.data?.message;
+      return {
+        success: false,
+        data: message ? message : error
+      };
+    }
   }
 
   async postProcessOrder(body: any, msApiKey: string) {
-    return axios.post(
-      `https://l7tmtzztq1.execute-api.us-east-1.amazonaws.com/${this.environmentName}/logistics/order/process`,
-      body,
-      {
-        headers: {
-          "MS-API-KEY": msApiKey,
-          "Content-Type": "application/json"
+    try {
+      const response = await axios.post(
+        `https://l7tmtzztq1.execute-api.us-east-1.amazonaws.com/${this.environmentName}/logistics/order/process`,
+        body,
+        {
+          headers: {
+            "MS-API-KEY": msApiKey,
+            "Content-Type": "application/json"
+          }
         }
-      }
-    );
+      );
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error("💥 [ERROR] Error en el procesamiento de la orden:", error);
+      return {
+        success: false,
+        data: error
+      };
+    }
   }
 
   async fetchShopifyOrderById({

@@ -44,22 +44,17 @@ export const handler = async (event: any, context: any): Promise<any> => {
 
     console.log("Result: >>>", JSON.stringify(result, null, 2));
 
-    if (result.success) {
-      return httpResponse({
-        statusCode: 200,
-        body: { message: result.message, data: result.data }
-      });
-    } else {
-      await sendSlackAlert({
-        logStreamId: context.logStreamName,
-        message: "No se normalizo no exito, analizar schema",
-        data: result
-      });
+    if (!result.success) {
       return httpResponse({
         statusCode: 422,
-        body: { message: result.message, data: null }
+        body: { message: result.message, data: result.data }
       });
     }
+
+    return httpResponse({
+      statusCode: 200,
+      body: { message: result.message, data: result.data }
+    });
   } catch (error) {
     console.error("💥 [ERROR CRITICO] Error no manejado en la lambda:", error);
     await sendSlackAlert({
