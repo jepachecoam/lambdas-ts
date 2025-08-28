@@ -5,6 +5,8 @@ import utils from "./utils";
 
 export const handler = async (event: any, context: any) => {
   try {
+    console.log("Event :>>>", JSON.stringify(event));
+
     checkEnv({ ...Envs });
 
     const { records, logStreamId } = model.parseEventParams({ event, context });
