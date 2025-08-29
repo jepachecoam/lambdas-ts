@@ -1,7 +1,13 @@
-import db from "../../conf/db";
+import Database from "../../../../shared/databases/sequelize";
 
-const updateShipmentUpdate = async ({ idOrder }: any) => {
-  const query = `
+class Dao {
+  private db: Database;
+  constructor(environment: string) {
+    this.db = new Database(environment);
+  }
+
+  updateShipmentUpdate = async ({ idOrder }: any) => {
+    const query = `
         update orderShipmentUpdateHistory osuh
         set status       = 'RESOLVED',
             solution     = 'AUTOMATIC',
@@ -12,11 +18,11 @@ const updateShipmentUpdate = async ({ idOrder }: any) => {
         and status = 'PENDING'
         `;
 
-  return db.update(query, { replacements: { idOrder } });
-};
+    return this.db.update(query, { replacements: { idOrder } });
+  };
 
-const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
-  const query = `
+  updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
+    const query = `
         update orderReturnShipmentUpdateHistory osuh
         set status       = 'RESOLVED',
             solution     = 'AUTOMATIC',
@@ -27,10 +33,8 @@ const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
         and status = 'PENDING';
           `;
 
-  return db.update(query, { replacements: { idOrderReturn } });
-};
+    return this.db.update(query, { replacements: { idOrderReturn } });
+  };
+}
 
-export default {
-  updateShipmentUpdate,
-  updateReturnShipmentUpdate
-};
+export default Dao;

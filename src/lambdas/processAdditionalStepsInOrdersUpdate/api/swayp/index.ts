@@ -1,17 +1,24 @@
-import model from "./model";
+import Model from "./model";
 import { SwaypStatusUpdateIds } from "./types";
 
-const handleSwaypRequest = async ({ detail }: any) => {
-  const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
-
-  if (
-    idCarrierStatusUpdate === SwaypStatusUpdateIds.Cancelacion ||
-    idCarrierStatusUpdate === SwaypStatusUpdateIds.Cancelada
-  ) {
-    await model.updateCancelReason(detail);
-  } else {
-    console.log("Process not found ");
+class Swayp {
+  private model: Model;
+  constructor(environment: string) {
+    this.model = new Model(environment);
   }
-};
 
-export default handleSwaypRequest;
+  handleSwaypRequest = async ({ detail }: any) => {
+    const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
+
+    if (
+      idCarrierStatusUpdate === SwaypStatusUpdateIds.Cancelacion ||
+      idCarrierStatusUpdate === SwaypStatusUpdateIds.Cancelada
+    ) {
+      await this.model.updateCancelReason(detail);
+    } else {
+      console.log("Process not found ");
+    }
+  };
+}
+
+export default Swayp;
