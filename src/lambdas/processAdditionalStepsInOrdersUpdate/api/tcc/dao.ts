@@ -1,4 +1,5 @@
 import Database from "../../../../shared/databases/sequelize";
+import { cleanDataForSQL } from "./utils";
 
 class Dao {
   private db: Database;
@@ -41,7 +42,7 @@ class Dao {
               THEN JSON_SET(
                   IFNULL(carrierData, '{}'),
                   '$.idNovedadTCC', '${incidentId}',
-                  '$.incidentData', '${JSON.stringify(incidentData)}',
+                  '$.incidentData', '${cleanDataForSQL(JSON.stringify(incidentData))}',
                   '$.idOrder', '${idOrder}'
               )
           `;
