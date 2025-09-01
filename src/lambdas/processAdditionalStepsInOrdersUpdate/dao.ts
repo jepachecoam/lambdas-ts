@@ -5,7 +5,9 @@ import { envs } from "./conf/envs";
 
 class Dao {
   private db: Database;
+  private environment: string;
   constructor(environment: string) {
+    this.environment = environment;
     this.db = new Database(environment);
   }
 
@@ -66,7 +68,7 @@ class Dao {
       console.log("payloadSend to MASTERSHOP-SHIPMENT-UPDATE =>>>", parameter);
 
       const response = await axios.post(
-        `${envs.URL_API_SEND_EVENT}/${envs.environment}/api/b2b/logistics/processevents`,
+        `${envs.URL_API_SEND_EVENT}/${this.environment}/api/b2b/logistics/processevents`,
         parameter,
         {
           headers: {

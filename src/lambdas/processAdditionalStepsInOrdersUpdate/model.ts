@@ -12,15 +12,21 @@ class Model {
   private envia: Envia;
   private tcc: Tcc;
   private swayp: Swayp;
+  private environment: string;
   constructor(environment: string) {
+    this.environment = environment;
     this.dao = new Dao(environment);
     this.envia = new Envia(environment);
     this.tcc = new Tcc(environment);
     this.swayp = new Swayp(environment);
   }
 
-  routeRequestToCarrier = async ({ carrier, detail, eventProcess }: any) => {
-    switch (carrier) {
+  routeRequestToCarrier = async ({
+    carrierName,
+    detail,
+    eventProcess
+  }: any) => {
+    switch (carrierName) {
       case Carriers.tcc:
         await this.tcc.handleTccRequest({ detail, eventProcess });
         break;
@@ -31,7 +37,7 @@ class Model {
         await this.swayp.handleSwaypRequest({ detail, eventProcess });
         break;
       default:
-        console.log("Not found cases to hanlde for carrier: ", carrier);
+        console.log("Not found cases to hanlde for carrier: ", carrierName);
     }
   };
 
@@ -107,7 +113,7 @@ class Model {
         idBussiness: idBusiness
       };
       const objectResp = await axios.post(
-        `${envs.URL_MS}/${envs.environment}/api/b2b/logistics/order/${idUser}`,
+        `${envs.URL_MS}/${this.environment}/api/b2b/logistics/order/${idUser}`,
         parameter,
         {
           headers: {

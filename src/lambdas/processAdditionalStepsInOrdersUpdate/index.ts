@@ -12,7 +12,7 @@ export const handler = async (event: any, _context: any) => {
 
     const model = new Model(environment);
 
-    if (detail) {
+    if (detail && !eventProcess) {
       await model.dispatchShipmentUpdate({
         carrierName: carrier,
         detail: detail

@@ -16,7 +16,6 @@ export enum EventProcessEnum {
 }
 
 export enum EnvsEnum {
-  ENVIRONMENT = "ENVIRONMENT",
   ACCESS_TOKEN_TCC = "ACCESS_TOKEN_TCC",
   API_KEY_MS = "API_KEY_MS",
   APP_NAME_MS = "APP_NAME_MS",
