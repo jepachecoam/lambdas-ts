@@ -3,7 +3,7 @@ const extractParamsFromEvent = (event: any) => {
   const eventProcess = event["eventProcess"];
   const carrier = String(event["detail-type"]).toLocaleLowerCase();
   const detail = event["detail"];
-  let environment = detail.environment ?? "prod";
+  let environment = detail?.environment ?? "prod";
   if (!["qa", "dev"].includes(environment)) {
     environment = "prod";
   }
