@@ -31,8 +31,14 @@ const checkResponses = ({ ordersResponses, carrierName }: any) => {
     const result = [];
 
     for (const { data } of ordersResponses) {
-      const { carrierData, trackingNumber, status, novelty, returnProcess } =
-        data;
+      const {
+        carrierData,
+        trackingNumber,
+        status,
+        novelty,
+        returnProcess,
+        linkedShipment
+      } = data;
 
       if (
         !trackingNumber ||
@@ -62,6 +68,10 @@ const checkResponses = ({ ordersResponses, carrierName }: any) => {
         returnProcess: {
           returnTrackingNumber:
             returnProcess?.returnTrackingNumber?.toString() || null
+        },
+        linkedShipment: {
+          linkedCarrierTrackingCode:
+            linkedShipment?.linkedCarrierTrackingCode?.toString() || null
         },
         carrierData,
         carrierName,
