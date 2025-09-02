@@ -19,3 +19,10 @@ export enum Carriers {
   ENVIA = "ENVIA",
   INTERRAPIDISIMO = "INTERRAPIDISIMO"
 }
+
+export enum OrderSources {
+  Order = "Order",
+  OderLeg = "OderLeg",
+  OrderReturn = "OrderReturn",
+  OrderReturnLeg = "OrderReturnLeg"
+}

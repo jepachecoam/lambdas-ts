@@ -1,5 +1,5 @@
 import { checkEnv } from "../../shared/validation/envChecker";
-import model from "./model";
+import Model from "./model";
 import { Envs } from "./types";
 import utils from "./utils";
 
@@ -8,6 +8,8 @@ export const handler = async (event: any, context: any) => {
     console.log("Event :>>>", JSON.stringify(event));
 
     checkEnv({ ...Envs });
+
+    const model = new Model(process.env["ENVIRONMENT"]!);
 
     const { records, logStreamId } = model.parseEventParams({ event, context });
 

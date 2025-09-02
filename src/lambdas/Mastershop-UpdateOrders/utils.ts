@@ -24,6 +24,12 @@ const validateRecordSchema = (data: any) => {
     }),
     returnProcess: z.object({
       returnTrackingNumber: z.union([z.string().regex(/^[0-9]+$/), z.null()])
+    }),
+    linkedShipment: z.object({
+      linkedCarrierTrackingCode: z.union([
+        z.string().regex(/^[0-9]+$/),
+        z.null()
+      ])
     })
   });
 
