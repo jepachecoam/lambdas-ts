@@ -1,3 +1,4 @@
+import { Carriers } from "./types";
 import utils from "./utils";
 
 const searchNewStatus = ({
@@ -86,7 +87,7 @@ const getShippingRate = ({ carrierName, orderData }: any) => {
     console.log("orderData =>>>", orderData);
 
     switch (carrierName.toUpperCase()) {
-      case "COORDINADORA":
+      case Carriers.COORDINADORA:
         if (paymentMethod && paymentMethod.toUpperCase() === "COD") {
           if (
             carrierInfo &&
@@ -101,16 +102,16 @@ const getShippingRate = ({ carrierName, orderData }: any) => {
         } else {
           return shippingRate;
         }
-      case "TCC":
+      case Carriers.TCC:
         return 0;
 
-      case "SWAYP":
+      case Carriers.SWAYP:
         return 0;
 
-      case "ENVIA":
+      case Carriers.ENVIA:
         return 0;
 
-      case "INTERRAPIDISIMO":
+      case Carriers.INTERRAPIDISIMO:
         return 0;
 
       default:
@@ -178,7 +179,7 @@ const getTrackingNumbersNotInReturnTable = ({
   });
 };
 
-const getRecordsToProcess = async ({
+const getRecordsToProcess = ({
   validRecords,
   returnRecords,
   orderRecords

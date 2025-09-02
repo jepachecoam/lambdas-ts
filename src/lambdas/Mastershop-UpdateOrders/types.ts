@@ -11,3 +11,11 @@ export enum Envs {
   API_KEY_MS = "API_KEY_MS",
   APP_NAME_MS = "APP_NAME_MS"
 }
+
+export enum Carriers {
+  COORDINADORA = "COORDINADORA",
+  TCC = "TCC",
+  SWAYP = "SWAYP",
+  ENVIA = "ENVIA",
+  INTERRAPIDISIMO = "INTERRAPIDISIMO"
+}
