@@ -286,12 +286,13 @@ class Dao {
     idCarrierStatusUpdate,
     sanitizedCarrierData,
     idShipmentUpdate,
-    updateSource
+    updateSource,
+    idOrderLeg
   }: any) => {
     try {
       const query = `
                 INSERT INTO orderShipmentUpdateHistory
-                (idOrder, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource)
+                (idOrder, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource, idOrderLeg)
                 SELECT :idOrder,
                        :idCarrierStatusUpdate,
                        :sanitizedCarrierData,
@@ -299,7 +300,8 @@ class Dao {
                        NOW(),
                        :idShipmentUpdate,
                        :status,
-                       :updateSource
+                       :updateSource,
+                       :idOrderLeg
                 WHERE NOT EXISTS (SELECT 1
                                   FROM orderShipmentUpdateHistory oh
                                   WHERE oh.idOrder = :idOrder
@@ -318,7 +320,8 @@ class Dao {
           sanitizedCarrierData,
           idShipmentUpdate,
           status: idShipmentUpdate ? "PENDING" : null,
-          updateSource: updateSource || null
+          updateSource: updateSource || null,
+          idOrderLeg: idOrderLeg || null
         }
       });
 
@@ -334,12 +337,13 @@ class Dao {
     sanitizedCarrierData,
     idOrderReturn,
     idShipmentUpdate,
-    updateSource
+    updateSource,
+    idOrderReturnLeg
   }: any) => {
     try {
       const query = `
             INSERT INTO orderReturnShipmentUpdateHistory
-            (idOrderReturn, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource)
+            (idOrderReturn, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource, idOrderReturnLeg)
             SELECT
                 :idOrderReturn,
                 :idCarrierStatusUpdate,
@@ -348,7 +352,8 @@ class Dao {
                 NOW(),
                 :idShipmentUpdate,
                 :status,
-                :updateSource
+                :updateSource,
+                :idOrderReturnLeg
                 WHERE NOT EXISTS (
                 SELECT 1 
                 FROM orderReturnShipmentUpdateHistory
@@ -374,7 +379,8 @@ class Dao {
           sanitizedCarrierData,
           idShipmentUpdate,
           status: idShipmentUpdate ? "PENDING" : null,
-          updateSource: updateSource || null
+          updateSource: updateSource || null,
+          idOrderReturnLeg: idOrderReturnLeg || null
         }
       });
 
