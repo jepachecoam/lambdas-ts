@@ -212,7 +212,7 @@ class Model {
       if (source === OrderSources.Order) {
         await this.handleOrder({ data, returnCodes });
       }
-      if (source === OrderSources.OderLeg) {
+      if (source === OrderSources.OrderLeg) {
         await this.handleOrder({ data, returnCodes });
       }
       if (source === OrderSources.OrderReturn) {

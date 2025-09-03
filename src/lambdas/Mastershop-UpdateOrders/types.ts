@@ -24,7 +24,7 @@ export enum Carriers {
 
 export enum OrderSources {
   Order = "order",
-  OderLeg = "oderLeg",
+  OrderLeg = "orderLeg",
   OrderReturn = "orderReturn",
   OrderReturnLeg = "orderReturnLeg"
 }
