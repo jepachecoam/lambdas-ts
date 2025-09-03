@@ -323,7 +323,7 @@ class Model {
     if (requiresReturnProcess) {
       const createOrderReturnResult = await this.createOrderReturn({
         carrierName,
-        carrierTrackingCode: trackingNumber,
+        idOrder,
         returnTrackingNumber:
           returnProcess.returnTrackingNumber || trackingNumber
       });
@@ -400,16 +400,16 @@ class Model {
 
   createOrderReturn = async ({
     carrierName,
-    carrierTrackingCode,
+    idOrder,
     returnTrackingNumber
   }: any) => {
     try {
-      const orderData = await this.dao.getOrderDataForPutOrderReturn({
-        carrierTrackingCode
+      const orderData = await this.dao.getOrderData({
+        idOrder
       });
       if (!orderData) {
         console.log(
-          `No data found for carrierTrackingCode ${carrierTrackingCode} for createOrderReturn`
+          `No data found for idOrder ${idOrder} for createOrderReturn`
         );
         return null;
       }

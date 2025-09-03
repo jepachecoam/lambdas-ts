@@ -20,7 +20,7 @@ const db = new Sequelize({
     }
   },
   timezone: "+00:00",
-  logging: false
+  logging: process.env["ENVIRONMENT"]! === "prod" ? false : console.log
 });
 
 export default db;

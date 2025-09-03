@@ -88,42 +88,51 @@ class Dao {
   }): Promise<IRecordData[]> => {
     try {
       const query = `
-      with OrdersLeg as (SELECT o.idUser,
-                                o.idBussiness AS idBusiness,
-                                ol.idOrder,
-                                'orderLeg'    as source,
-                                ol.carrierTrackingCode
-                        FROM orderLeg ol
-                                  inner join \`order\` o on o.idOrder = ol.idOrder
-                        WHERE ol.carrierTrackingCode IN (:trackingNumbers)),
-          Orders as (SELECT o.idUser, o.idBussiness AS idBusiness, o.idOrder, 'order' as source, o.carrierTrackingCode
-                      FROM \`order\` o
-                      WHERE o.carrierTrackingCode IN (:trackingNumbers)
-                        and o.carrierTrackingCode not in (select ol.carrierTrackingCode from OrdersLeg ol)),
-          OrdersReturnLeg as (SELECT o.idUser,
-                                      o.idBussiness     AS idBusiness,
-                                      orr.idOrderReturn AS idOrder,
-                                      'orderReturnLeg'  as source,
-                                      orl.carrierTrackingCode
+      with OrdersReturnLeg as (SELECT o.idUser,
+                                        o.idBussiness     AS idBusiness,
+                                        orr.idOrderReturn AS idOrder,
+                                        'orderReturnLeg'  as source,
+                                        orl.carrierTrackingCode
+                                FROM orderReturn orr
+                                          inner join \`order\` o ON o.idOrder = orr.idOrder
+                                          inner join orderReturnLeg orl on orl.idOrderReturn = orr.idOrderReturn
+                                WHERE orl.carrierTrackingCode IN (:trackingNumbers)),
+            OrdersReturn as (SELECT o.idUser,
+                                    o.idBussiness     AS idBusiness,
+                                    orr.idOrderReturn AS idOrder,
+                                    'orderReturn'     as source,
+                                    orr.carrierTrackingCode
                               FROM orderReturn orr
-                                        inner join \`order\` o ON o.idOrder = orr.idOrder
-                                        inner join orderReturnLeg orl on orl.idOrderReturn = orr.idOrderReturn
-                              WHERE orl.carrierTrackingCode IN (:trackingNumbers)),
-          OrdersReturn as (SELECT o.idUser,
-                                  o.idBussiness     AS idBusiness,
-                                  orr.idOrderReturn AS idOrder,
-                                  'orderReturn'     as source,
-                                  orr.carrierTrackingCode
-                            FROM \`order\` o
-                                    JOIN orderReturn orr ON o.idOrder = orr.idOrder
-                            WHERE orr.carrierTrackingCode IN (:trackingNumbers))
-      select * from OrdersLeg
-      union all
-      select * from Orders
-      union all
-      select * from OrdersReturnLeg
-      union all
-      select * from OrdersReturn
+                                      JOIN \`order\` o ON o.idOrder = orr.idOrder
+                              WHERE orr.carrierTrackingCode IN (:trackingNumbers)
+                                and orr.carrierTrackingCode not in (select orl.carrierTrackingCode from OrdersReturnLeg orl)),
+            OrdersLeg as (SELECT o.idUser,
+                                  o.idBussiness AS idBusiness,
+                                  ol.idOrder,
+                                  'orderLeg'    as source,
+                                  ol.carrierTrackingCode
+                          FROM orderLeg ol
+                                    inner join \`order\` o on o.idOrder = ol.idOrder
+                          WHERE ol.carrierTrackingCode IN (:trackingNumbers)
+                            and ol.carrierTrackingCode not in (select ore.carrierTrackingCode from OrdersReturn ore)
+                            and ol.carrierTrackingCode not in (select orl.carrierTrackingCode from OrdersReturnLeg orl)),
+            Orders as (SELECT o.idUser, o.idBussiness AS idBusiness, o.idOrder, 'order' as source, o.carrierTrackingCode
+                        FROM \`order\` o
+                        WHERE o.carrierTrackingCode IN (:trackingNumbers)
+                          and o.carrierTrackingCode not in (select ol.carrierTrackingCode from OrdersLeg ol)
+                          and o.carrierTrackingCode not in (select ore.carrierTrackingCode from OrdersReturn ore)
+                          and o.carrierTrackingCode not in (select orl.carrierTrackingCode from OrdersReturnLeg orl))
+        select *
+        from OrdersLeg
+        union all
+        select *
+        from Orders
+        union all
+        select *
+        from OrdersReturnLeg
+        union all
+        select *
+        from OrdersReturn
         `;
       const result = await db.query(query, {
         type: QueryTypes.SELECT,
@@ -171,13 +180,12 @@ class Dao {
     }
   };
 
-  getOrderDataForPutOrderReturn = async ({ carrierTrackingCode }: any) => {
+  getOrderData = async ({ idOrder }: { idOrder: number }) => {
     try {
-      const query =
-        "select * from `order` where carrierTrackingCode = :carrierTrackingCode;";
+      const query = "select * from `order` where idOrder = :idOrder;";
       const result = await db.query(query, {
         type: QueryTypes.SELECT,
-        replacements: { carrierTrackingCode }
+        replacements: { idOrder }
       });
       return result.length > 0 ? result[0] : null;
     } catch (error) {
