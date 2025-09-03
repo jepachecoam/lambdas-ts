@@ -18,20 +18,20 @@ const validateEvent = (event: any): boolean => {
 };
 
 const getParams = (event: any) => {
-  const shopifyOrderId = event.pathParameters?.shopifyOrderId;
-  const shopifyAccessToken = event.headers?.["x-shopify-access-token"];
-  const body = JSON.parse(event.body);
-  const shopifyStoreUrl = body["X-Shopify-Url-Store"];
-  const msApiKey = body.msApiKey;
+  const shopifyOrderId = event.id;
+  const shopifyAccessToken = event["X-Shopify-Access-Token"];
+
+  const shopifyStoreUrl = event["X-Shopify-Url-Store"];
+  const msApiKey = event.msApiKey;
   const configTool = {
-    idUser: body.configTool?.idUser,
-    idConfTool: body.configTool?.idConfTool
+    idUser: event.configTool?.idUser,
+    idConfTool: event.configTool?.idConfTool
   };
   return {
     shopifyAccessToken,
     shopifyStoreUrl,
     shopifyOrderId,
-    environment: event.requestContext?.stage ?? "dev",
+    environment: event.requestContext?.stage ?? "prod",
     msApiKey,
     configTool
   };
