@@ -165,38 +165,17 @@ class Dto {
     return { validRecords, invalidRecords };
   };
 
-  static getOnlyTrackingNumbers = ({ validRecords }: any) => {
+  static getOnlyTrackingNumbers = ({ validRecords }: any): string[] => {
     return validRecords.map((record: any) => record.trackingNumber);
   };
 
-  static getTrackingNumbersNotInReturnTable = ({
-    allTrackingNumbers,
-    returnRecords
-  }: any) => {
-    const trackingNumbersToExclude = returnRecords.map((record: any) =>
-      String(record.carrierTrackingCode)
-    );
-    return allTrackingNumbers.filter((trackingNumber: any) => {
-      const trackingString = String(trackingNumber);
-      return !trackingNumbersToExclude.includes(trackingString);
-    });
-  };
-
-  static getRecordsToProcess = ({
-    validRecords,
-    returnRecords,
-    orderRecords
-  }: any) => {
+  static mergeEventWithOrderData = ({ validRecords, recordsData }: any) => {
     const findOrderData = (trackingNumber: any) => {
       const trackingString = String(trackingNumber);
       return (
-        returnRecords.find(
+        recordsData.find(
           (record: any) => String(record.carrierTrackingCode) === trackingString
-        ) ||
-        orderRecords.find(
-          (record: any) => String(record.carrierTrackingCode) === trackingString
-        ) ||
-        null
+        ) || null
       );
     };
 

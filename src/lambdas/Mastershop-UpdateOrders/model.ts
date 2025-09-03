@@ -1,5 +1,6 @@
 import Dao from "./dao";
 import dto from "./dto";
+import { IRecord, IRecordData, OrderSources } from "./types";
 import utils from "./utils";
 
 class Model {
@@ -61,28 +62,13 @@ class Model {
 
       const trackingNumbers = dto.getOnlyTrackingNumbers({ validRecords });
 
-      const returnRecords =
-        await this.dao.getDataInReturnTableByTrackingNumbers({
-          trackingNumbers
+      const recordsData = await this.dao.getRecordsData({ trackingNumbers });
+
+      const { recordsWithData, recordsWithoutData } =
+        dto.mergeEventWithOrderData({
+          validRecords,
+          recordsData
         });
-
-      const trackingNumberToSearchInOrders =
-        dto.getTrackingNumbersNotInReturnTable({
-          allTrackingNumbers: trackingNumbers,
-          returnRecords
-        });
-
-      const orderRecords = trackingNumberToSearchInOrders.length
-        ? await this.dao.getDataInOrderTableByTrackingNumbers({
-            trackingNumbers: trackingNumberToSearchInOrders
-          })
-        : [];
-
-      const { recordsWithData, recordsWithoutData } = dto.getRecordsToProcess({
-        validRecords,
-        returnRecords,
-        orderRecords
-      });
 
       return { recordsWithData, recordsWithoutData };
     } catch (error) {
@@ -122,7 +108,8 @@ class Model {
     await Promise.allSettled(
       records.map(async (record: any) => {
         try {
-          const { parsedRecord, orderData: orderDataInSystem } = record;
+          const parsedRecord: IRecord = record.parsedRecord;
+          const orderDataInSystem: IRecordData = record.orderData;
 
           const { carrierStatus, shipmentUpdate, returnCodes } =
             await this.getCarrierConfig({ idCarrier: parsedRecord.idCarrier });
@@ -219,10 +206,20 @@ class Model {
 
   processOrderBasedOnSource = async ({ data, returnCodes }: any) => {
     try {
-      if (String(data.source) === "orderReturn") {
-        await this.handleOrderReturn({ data, returnCodes });
-      } else if (String(data.source) === "order") {
+      const source = String(data.source);
+      console.log("source :>>>", source);
+
+      if (source === OrderSources.Order) {
         await this.handleOrder({ data, returnCodes });
+      }
+      if (source === OrderSources.OderLeg) {
+        await this.handleOrder({ data, returnCodes });
+      }
+      if (source === OrderSources.OrderReturn) {
+        await this.handleOrderReturn({ data, returnCodes });
+      }
+      if (source === OrderSources.OrderReturnLeg) {
+        await this.handleOrderReturn({ data, returnCodes });
       }
     } catch (err: any) {
       console.error(`Error processing order: ${err.message}`);

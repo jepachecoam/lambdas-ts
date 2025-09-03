@@ -1,42 +1,19 @@
 import axios from "axios";
-import { z } from "zod";
 
-const isValidJSONObject = (data: any) => {
-  if (typeof data !== "object" || data === null || Array.isArray(data)) {
-    return false;
-  }
-
-  const schema = z.object({});
-  return schema.safeParse(data).success;
-};
+import { objectSchema, recordSchema } from "./types";
 
 const validateRecordSchema = (data: any) => {
-  const recordSchema = z.object({
-    carrierData: z.any(),
-    carrierName: z.string(),
-    trackingNumber: z.string().regex(/^[0-9]+$/),
-    status: z.object({
-      statusCode: z.string().regex(/^[0-9]+$/),
-      statusName: z.union([z.string(), z.null()])
-    }),
-    novelty: z.object({
-      noveltyCode: z.union([z.string().regex(/^[0-9]+$/), z.null()])
-    }),
-    returnProcess: z.object({
-      returnTrackingNumber: z.union([z.string().regex(/^[0-9]+$/), z.null()])
-    }),
-    linkedShipment: z.object({
-      linkedCarrierTrackingCode: z.union([
-        z.string().regex(/^[0-9]+$/),
-        z.null()
-      ])
-    })
-  });
-
   return recordSchema.safeParse(data).success;
 };
 
 export const validateAndSanitizeJSON = (input: any) => {
+  const isValidJSONObject = (data: any) => {
+    if (typeof data !== "object" || data === null || Array.isArray(data)) {
+      return false;
+    }
+
+    return objectSchema.safeParse(data).success;
+  };
   let data = JSON.stringify({
     error: "The original input contained errors"
   });

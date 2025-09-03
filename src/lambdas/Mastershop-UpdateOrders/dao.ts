@@ -1,6 +1,7 @@
 import { QueryTypes } from "sequelize";
 
 import db from "./database/config";
+import { IRecordData } from "./types";
 import utils from "./utils";
 
 class Dao {
@@ -80,46 +81,58 @@ class Dao {
     });
   };
 
-  getDataInReturnTableByTrackingNumbers = async ({ trackingNumbers }: any) => {
+  getRecordsData = async ({
+    trackingNumbers
+  }: {
+    trackingNumbers: string[];
+  }): Promise<IRecordData[]> => {
     try {
       const query = `
-            SELECT o.idUser, o.idBussiness AS idBusiness, orr.idOrderReturn AS idOrder,  'orderReturn' as source, orr.carrierTrackingCode
-            FROM \`order\` o
-                     JOIN orderReturn orr ON o.idOrder = orr.idOrder
-            WHERE orr.carrierTrackingCode IN (${trackingNumbers.join(",")})
+      with OrdersLeg as (SELECT o.idUser,
+                                o.idBussiness AS idBusiness,
+                                ol.idOrder,
+                                'orderLeg'    as source,
+                                ol.carrierTrackingCode
+                        FROM orderLeg ol
+                                  inner join \`order\` o on o.idOrder = ol.idOrder
+                        WHERE ol.carrierTrackingCode IN (:trackingNumbers)),
+          Orders as (SELECT o.idUser, o.idBussiness AS idBusiness, o.idOrder, 'order' as source, o.carrierTrackingCode
+                      FROM \`order\` o
+                      WHERE o.carrierTrackingCode IN (:trackingNumbers)
+                        and o.carrierTrackingCode not in (select ol.carrierTrackingCode from OrdersLeg ol)),
+          OrdersReturnLeg as (SELECT o.idUser,
+                                      o.idBussiness     AS idBusiness,
+                                      orr.idOrderReturn AS idOrder,
+                                      'orderReturnLeg'  as source,
+                                      orl.carrierTrackingCode
+                              FROM orderReturn orr
+                                        inner join \`order\` o ON o.idOrder = orr.idOrder
+                                        inner join orderReturnLeg orl on orl.idOrderReturn = orr.idOrderReturn
+                              WHERE orl.carrierTrackingCode IN (:trackingNumbers)),
+          OrdersReturn as (SELECT o.idUser,
+                                  o.idBussiness     AS idBusiness,
+                                  orr.idOrderReturn AS idOrder,
+                                  'orderReturn'     as source,
+                                  orr.carrierTrackingCode
+                            FROM \`order\` o
+                                    JOIN orderReturn orr ON o.idOrder = orr.idOrder
+                            WHERE orr.carrierTrackingCode IN (:trackingNumbers))
+      select * from OrdersLeg
+      union all
+      select * from Orders
+      union all
+      select * from OrdersReturnLeg
+      union all
+      select * from OrdersReturn
         `;
       const result = await db.query(query, {
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
+        replacements: { trackingNumbers }
       });
 
-      return result.length > 0 ? result : [];
+      return result.length > 0 ? (result as IRecordData[]) : [];
     } catch (error) {
-      console.error(
-        "Error getDataInReturnTableByTrackingNumbers dao =>>>",
-        error
-      );
-      throw error;
-    }
-  };
-
-  getDataInOrderTableByTrackingNumbers = async ({ trackingNumbers }: any) => {
-    try {
-      const query = `
-            SELECT o.idUser, o.idBussiness AS idBusiness, o.idOrder,  'order' as source, carrierTrackingCode
-            FROM \`order\` o
-            WHERE o.carrierTrackingCode IN (${trackingNumbers.join(",")})
-        `;
-
-      const result = await db.query(query, {
-        type: QueryTypes.SELECT
-      });
-
-      return result.length > 0 ? result : [];
-    } catch (error) {
-      console.error(
-        "Error getDataInOrderTableByTrackingNumbers dao =>>>",
-        error
-      );
+      console.error("Error getRecordsData dao =>>>", error);
       throw error;
     }
   };
