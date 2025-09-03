@@ -210,6 +210,25 @@ class Dto {
   static requiresReturnProcess = ({ statusCode, returnCodes }: any) => {
     return returnCodes.some((code: any) => String(code) === String(statusCode));
   };
+
+  static filterRecordsBySource = ({
+    dataByCarrierTrackingNumber,
+    ordersSource
+  }: any) => {
+    return dataByCarrierTrackingNumber.filter((record: any) => {
+      const matchingOrder = ordersSource.find(
+        (order: any) =>
+          order.idOrder === record.idOrder && order.source === record.source
+      );
+      if (!matchingOrder) {
+        console.log(
+          `${record.carrierTrackingCode} tiene una precedencia diferente a la de su idOrder`
+        );
+        return false;
+      }
+      return true;
+    });
+  };
 }
 
 export default Dto;

@@ -50,14 +50,10 @@ class Model {
 
       if (detail.source === "orderReturn") {
         returnData = await this.dao.getOrderReturn({
-          idOrderReturn: detail.idOrder
+          idOrderReturn: detail.idOrderReturn
         });
-        if (returnData) {
-          mainOrder = await this.dao.getOrder({ idOrder: returnData.idOrder });
-        }
-      } else {
-        mainOrder = await this.dao.getOrder({ idOrder: detail.idOrder });
       }
+      mainOrder = await this.dao.getOrder({ idOrder: detail.idOrder });
 
       if (mainOrder) {
         orderLogistic = await this.fetchMainOrder({

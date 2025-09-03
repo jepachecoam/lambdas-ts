@@ -33,6 +33,7 @@ export interface IRecordData {
   idUser: number;
   idBusiness: number;
   idOrder: number;
+  idOrderReturn?: number;
   source: "orderLeg" | "order" | "orderReturnLeg" | "orderReturn";
   carrierTrackingCode: string;
 }

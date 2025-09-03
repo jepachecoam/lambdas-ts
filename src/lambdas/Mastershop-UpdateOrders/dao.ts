@@ -81,58 +81,82 @@ class Dao {
     });
   };
 
-  getRecordsData = async ({
+  getDataByCarrierTrackingNumber = async ({
     trackingNumbers
   }: {
     trackingNumbers: string[];
   }): Promise<IRecordData[]> => {
     try {
       const query = `
-      with OrdersReturnLeg as (SELECT o.idUser,
-                                        o.idBussiness     AS idBusiness,
-                                        orr.idOrderReturn AS idOrder,
-                                        'orderReturnLeg'  as source,
-                                        orl.carrierTrackingCode
-                                FROM orderReturn orr
-                                          inner join \`order\` o ON o.idOrder = orr.idOrder
-                                          inner join orderReturnLeg orl on orl.idOrderReturn = orr.idOrderReturn
-                                WHERE orl.carrierTrackingCode IN (:trackingNumbers)),
-            OrdersReturn as (SELECT o.idUser,
-                                    o.idBussiness     AS idBusiness,
-                                    orr.idOrderReturn AS idOrder,
-                                    'orderReturn'     as source,
-                                    orr.carrierTrackingCode
+      WITH OrdersReturnLeg AS (SELECT o.idUser,
+                                      o.idBussiness    AS idBusiness,
+                                      orr.idOrder,
+                                      orr.idOrderReturn,
+                                      'orderReturnLeg' AS source,
+                                      orl.carrierTrackingCode
                               FROM orderReturn orr
-                                      JOIN \`order\` o ON o.idOrder = orr.idOrder
-                              WHERE orr.carrierTrackingCode IN (:trackingNumbers)
-                                and orr.carrierTrackingCode not in (select orl.carrierTrackingCode from OrdersReturnLeg orl)),
-            OrdersLeg as (SELECT o.idUser,
+                                        INNER JOIN \`order\` o
+                                                  ON o.idOrder = orr.idOrder
+                                        INNER JOIN orderReturnLeg orl
+                                                  ON orl.idOrderReturn = orr.idOrderReturn
+                              WHERE orl.carrierTrackingCode IN (:trackingNumbers)),
+          OrdersReturn AS (SELECT o.idUser,
                                   o.idBussiness AS idBusiness,
-                                  ol.idOrder,
-                                  'orderLeg'    as source,
-                                  ol.carrierTrackingCode
-                          FROM orderLeg ol
-                                    inner join \`order\` o on o.idOrder = ol.idOrder
-                          WHERE ol.carrierTrackingCode IN (:trackingNumbers)
-                            and ol.carrierTrackingCode not in (select ore.carrierTrackingCode from OrdersReturn ore)
-                            and ol.carrierTrackingCode not in (select orl.carrierTrackingCode from OrdersReturnLeg orl)),
-            Orders as (SELECT o.idUser, o.idBussiness AS idBusiness, o.idOrder, 'order' as source, o.carrierTrackingCode
-                        FROM \`order\` o
-                        WHERE o.carrierTrackingCode IN (:trackingNumbers)
-                          and o.carrierTrackingCode not in (select ol.carrierTrackingCode from OrdersLeg ol)
-                          and o.carrierTrackingCode not in (select ore.carrierTrackingCode from OrdersReturn ore)
-                          and o.carrierTrackingCode not in (select orl.carrierTrackingCode from OrdersReturnLeg orl))
-        select *
-        from OrdersLeg
-        union all
-        select *
-        from Orders
-        union all
-        select *
-        from OrdersReturnLeg
-        union all
-        select *
-        from OrdersReturn
+                                  orr.idOrder,
+                                  orr.idOrderReturn,
+                                  'orderReturn' AS source,
+                                  orr.carrierTrackingCode
+                            FROM orderReturn orr
+                                    JOIN \`order\` o
+                                          ON o.idOrder = orr.idOrder
+                            WHERE orr.carrierTrackingCode IN (:trackingNumbers)
+                              AND NOT EXISTS (SELECT 1
+                                              FROM OrdersReturnLeg orl
+                                              WHERE orl.carrierTrackingCode = orr.carrierTrackingCode)),
+          OrdersLeg AS (SELECT o.idUser,
+                                o.idBussiness AS idBusiness,
+                                ol.idOrder,
+                                NULL          AS idOrderReturn,
+                                'orderLeg'    AS source,
+                                ol.carrierTrackingCode
+                        FROM orderLeg ol
+                                  INNER JOIN \`order\` o
+                                            ON o.idOrder = ol.idOrder
+                        WHERE ol.carrierTrackingCode IN (:trackingNumbers)
+                          AND NOT EXISTS (SELECT 1
+                                          FROM OrdersReturn ore
+                                          WHERE ore.carrierTrackingCode = ol.carrierTrackingCode)
+                          AND NOT EXISTS (SELECT 1
+                                          FROM OrdersReturnLeg orl
+                                          WHERE orl.carrierTrackingCode = ol.carrierTrackingCode)),
+          Orders AS (SELECT o.idUser,
+                            o.idBussiness AS idBusiness,
+                            o.idOrder,
+                            NULL          AS idOrderReturn,
+                            'order'       AS source,
+                            o.carrierTrackingCode
+                      FROM \`order\` o
+                      WHERE o.carrierTrackingCode IN (:trackingNumbers)
+                        AND NOT EXISTS (SELECT 1
+                                        FROM OrdersLeg ol
+                                        WHERE ol.carrierTrackingCode = o.carrierTrackingCode)
+                        AND NOT EXISTS (SELECT 1
+                                        FROM OrdersReturn ore
+                                        WHERE ore.carrierTrackingCode = o.carrierTrackingCode)
+                        AND NOT EXISTS (SELECT 1
+                                        FROM OrdersReturnLeg orl
+                                        WHERE orl.carrierTrackingCode = o.carrierTrackingCode))
+      SELECT *
+      FROM OrdersLeg
+      UNION ALL
+      SELECT *
+      FROM Orders
+      UNION ALL
+      SELECT *
+      FROM OrdersReturnLeg
+      UNION ALL
+      SELECT *
+      FROM OrdersReturn;
         `;
       const result = await db.query(query, {
         type: QueryTypes.SELECT,
@@ -142,6 +166,69 @@ class Dao {
       return result.length > 0 ? (result as IRecordData[]) : [];
     } catch (error) {
       console.error("Error getRecordsData dao =>>>", error);
+      throw error;
+    }
+  };
+
+  getOrderPrecedence = async ({ idOrders }: { idOrders: number[] }) => {
+    try {
+      const query = `
+      WITH OrdersReturnLeg AS (SELECT ore.idOrder,
+                                      'orderReturnLeg' AS source
+                              FROM orderReturnLeg orl
+                                        INNER JOIN orderReturn ore
+                                                  ON orl.idOrderReturn = ore.idOrderReturn
+                              WHERE ore.idOrder IN (:idOrders)),
+          OrdersReturn AS (SELECT ore.idOrder,
+                                  'orderReturn' AS source
+                            FROM orderReturn ore
+                            WHERE ore.idOrder IN (:idOrders)
+                              AND NOT EXISTS (SELECT 1
+                                              FROM OrdersReturnLeg orl
+                                              WHERE orl.idOrder = ore.idOrder)),
+          OrdersLeg AS (SELECT ol.idOrder,
+                                'orderLeg' AS source
+                        FROM orderLeg ol
+                        WHERE ol.idOrder IN (:idOrders)
+                          AND NOT EXISTS (SELECT 1
+                                          FROM OrdersReturn ore
+                                          WHERE ore.idOrder = ol.idOrder)
+                          AND NOT EXISTS (SELECT 1
+                                          FROM OrdersReturnLeg orl
+                                          WHERE orl.idOrder = ol.idOrder)),
+          Orders AS (SELECT o.idOrder,
+                            'order' AS source
+                      FROM \`order\` o
+                      WHERE o.idOrder IN (:idOrders)
+                        AND NOT EXISTS (SELECT 1
+                                        FROM OrdersLeg ol
+                                        WHERE ol.idOrder = o.idOrder)
+                        AND NOT EXISTS (SELECT 1
+                                        FROM OrdersReturn ore
+                                        WHERE ore.idOrder = o.idOrder)
+                        AND NOT EXISTS (SELECT 1
+                                        FROM OrdersReturnLeg orl
+                                        WHERE orl.idOrder = o.idOrder))
+      SELECT *
+      FROM OrdersLeg
+      UNION ALL
+      SELECT *
+      FROM Orders
+      UNION ALL
+      SELECT *
+      FROM OrdersReturnLeg
+      UNION ALL
+      SELECT *
+      FROM OrdersReturn;`;
+
+      const result = await db.query(query, {
+        type: QueryTypes.SELECT,
+        replacements: { idOrders }
+      });
+
+      return result.length > 0 ? result : [];
+    } catch (error) {
+      console.error("Error getOrderPrecedence dao =>>>", error);
       throw error;
     }
   };
@@ -245,7 +332,7 @@ class Dao {
   createOrderReturnShipmentUpdateHistoryIfNotExists = async ({
     idCarrierStatusUpdate,
     sanitizedCarrierData,
-    idOrder,
+    idOrderReturn,
     idShipmentUpdate,
     updateSource
   }: any) => {
@@ -282,7 +369,7 @@ class Dao {
       const result = await db.query(query, {
         type: QueryTypes.INSERT,
         replacements: {
-          idOrderReturn: idOrder,
+          idOrderReturn,
           idCarrierStatusUpdate,
           sanitizedCarrierData,
           idShipmentUpdate,

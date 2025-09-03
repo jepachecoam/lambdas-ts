@@ -62,7 +62,19 @@ class Model {
 
       const trackingNumbers = dto.getOnlyTrackingNumbers({ validRecords });
 
-      const recordsData = await this.dao.getRecordsData({ trackingNumbers });
+      const dataByCarrierTrackingNumber =
+        await this.dao.getDataByCarrierTrackingNumber({ trackingNumbers });
+
+      const ordersSource = await this.dao.getOrderPrecedence({
+        idOrders: dataByCarrierTrackingNumber.map(
+          (record: IRecordData) => record.idOrder
+        )
+      });
+
+      const recordsData = dto.filterRecordsBySource({
+        dataByCarrierTrackingNumber,
+        ordersSource
+      });
 
       const { recordsWithData, recordsWithoutData } =
         dto.mergeEventWithOrderData({
@@ -250,7 +262,7 @@ class Model {
   }: any) => {
     const data = { ...newStatusGuideParsed, ...orderData };
     const {
-      idOrder,
+      idOrderReturn,
       idStatus,
       trackingNumber,
       idCarrierStatusUpdate,
@@ -267,7 +279,7 @@ class Model {
       await this.dao.createOrderReturnShipmentUpdateHistoryIfNotExists({
         idCarrierStatusUpdate,
         sanitizedCarrierData,
-        idOrder,
+        idOrderReturn,
         idShipmentUpdate,
         updateSource
       });
@@ -292,7 +304,7 @@ class Model {
       );
     }
 
-    await this.updateOrderReturn({ idOrder, idStatus });
+    await this.updateOrderReturn({ idOrderReturn, idStatus });
 
     if (requiresAdditionalSteps) {
       await this.sendEventToProcessAdditionalSteps({ mergedData: data });
@@ -365,23 +377,23 @@ class Model {
     }
   };
 
-  updateOrderReturn = async ({ idOrder, idStatus }: any) => {
+  updateOrderReturn = async ({ idOrderReturn, idStatus }: any) => {
     const resultInsert = await this.dao.createOrderReturnStatusLogIfNotExists({
-      idOrderReturn: idOrder,
+      idOrderReturn,
       idStatus
     });
     if (!resultInsert) {
       console.log(
-        `orderReturnStatusLog not created for Order ${idOrder} because idStatus ${idStatus} already exists in last state`
+        `orderReturnStatusLog not created for idOrderReturn ${idOrderReturn} because idStatus ${idStatus} already exists in last state`
       );
       return null;
     }
     await this.dao.updateStatusOrderReturn({
-      idOrderReturn: idOrder,
+      idOrderReturn: idOrderReturn,
       idStatus
     });
     console.log(
-      `Order ${idOrder} update in table orderReturn with status ${idStatus}`
+      `Order ${idOrderReturn} update in table orderReturn with status ${idStatus}`
     );
   };
 
