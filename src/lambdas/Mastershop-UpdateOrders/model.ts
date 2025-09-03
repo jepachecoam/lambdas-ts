@@ -109,7 +109,7 @@ class Model {
       records.map(async (record: any) => {
         try {
           const parsedRecord: IRecord = record.parsedRecord;
-          const orderDataInSystem: IRecordData = record.orderData;
+          const orderData: IRecordData = record.orderData;
 
           const { carrierStatus, shipmentUpdate, returnCodes } =
             await this.getCarrierConfig({ idCarrier: parsedRecord.idCarrier });
@@ -126,18 +126,14 @@ class Model {
             return;
           }
 
-          const mergedData = {
-            ...newStatusGuideParsed,
-            ...orderDataInSystem
-          };
-
           const shouldProcessRecord =
             !newStatusGuideParsed.haveInactiveRule ||
             newStatusGuideParsed.forcedExecution;
 
           if (shouldProcessRecord) {
             await this.processOrderBasedOnSource({
-              data: mergedData,
+              newStatusGuideParsed,
+              orderData,
               returnCodes
             });
           }
@@ -204,22 +200,42 @@ class Model {
     return { ...dataToSend, ...parsedRecord };
   };
 
-  processOrderBasedOnSource = async ({ data, returnCodes }: any) => {
+  processOrderBasedOnSource = async ({
+    newStatusGuideParsed,
+    orderData,
+    returnCodes
+  }: any) => {
     try {
-      const source = String(data.source);
+      const source = String(orderData.source);
       console.log("source :>>>", source);
 
       if (source === OrderSources.Order) {
-        await this.handleOrder({ data, returnCodes });
+        await this.handleOrder({
+          newStatusGuideParsed,
+          orderData,
+          returnCodes
+        });
       }
       if (source === OrderSources.OrderLeg) {
-        await this.handleOrder({ data, returnCodes });
+        await this.handleOrder({
+          newStatusGuideParsed,
+          orderData,
+          returnCodes
+        });
       }
       if (source === OrderSources.OrderReturn) {
-        await this.handleOrderReturn({ data, returnCodes });
+        await this.handleOrderReturn({
+          newStatusGuideParsed,
+          orderData,
+          returnCodes
+        });
       }
       if (source === OrderSources.OrderReturnLeg) {
-        await this.handleOrderReturn({ data, returnCodes });
+        await this.handleOrderReturn({
+          newStatusGuideParsed,
+          orderData,
+          returnCodes
+        });
       }
     } catch (err: any) {
       console.error(`Error processing order: ${err.message}`);
@@ -227,7 +243,12 @@ class Model {
     }
   };
 
-  handleOrderReturn = async ({ data, returnCodes }: any) => {
+  handleOrderReturn = async ({
+    newStatusGuideParsed,
+    orderData,
+    returnCodes
+  }: any) => {
+    const data = { ...newStatusGuideParsed, ...orderData };
     const {
       idOrder,
       idStatus,
@@ -239,11 +260,6 @@ class Model {
       updateSource,
       requiresAdditionalSteps
     } = data;
-
-    const requiresReturnProcess = dto.requiresReturnProcess({
-      statusCode: status.statusCode,
-      returnCodes
-    });
 
     const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
 
@@ -264,6 +280,10 @@ class Model {
     } else {
       console.log(`shipmentUpdateHistory created for guide ${trackingNumber} `);
     }
+    const requiresReturnProcess = dto.requiresReturnProcess({
+      statusCode: status.statusCode,
+      returnCodes
+    });
 
     if (requiresReturnProcess) {
       console.log(
@@ -279,7 +299,12 @@ class Model {
     }
   };
 
-  handleOrder = async ({ data, returnCodes }: any) => {
+  handleOrder = async ({
+    newStatusGuideParsed,
+    orderData,
+    returnCodes
+  }: any) => {
+    const data = { ...newStatusGuideParsed, ...orderData };
     const {
       idOrder,
       idStatus,
@@ -296,10 +321,6 @@ class Model {
       requiresAdditionalSteps
     } = data;
 
-    const requiresReturnProcess = dto.requiresReturnProcess({
-      statusCode: status.statusCode,
-      returnCodes
-    });
     const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
 
     const shipmentUpdate =
@@ -320,7 +341,12 @@ class Model {
 
     await this.updateOrder({ idOrder, idStatus, idUser, statusName });
 
-    if (requiresReturnProcess) {
+    const requireReturnProcess = dto.requiresReturnProcess({
+      statusCode: status.statusCode,
+      returnCodes
+    });
+
+    if (requireReturnProcess) {
       const createOrderReturnResult = await this.createOrderReturn({
         carrierName,
         idOrder,
