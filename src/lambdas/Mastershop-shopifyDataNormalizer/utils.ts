@@ -19,3 +19,16 @@ export const sendSlackAlert = (payload: {
     }
   );
 };
+
+export const httpResponse = ({
+  statusCode,
+  body
+}: {
+  statusCode: number;
+  body: any;
+}) => {
+  return {
+    statusCode,
+    body: body
+  };
+};

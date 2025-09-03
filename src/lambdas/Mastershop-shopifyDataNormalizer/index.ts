@@ -1,9 +1,8 @@
-import httpResponse from "../../shared/responses/http";
 import { checkEnv } from "../../shared/validation/envChecker";
 import Dto from "./dto";
 import Model from "./model";
 import { Envs } from "./types";
-import { sendSlackAlert } from "./utils";
+import { httpResponse, sendSlackAlert } from "./utils";
 
 export const handler = async (event: any, context: any): Promise<any> => {
   try {
