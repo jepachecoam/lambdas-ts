@@ -233,19 +233,18 @@ class Model {
       idStatus,
       trackingNumber,
       idCarrierStatusUpdate,
+      status,
       carrierData,
       idShipmentUpdate,
       updateSource,
-      source: _source,
-      carrierName: _carrierName,
-      status,
       requiresAdditionalSteps
     } = data;
 
-    const _requiresReturnProcess = dto.requiresReturnProcess({
+    const requiresReturnProcess = dto.requiresReturnProcess({
       statusCode: status.statusCode,
       returnCodes
     });
+
     const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
 
     const shipmentUpdate =
@@ -264,6 +263,13 @@ class Model {
       return null;
     } else {
       console.log(`shipmentUpdateHistory created for guide ${trackingNumber} `);
+    }
+
+    if (requiresReturnProcess) {
+      console.log(
+        "Order return not created because source is :>>>",
+        data.source
+      );
     }
 
     await this.updateOrderReturn({ idOrder, idStatus });
@@ -287,7 +293,6 @@ class Model {
       returnProcess,
       status,
       statusName,
-      source,
       requiresAdditionalSteps
     } = data;
 
@@ -317,7 +322,6 @@ class Model {
 
     if (requiresReturnProcess) {
       const createOrderReturnResult = await this.createOrderReturn({
-        source,
         carrierName,
         carrierTrackingCode: trackingNumber,
         returnTrackingNumber:
@@ -397,17 +401,9 @@ class Model {
   createOrderReturn = async ({
     carrierName,
     carrierTrackingCode,
-    returnTrackingNumber,
-    source
+    returnTrackingNumber
   }: any) => {
     try {
-      if (source === "orderReturn") {
-        console.log(
-          `Guide ${returnTrackingNumber} already exists in orderReturn table`
-        );
-        return null;
-      }
-
       const orderData = await this.dao.getOrderDataForPutOrderReturn({
         carrierTrackingCode
       });
