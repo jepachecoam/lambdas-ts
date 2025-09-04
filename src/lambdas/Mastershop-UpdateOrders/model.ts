@@ -273,18 +273,23 @@ class Model {
       carrierName,
       returnProcess,
       status,
+      source,
       statusName,
-      requiresAdditionalSteps
+      requiresAdditionalSteps,
+      linkedShipment
     } = data;
 
-    let latestOrderLeg: any = null;
-    if (orderData.source === OrderSources.OrderLeg) {
-      latestOrderLeg = await this.dao.getLatestOrderLeg({ idOrder });
-      console.log("latestOrderLeg :>>>", latestOrderLeg);
+    const latestOrderLeg = await this.validateOrderLeg({
+      source,
+      idOrder,
+      trackingNumber
+    });
+    if (source === OrderSources.OrderLeg && !latestOrderLeg) {
+      return null;
     }
 
     const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
-    const shipmentUpdate =
+    const shipmentUpdateResult =
       await this.dao.createOrderShipmentUpdateHistoryIfNotExists({
         idCarrierStatusUpdate,
         carrierData: sanitizedCarrierData,
@@ -295,7 +300,7 @@ class Model {
         idOrderLeg: latestOrderLeg?.idOrderLeg || null
       });
 
-    if (!shipmentUpdate) {
+    if (!shipmentUpdateResult) {
       console.log(
         `shipmentUpdateHistory not created for guide ${trackingNumber}`
       );
@@ -308,7 +313,6 @@ class Model {
       statusCode: status.statusCode,
       returnCodes
     });
-
     if (requireReturnProcess) {
       const createOrderReturnResult = await this.createOrderReturn({
         carrierName,
@@ -323,6 +327,21 @@ class Model {
         console.log(`idOrder ${idOrder} created in orderReturn table`);
       }
     }
+
+    if (linkedShipment && linkedShipment?.carrierTrackingCode) {
+      await this.dao.createOrderLeg({
+        idOrder,
+        carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
+        shippingRate: linkedShipment.shippingRate || null,
+        originAddress: linkedShipment.originAddress || null,
+        shippingAddress: linkedShipment.shippingAddress || null,
+        legReason: linkedShipment.legReason || null
+      });
+      console.log(
+        `Order leg created for idOrder ${idOrder} with carrierTrackingCode ${linkedShipment.linkedCarrierTrackingCode}`
+      );
+    }
+
     if (requiresAdditionalSteps) {
       await this.sendEventToProcessAdditionalSteps({ mergedData: data });
     }
@@ -338,24 +357,27 @@ class Model {
       idOrderReturn,
       idStatus,
       trackingNumber,
+      linkedShipment,
       idCarrierStatusUpdate,
       status,
+      source,
       carrierData,
       idShipmentUpdate,
       updateSource,
       requiresAdditionalSteps
     } = data;
 
-    let latestOrderReturnLeg: any = null;
-    if (orderData.source === OrderSources.OrderReturnLeg) {
-      latestOrderReturnLeg = await this.dao.getLatestOrderReturnLeg({
-        idOrderReturn
-      });
-      console.log("latestOrderReturnLeg :>>>", latestOrderReturnLeg);
+    const latestOrderReturnLeg = await this.validateOrderReturnLeg({
+      source,
+      idOrderReturn,
+      trackingNumber
+    });
+    if (source === OrderSources.OrderReturnLeg && !latestOrderReturnLeg) {
+      return null;
     }
 
     const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
-    const shipmentUpdate =
+    const shipmentUpdateResult =
       await this.dao.createOrderReturnShipmentUpdateHistoryIfNotExists({
         idCarrierStatusUpdate,
         carrierData: sanitizedCarrierData,
@@ -366,7 +388,7 @@ class Model {
         idOrderReturnLeg: latestOrderReturnLeg?.idOrderReturnLeg || null
       });
 
-    if (!shipmentUpdate) {
+    if (!shipmentUpdateResult) {
       console.log(
         `shipmentUpdateHistory not created for guide ${trackingNumber}`
       );
@@ -374,19 +396,29 @@ class Model {
     } else {
       console.log(`shipmentUpdateHistory created for guide ${trackingNumber} `);
     }
+
+    if (linkedShipment && linkedShipment?.carrierTrackingCode) {
+      await this.dao.createOrderReturnLeg({
+        idOrderReturn,
+        carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
+        shippingRate: linkedShipment.shippingRate || null,
+        originAddress: linkedShipment.originAddress || null,
+        shippingAddress: linkedShipment.shippingAddress || null,
+        legReason: linkedShipment.legReason || null
+      });
+    }
+
+    await this.updateOrderReturn({ idOrderReturn, idStatus });
+
     const requiresReturnProcess = dto.requiresReturnProcess({
       statusCode: status.statusCode,
       returnCodes
     });
-
     if (requiresReturnProcess) {
       console.log(
-        "Order return not created because source is :>>>",
-        data.source
+        "OrderReturn not created because already exists in these tables"
       );
     }
-
-    await this.updateOrderReturn({ idOrderReturn, idStatus });
 
     if (requiresAdditionalSteps) {
       await this.sendEventToProcessAdditionalSteps({ mergedData: data });
@@ -515,6 +547,54 @@ class Model {
       console.error("Error sending event to process additional steps:", error);
       throw error;
     }
+  };
+
+  validateOrderLeg = async ({ source, idOrder, trackingNumber }: any) => {
+    let latestOrderLeg: any = null;
+    if (source === OrderSources.OrderLeg) {
+      latestOrderLeg = await this.dao.getLatestOrderLeg({ idOrder });
+      console.log("latestOrderLeg :>>>", latestOrderLeg);
+      if (!latestOrderLeg) {
+        console.log(`No order return leg found for idOrder ${idOrder}`);
+        return null;
+      }
+      if (String(latestOrderLeg?.carrierTrackingCode) !== trackingNumber) {
+        console.log(
+          `Carrier tracking code ${trackingNumber} does not match with latest order leg ${latestOrderLeg?.carrierTrackingCode}`
+        );
+        return null;
+      }
+    }
+    return latestOrderLeg;
+  };
+
+  validateOrderReturnLeg = async ({
+    source,
+    idOrderReturn,
+    trackingNumber
+  }: any) => {
+    let latestOrderReturnLeg: any = null;
+    if (source === OrderSources.OrderReturnLeg) {
+      latestOrderReturnLeg = await this.dao.getLatestOrderReturnLeg({
+        idOrderReturn
+      });
+      console.log("latestOrderReturnLeg :>>>", latestOrderReturnLeg);
+      if (!latestOrderReturnLeg) {
+        console.log(
+          `No order return leg found for idOrderReturn ${idOrderReturn}`
+        );
+        return null;
+      }
+      if (
+        String(latestOrderReturnLeg?.carrierTrackingCode) !== trackingNumber
+      ) {
+        console.log(
+          `Carrier tracking code ${trackingNumber} does not match with latest order return leg ${latestOrderReturnLeg?.carrierTrackingCode}`
+        );
+        return null;
+      }
+    }
+    return latestOrderReturnLeg;
   };
 }
 
