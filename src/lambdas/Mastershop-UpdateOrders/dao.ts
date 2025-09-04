@@ -548,7 +548,13 @@ class Dao {
       const query = `
         INSERT INTO orderLeg 
         (idOrder, carrierTrackingCode, legReason, source, originAddress, shippingAddress, notes, shippingRate, idAlert, parentLegId, createdAt, updatedAt)
-        VALUES (:idOrder, :carrierTrackingCode, :legReason, :source, :originAddress, :shippingAddress, :notes, :shippingRate, :idAlert, :parentLegId, NOW(), NOW())
+        SELECT :idOrder, :carrierTrackingCode, :legReason, :source, :originAddress, :shippingAddress, :notes, :shippingRate, :idAlert, :parentLegId, NOW(), NOW()
+        WHERE NOT EXISTS (
+          SELECT 1 
+          FROM orderLeg 
+          WHERE idOrder = :idOrder 
+            AND carrierTrackingCode = :carrierTrackingCode
+        )
       `;
 
       const result = await db.query(query, {
@@ -567,7 +573,7 @@ class Dao {
         }
       });
 
-      return result[0];
+      return result[1] > 0;
     } catch (error) {
       console.error("Error createOrderLeg dao =>>>", error);
       throw error;
@@ -590,7 +596,13 @@ class Dao {
       const query = `
         INSERT INTO orderReturnLeg 
         (idOrderReturn, carrierTrackingCode, legReason, source, originAddress, shippingAddress, notes, shippingRate, idAlert, parentLegId, createdAt, updatedAt)
-        VALUES (:idOrderReturn, :carrierTrackingCode, :legReason, :source, :originAddress, :shippingAddress, :notes, :shippingRate, :idAlert, :parentLegId, NOW(), NOW())
+        SELECT :idOrderReturn, :carrierTrackingCode, :legReason, :source, :originAddress, :shippingAddress, :notes, :shippingRate, :idAlert, :parentLegId, NOW(), NOW()
+        WHERE NOT EXISTS (
+          SELECT 1 
+          FROM orderReturnLeg 
+          WHERE idOrderReturn = :idOrderReturn 
+            AND carrierTrackingCode = :carrierTrackingCode
+        )
       `;
 
       const result = await db.query(query, {
@@ -609,7 +621,7 @@ class Dao {
         }
       });
 
-      return result[0];
+      return result[1] > 0;
     } catch (error) {
       console.error("Error createOrderReturnLeg dao =>>>", error);
       throw error;
