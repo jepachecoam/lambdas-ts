@@ -51,7 +51,7 @@ export const handler = async (event: any, context: any): Promise<any> => {
     }
 
     return httpResponse({
-      statusCode: 200,
+      statusCode: result.statusCode || 200,
       body: { message: result.message, data: result.data }
     });
   } catch (error) {

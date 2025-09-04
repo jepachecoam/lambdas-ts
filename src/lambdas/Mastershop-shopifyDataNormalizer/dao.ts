@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { IShopifyOrder } from "./types";
+
 class Dao {
   private environmentName: string;
 
@@ -63,7 +65,7 @@ class Dao {
     storeUrl: string;
     accessToken: string;
     orderId: number;
-  }) {
+  }): Promise<{ data: { data: { order: IShopifyOrder } } }> {
     const graphqlQuery = `
       query Order {
         order(id: "gid://shopify/Order/${orderId}") {
@@ -71,6 +73,7 @@ class Dao {
           tags
           totalPrice
           totalDiscounts
+          displayFinancialStatus
           paymentGatewayNames
           note
           customAttributes {

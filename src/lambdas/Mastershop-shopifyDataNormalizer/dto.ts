@@ -6,7 +6,8 @@ import {
   IShopifyAddress,
   IShopifyCustomAttribute,
   IShopifyCustomer,
-  IShopifyOrder
+  IShopifyOrder,
+  PaymentMethods
 } from "./types";
 
 const validateEvent = (event: any): boolean => {
@@ -137,9 +138,9 @@ const createPaymentMethod = (paymentMethod: any) => {
 
     if (
       (searchResult.length > 0 && searchResult[0].score! <= 0.15) ||
-      paymentMethod.toLocaleLowerCase().includes("cod")
+      paymentMethod.toLocaleLowerCase().includes(PaymentMethods.COD)
     ) {
-      return "cod";
+      return PaymentMethods.COD;
     }
   }
 
