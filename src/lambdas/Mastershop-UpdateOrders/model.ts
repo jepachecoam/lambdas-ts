@@ -255,62 +255,6 @@ class Model {
     }
   };
 
-  handleOrderReturn = async ({
-    newStatusGuideParsed,
-    orderData,
-    returnCodes
-  }: any) => {
-    const data = { ...newStatusGuideParsed, ...orderData };
-    const {
-      idOrderReturn,
-      idStatus,
-      trackingNumber,
-      idCarrierStatusUpdate,
-      status,
-      carrierData,
-      idShipmentUpdate,
-      updateSource,
-      requiresAdditionalSteps
-    } = data;
-
-    const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
-
-    const shipmentUpdate =
-      await this.dao.createOrderReturnShipmentUpdateHistoryIfNotExists({
-        idCarrierStatusUpdate,
-        sanitizedCarrierData,
-        idOrderReturn,
-        idShipmentUpdate,
-        updateSource
-      });
-
-    if (!shipmentUpdate) {
-      console.log(
-        `shipmentUpdateHistory not created for guide ${trackingNumber}`
-      );
-      return null;
-    } else {
-      console.log(`shipmentUpdateHistory created for guide ${trackingNumber} `);
-    }
-    const requiresReturnProcess = dto.requiresReturnProcess({
-      statusCode: status.statusCode,
-      returnCodes
-    });
-
-    if (requiresReturnProcess) {
-      console.log(
-        "Order return not created because source is :>>>",
-        data.source
-      );
-    }
-
-    await this.updateOrderReturn({ idOrderReturn, idStatus });
-
-    if (requiresAdditionalSteps) {
-      await this.sendEventToProcessAdditionalSteps({ mergedData: data });
-    }
-  };
-
   handleOrder = async ({
     newStatusGuideParsed,
     orderData,
@@ -379,6 +323,71 @@ class Model {
         console.log(`idOrder ${idOrder} created in orderReturn table`);
       }
     }
+    if (requiresAdditionalSteps) {
+      await this.sendEventToProcessAdditionalSteps({ mergedData: data });
+    }
+  };
+
+  handleOrderReturn = async ({
+    newStatusGuideParsed,
+    orderData,
+    returnCodes
+  }: any) => {
+    const data = { ...newStatusGuideParsed, ...orderData };
+    const {
+      idOrderReturn,
+      idStatus,
+      trackingNumber,
+      idCarrierStatusUpdate,
+      status,
+      carrierData,
+      idShipmentUpdate,
+      updateSource,
+      requiresAdditionalSteps
+    } = data;
+
+    let latestOrderReturnLeg: any = null;
+    if (orderData.source === OrderSources.OrderReturnLeg) {
+      latestOrderReturnLeg = await this.dao.getLatestOrderReturnLeg({
+        idOrderReturn
+      });
+      console.log("latestOrderReturnLeg :>>>", latestOrderReturnLeg);
+    }
+
+    const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
+    const shipmentUpdate =
+      await this.dao.createOrderReturnShipmentUpdateHistoryIfNotExists({
+        idCarrierStatusUpdate,
+        carrierData: sanitizedCarrierData,
+        idOrderReturn,
+        idShipmentUpdate,
+        updateSource: updateSource || null,
+        status: idShipmentUpdate ? "PENDING" : null,
+        idOrderReturnLeg: latestOrderReturnLeg?.idOrderReturnLeg || null
+      });
+
+    if (!shipmentUpdate) {
+      console.log(
+        `shipmentUpdateHistory not created for guide ${trackingNumber}`
+      );
+      return null;
+    } else {
+      console.log(`shipmentUpdateHistory created for guide ${trackingNumber} `);
+    }
+    const requiresReturnProcess = dto.requiresReturnProcess({
+      statusCode: status.statusCode,
+      returnCodes
+    });
+
+    if (requiresReturnProcess) {
+      console.log(
+        "Order return not created because source is :>>>",
+        data.source
+      );
+    }
+
+    await this.updateOrderReturn({ idOrderReturn, idStatus });
+
     if (requiresAdditionalSteps) {
       await this.sendEventToProcessAdditionalSteps({ mergedData: data });
     }

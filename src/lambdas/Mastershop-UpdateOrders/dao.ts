@@ -375,10 +375,11 @@ class Dao {
 
   createOrderReturnShipmentUpdateHistoryIfNotExists = async ({
     idCarrierStatusUpdate,
-    sanitizedCarrierData,
+    carrierData,
     idOrderReturn,
     idShipmentUpdate,
     updateSource,
+    status,
     idOrderReturnLeg
   }: any) => {
     try {
@@ -388,7 +389,7 @@ class Dao {
             SELECT
                 :idOrderReturn,
                 :idCarrierStatusUpdate,
-                :sanitizedCarrierData,
+                :carrierData,
                 NOW(),
                 NOW(),
                 :idShipmentUpdate,
@@ -417,11 +418,11 @@ class Dao {
         replacements: {
           idOrderReturn,
           idCarrierStatusUpdate,
-          sanitizedCarrierData,
+          carrierData,
           idShipmentUpdate,
-          status: idShipmentUpdate ? "PENDING" : null,
-          updateSource: updateSource || null,
-          idOrderReturnLeg: idOrderReturnLeg || null
+          status,
+          updateSource,
+          idOrderReturnLeg
         }
       });
 
