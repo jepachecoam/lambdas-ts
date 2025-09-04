@@ -453,12 +453,12 @@ class Model {
   };
 
   createOrderReturn = async ({
-    carrierName,
     idOrder,
+    carrierName,
     returnTrackingNumber
   }: any) => {
     try {
-      const orderData = await this.dao.getOrderData({
+      const orderData: any = await this.dao.getOrderData({
         idOrder
       });
       if (!orderData) {
@@ -473,10 +473,23 @@ class Model {
         carrierName
       });
 
+      const sanitizedOriginAddress = utils.validateAndSanitizeJSON(
+        orderData.originAddress
+      );
+      const sanitizedShippingAddress = utils.validateAndSanitizeJSON(
+        orderData.shippingAddress
+      );
+      const sanitizedCarrierTracking = utils.validateAndSanitizeJSON(
+        orderData.carrierTracking
+      );
+
       return await this.dao.createOrderReturnIfNotExists({
+        idOrder,
         returnTrackingNumber,
-        orderData,
-        updatedShippingRate
+        originAddress: sanitizedOriginAddress,
+        shippingAddress: sanitizedShippingAddress,
+        carrierTracking: sanitizedCarrierTracking,
+        shippingRate: updatedShippingRate
       });
     } catch (error) {
       console.error("Error creating order return:", error);

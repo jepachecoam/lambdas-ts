@@ -45,17 +45,33 @@ export const recordSchema = z.object({
   trackingNumber: z.string().regex(/^[0-9]+$/),
   status: z.object({
     statusCode: z.string().regex(/^[0-9]+$/),
-    statusName: z.union([z.string(), z.null()])
+    statusName: z.string().nullable()
   }),
   novelty: z.object({
-    noveltyCode: z.union([z.string().regex(/^[0-9]+$/), z.null()])
+    noveltyCode: z
+      .string()
+      .regex(/^[0-9]+$/)
+      .nullable()
   }),
   returnProcess: z.object({
-    returnTrackingNumber: z.union([z.string().regex(/^[0-9]+$/), z.null()])
+    returnTrackingNumber: z
+      .string()
+      .regex(/^[0-9]+$/)
+      .nullable()
   }),
-  linkedShipment: z.object({
-    linkedCarrierTrackingCode: z.union([z.string().regex(/^[0-9]+$/), z.null()])
-  }),
+  linkedShipment: z
+    .object({
+      linkedCarrierTrackingCode: z
+        .string()
+        .regex(/^[0-9]+$/)
+        .nullable()
+        .optional(),
+      shippingRate: z.number().nullable().optional(),
+      originAddress: z.any().nullable().optional(),
+      shippingAddress: z.any().nullable().optional(),
+      legReason: z.string().nullable().optional()
+    })
+    .optional(),
   updateSource: z.string().optional().nullable()
 });
 
