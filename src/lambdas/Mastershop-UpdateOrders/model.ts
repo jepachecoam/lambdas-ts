@@ -333,15 +333,22 @@ class Model {
       requiresAdditionalSteps
     } = data;
 
-    const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
+    let latestOrderLeg: any = null;
+    if (orderData.source === OrderSources.OrderLeg) {
+      latestOrderLeg = await this.dao.getLatestOrderLeg({ idOrder });
+      console.log("latestOrderLeg :>>>", latestOrderLeg);
+    }
 
+    const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
     const shipmentUpdate =
       await this.dao.createOrderShipmentUpdateHistoryIfNotExists({
         idCarrierStatusUpdate,
-        sanitizedCarrierData,
+        carrierData: sanitizedCarrierData,
         idOrder,
         idShipmentUpdate,
-        updateSource
+        updateSource: updateSource || null,
+        status: idShipmentUpdate ? "PENDING" : null,
+        idOrderLeg: latestOrderLeg?.idOrderLeg || null
       });
 
     if (!shipmentUpdate) {

@@ -281,10 +281,51 @@ class Dao {
     }
   };
 
+  getLatestOrderReturnLeg = async ({
+    idOrderReturn
+  }: {
+    idOrderReturn: number;
+  }) => {
+    try {
+      const query = `select orl.idOrderReturnLeg, orl.carrierTrackingCode, orl.createdAt
+                     from orderReturnLeg orl
+                     where orl.idOrderReturn = :idOrderReturn
+                     order by orl.createdAt desc, orl.idOrderReturnLeg desc
+                     limit 1;`;
+      const result = await db.query(query, {
+        type: QueryTypes.SELECT,
+        replacements: { idOrderReturn }
+      });
+      return result.length > 0 ? result[0] : null;
+    } catch (error) {
+      console.error("Error getLatestOrderReturnLeg dao =>>>", error);
+      throw error;
+    }
+  };
+
+  getLatestOrderLeg = async ({ idOrder }: { idOrder: number }) => {
+    try {
+      const query = `select ol.idOrderLeg, ol.carrierTrackingCode, ol.createdAt
+                     from orderLeg ol
+                     where ol.idOrder = :idOrder
+                     order by ol.createdAt desc, ol.idOrderLeg desc
+                     limit 1;`;
+      const result = await db.query(query, {
+        type: QueryTypes.SELECT,
+        replacements: { idOrder }
+      });
+      return result.length > 0 ? result[0] : null;
+    } catch (error) {
+      console.error("Error getLatestOrderLeg dao =>>>", error);
+      throw error;
+    }
+  };
+
   createOrderShipmentUpdateHistoryIfNotExists = async ({
     idOrder,
+    status,
     idCarrierStatusUpdate,
-    sanitizedCarrierData,
+    carrierData,
     idShipmentUpdate,
     updateSource,
     idOrderLeg
@@ -295,7 +336,7 @@ class Dao {
                 (idOrder, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource, idOrderLeg)
                 SELECT :idOrder,
                        :idCarrierStatusUpdate,
-                       :sanitizedCarrierData,
+                       :carrierData,
                        NOW(),
                        NOW(),
                        :idShipmentUpdate,
@@ -317,11 +358,11 @@ class Dao {
         replacements: {
           idOrder,
           idCarrierStatusUpdate,
-          sanitizedCarrierData,
+          carrierData,
           idShipmentUpdate,
-          status: idShipmentUpdate ? "PENDING" : null,
-          updateSource: updateSource || null,
-          idOrderLeg: idOrderLeg || null
+          status,
+          updateSource,
+          idOrderLeg
         }
       });
 
