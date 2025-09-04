@@ -335,7 +335,9 @@ class Model {
         shippingRate: linkedShipment.shippingRate || null,
         originAddress: linkedShipment.originAddress || null,
         shippingAddress: linkedShipment.shippingAddress || null,
-        legReason: linkedShipment.legReason || null
+        legReason: linkedShipment.legReason || null,
+        parentLegId:
+          source === OrderSources.OrderLeg ? latestOrderLeg.idOrderLeg : null
       });
       console.log(
         `Order leg created for idOrder ${idOrder} with carrierTrackingCode ${linkedShipment.linkedCarrierTrackingCode}`
@@ -397,17 +399,6 @@ class Model {
       console.log(`shipmentUpdateHistory created for guide ${trackingNumber} `);
     }
 
-    if (linkedShipment && linkedShipment?.carrierTrackingCode) {
-      await this.dao.createOrderReturnLeg({
-        idOrderReturn,
-        carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
-        shippingRate: linkedShipment.shippingRate || null,
-        originAddress: linkedShipment.originAddress || null,
-        shippingAddress: linkedShipment.shippingAddress || null,
-        legReason: linkedShipment.legReason || null
-      });
-    }
-
     await this.updateOrderReturn({ idOrderReturn, idStatus });
 
     const requiresReturnProcess = dto.requiresReturnProcess({
@@ -418,6 +409,20 @@ class Model {
       console.log(
         "OrderReturn not created because already exists in these tables"
       );
+    }
+    if (linkedShipment && linkedShipment?.carrierTrackingCode) {
+      await this.dao.createOrderReturnLeg({
+        idOrderReturn,
+        carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
+        shippingRate: linkedShipment.shippingRate || null,
+        originAddress: linkedShipment.originAddress || null,
+        shippingAddress: linkedShipment.shippingAddress || null,
+        legReason: linkedShipment.legReason || null,
+        parentLegId:
+          source === OrderSources.OrderReturnLeg
+            ? latestOrderReturnLeg.idOrderReturnLeg
+            : null
+      });
     }
 
     if (requiresAdditionalSteps) {
