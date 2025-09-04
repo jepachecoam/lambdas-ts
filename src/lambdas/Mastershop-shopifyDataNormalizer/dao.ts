@@ -10,7 +10,7 @@ class Dao {
   async normalizeItems(body: any) {
     try {
       const response = await axios.post(
-        "https://5cowkssv0f.execute-api.us-east-1.amazonaws.com/newProd/integration/connectool/getNormalizeProducts",
+        `${process.env["URL_API_NORMALIZE_PRODUCTS"]}`,
         body
       );
       return {
