@@ -9,6 +9,11 @@ export enum Envs {
   APP_NAME_MS = "APP_NAME_MS"
 }
 
+export enum OrderLegSource {
+  PROCESS = "PROCESS",
+  MANUAL = "MANUAL"
+}
+
 export enum Carriers {
   COORDINADORA = "COORDINADORA",
   TCC = "TCC",

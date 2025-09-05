@@ -1,6 +1,6 @@
 import Dao from "./dao";
 import dto from "./dto";
-import { IRecord, IRecordData, OrderSources } from "./types";
+import { IRecord, IRecordData, OrderLegSource, OrderSources } from "./types";
 import utils from "./utils";
 
 class Model {
@@ -372,6 +372,9 @@ class Model {
     if (linkedShipment && linkedShipment?.linkedCarrierTrackingCode) {
       await this.dao.createOrderLeg({
         idOrder,
+        source: OrderLegSource.PROCESS,
+        notes: null,
+        idAlert: null,
         carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
         shippingRate: linkedShipment.shippingRate || null,
         originAddress: linkedShipment.originAddress || null,
@@ -454,6 +457,9 @@ class Model {
     if (linkedShipment && linkedShipment?.linkedCarrierTrackingCode) {
       await this.dao.createOrderReturnLeg({
         idOrderReturn,
+        source: OrderLegSource.PROCESS,
+        notes: null,
+        idAlert: null,
         carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
         shippingRate: linkedShipment.shippingRate || null,
         originAddress: linkedShipment.originAddress || null,

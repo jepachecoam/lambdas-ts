@@ -267,7 +267,7 @@ class Dao {
                      where orl.idOrderReturn = :idOrderReturn
                      order by orl.createdAt desc, orl.idOrderReturnLeg desc
                      limit 1;`;
-    return this.db.insert(query, {
+    return this.db.fetchOne(query, {
       replacements: { idOrderReturn }
     });
   };
