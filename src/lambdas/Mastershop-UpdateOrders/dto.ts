@@ -175,7 +175,11 @@ class Dto {
     );
   };
 
-  static mergeEventWithOrderData = ({ validRecords, recordsData }: any) => {
+  static mergeEventWithOrderData = ({
+    validRecords,
+    recordsData,
+    filteredRecordsData
+  }: any) => {
     const findOrderData = (trackingNumber: any) => {
       const trackingString = String(trackingNumber);
       return (
@@ -185,17 +189,33 @@ class Dto {
       );
     };
 
+    const findFilteredOrderData = (trackingNumber: any) => {
+      const trackingString = String(trackingNumber);
+      return (
+        filteredRecordsData.find(
+          (record: any) => String(record.carrierTrackingCode) === trackingString
+        ) || null
+      );
+    };
+
     const enrichedRecords = validRecords.map((record: any) => ({
       parsedRecord: record,
-      orderData: findOrderData(record.trackingNumber)
+      orderData: findFilteredOrderData(record.trackingNumber)
     }));
 
     const recordsWithData = enrichedRecords.filter(
       (record: any) => record.orderData
     );
-    const recordsWithoutData = enrichedRecords
-      .filter((record: any) => !record.orderData)
-      .map((record: any) => record.parsedRecord);
+
+    const recordsWithoutData = validRecords
+      .filter((record: any) => {
+        const hasData = findOrderData(record.trackingNumber);
+        if (!hasData) {
+          console.log(`${record.trackingNumber} no tiene datos en la bd aun`);
+        }
+        return !hasData;
+      })
+      .map((record: any) => record);
 
     return { recordsWithData, recordsWithoutData };
   };

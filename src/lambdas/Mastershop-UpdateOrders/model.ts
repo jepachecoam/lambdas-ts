@@ -67,7 +67,7 @@ class Model {
 
       if (!dataByCarrierTrackingNumber) {
         console.error("No data found for tracking numbers:", trackingNumbers);
-        return { recordsWithData: [], recordsWithoutData: [] };
+        return { recordsWithData: [], recordsWithoutData: validRecords };
       }
 
       const idOrders = dto.getOnlyIdOrders({ dataByCarrierTrackingNumber });
@@ -78,7 +78,7 @@ class Model {
 
       if (!ordersSource) {
         console.error("No data found for tracking numbers:", trackingNumbers);
-        return { recordsWithData: [], recordsWithoutData: [] };
+        return { recordsWithData: [], recordsWithoutData: validRecords };
       }
 
       const recordsData = dto.filterRecordsBySource({
@@ -89,7 +89,8 @@ class Model {
       const { recordsWithData, recordsWithoutData } =
         dto.mergeEventWithOrderData({
           validRecords,
-          recordsData
+          recordsData: dataByCarrierTrackingNumber,
+          filteredRecordsData: recordsData
         });
 
       return { recordsWithData, recordsWithoutData };
