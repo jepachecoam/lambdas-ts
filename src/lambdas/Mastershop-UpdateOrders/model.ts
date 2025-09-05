@@ -369,7 +369,7 @@ class Model {
       }
     }
 
-    if (linkedShipment && linkedShipment?.carrierTrackingCode) {
+    if (linkedShipment && linkedShipment?.linkedCarrierTrackingCode) {
       await this.dao.createOrderLeg({
         idOrder,
         carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
@@ -451,7 +451,7 @@ class Model {
         "OrderReturn not created because already exists in these tables"
       );
     }
-    if (linkedShipment && linkedShipment?.carrierTrackingCode) {
+    if (linkedShipment && linkedShipment?.linkedCarrierTrackingCode) {
       await this.dao.createOrderReturnLeg({
         idOrderReturn,
         carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
