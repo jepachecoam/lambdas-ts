@@ -1,7 +1,12 @@
 import Dao from "./dao";
 import Dto from "./dto";
 import { ShopifyDataSchema } from "./schema";
-import { NormalizeOrderParams } from "./types";
+import {
+  DisplayFinancialStatus,
+  IShopifyOrder,
+  NormalizeOrderParams,
+  PaymentMethods
+} from "./types";
 
 class Model {
   private dao: Dao;
@@ -31,6 +36,19 @@ class Model {
         return {
           success: false,
           message: "No fue posible extraer los datos de la orden",
+          data: null
+        };
+      }
+
+      const paymentValidation = this.validatePaymentAndFinancialStatus(
+        directResult?.data?.order?.payment_method,
+        orderData.displayFinancialStatus
+      );
+      if (!paymentValidation.shouldProcess) {
+        return {
+          success: true,
+          statusCode: 202,
+          message: "Orden aceptada pero no procesada por validaciones internas",
           data: null
         };
       }
@@ -89,7 +107,9 @@ class Model {
     }
   }
 
-  private async fetchOrderFromShopify(params: NormalizeOrderParams) {
+  private async fetchOrderFromShopify(
+    params: NormalizeOrderParams
+  ): Promise<IShopifyOrder | null> {
     try {
       console.log(
         "🛍️ [SHOPIFY] Obteniendo datos de la orden:",
@@ -128,6 +148,20 @@ class Model {
         usedDefaultValuesInCriticalFields
       }
     };
+  }
+
+  private validatePaymentAndFinancialStatus(
+    paymentMethod: string | undefined,
+    financialStatus: DisplayFinancialStatus
+  ): { shouldProcess: boolean } {
+    const paymentMethodLower = paymentMethod?.toLowerCase() || "";
+    if (paymentMethodLower === PaymentMethods.COD) {
+      return {
+        shouldProcess: financialStatus === DisplayFinancialStatus.PENDING
+      };
+    }
+
+    return { shouldProcess: financialStatus === DisplayFinancialStatus.PAID };
   }
 }
 

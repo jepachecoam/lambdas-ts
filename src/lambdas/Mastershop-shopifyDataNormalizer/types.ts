@@ -2,6 +2,21 @@ export enum Envs {
   SLACK_URL_NOTIFICATION = "SLACK_URL_NOTIFICATION"
 }
 
+export enum DisplayFinancialStatus {
+  AUTHORIZED = "AUTHORIZED",
+  EXPIRED = "EXPIRED",
+  PAID = "PAID",
+  PARTIALLY_PAID = "PARTIALLY_PAID",
+  PARTIALLY_REFUNDED = "PARTIALLY_REFUNDED",
+  PENDING = "PENDING",
+  REFUNDED = "REFUNDED",
+  VOIDED = "VOIDED"
+}
+
+export enum PaymentMethods {
+  COD = "cod"
+}
+
 export interface IShopifyAddress {
   city: string | null;
   address1: string | null;
@@ -11,6 +26,7 @@ export interface IShopifyAddress {
   firstName: string | null;
   lastName: string | null;
   name: string | null;
+  company: string | null;
   phone: string | null;
   country: string | null;
   countryCode: string | null;
@@ -79,6 +95,7 @@ export interface IShopifyOrder {
     };
   };
   lineItems: ILineItems;
+  displayFinancialStatus: DisplayFinancialStatus;
 }
 
 export interface NormalizeOrderParams {
