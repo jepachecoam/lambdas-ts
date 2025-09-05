@@ -89,6 +89,7 @@ class Dao {
             firstName
             lastName
             name
+            company
             phone
             country
             countryCode
@@ -104,6 +105,7 @@ class Dao {
             firstName
             lastName
             name
+            company
             phone
             country
             countryCode

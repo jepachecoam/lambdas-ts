@@ -26,6 +26,7 @@ export interface IShopifyAddress {
   firstName: string | null;
   lastName: string | null;
   name: string | null;
+  company: string | null;
   phone: string | null;
   country: string | null;
   countryCode: string | null;

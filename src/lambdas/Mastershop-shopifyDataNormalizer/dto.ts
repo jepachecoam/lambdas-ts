@@ -204,9 +204,11 @@ const createFallbackData = (
   const stateCode =
     shipping?.provinceCode || billing?.provinceCode || ca?.stateCode || null;
 
-  const documentType = ca?.documentType || null;
+  const company = shipping?.company || billing?.company || null;
 
-  const documentNumber = ca?.documentNumber || null;
+  const documentType = company ? "C.C" : ca?.documentType || null;
+
+  const documentNumber = company || ca?.documentNumber || null;
 
   return {
     documentNumber,
@@ -314,7 +316,8 @@ const createAddressWithFallbackTracking = (
     phone: phone || null,
     province: state || null,
     provinceCode: stateCode || null,
-    countryCode: addr?.countryCode || null
+    countryCode: addr?.countryCode || null,
+    company: addr?.company || null
   };
 
   return { address, usedFallback };
@@ -644,6 +647,14 @@ export function convertToOrderSchemaExpected(input: any): {
     return value;
   };
 
+  const notes = input.note ? [input.note] : ["Shopify Order"];
+  const paymentMethod = input.paymentMethod || "cod";
+
+  if (!input.paymentMethod) {
+    usedDefaultValuesInCriticalFields = true;
+    notes.push("Se debe validar el método de pago");
+  }
+
   const line_items =
     input.lineItems?.edges?.map((edge: any) => {
       const node = edge.node;
@@ -704,9 +715,9 @@ export function convertToOrderSchemaExpected(input: any): {
       documentType: input.documentType || null,
       documentNumber: input.documentNumber || null
     },
-    notes: input.note ? [input.note] : ["Shopify Order"],
+    notes,
     tags: input.tags || [],
-    payment_method: checkCritical(input.paymentMethod),
+    payment_method: paymentMethod,
     line_items,
     total_discounts: input?.totalDiscounts?.toString(),
     total_price: input?.totalPrice?.toString()

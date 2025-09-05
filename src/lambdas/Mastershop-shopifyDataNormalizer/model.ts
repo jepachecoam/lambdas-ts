@@ -155,11 +155,6 @@ class Model {
     financialStatus: DisplayFinancialStatus
   ): { shouldProcess: boolean } {
     const paymentMethodLower = paymentMethod?.toLowerCase() || "";
-
-    if (paymentMethodLower === "sin datos") {
-      return { shouldProcess: true };
-    }
-
     if (paymentMethodLower === PaymentMethods.COD) {
       return {
         shouldProcess: financialStatus === DisplayFinancialStatus.PENDING
