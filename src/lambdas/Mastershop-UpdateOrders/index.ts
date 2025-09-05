@@ -1,3 +1,4 @@
+import { dbEnv } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
 import Model from "./model";
 import { Envs } from "./types";
@@ -7,7 +8,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log("Event :>>>", JSON.stringify(event));
 
-    checkEnv({ ...Envs });
+    checkEnv({ ...Envs, ...dbEnv });
 
     const model = new Model(process.env["ENVIRONMENT"]!);
 
