@@ -191,7 +191,7 @@ class Model {
     const carrierStatus = await this.dao.getCarrierStatus({ idCarrier });
     const shipmentUpdate = await this.dao.getShipmentUpdates({ idCarrier });
 
-    if (!carrierStatus || shipmentUpdate) {
+    if (!carrierStatus || !shipmentUpdate) {
       console.log("No carrier config found for carrier", idCarrier);
       return null;
     }
