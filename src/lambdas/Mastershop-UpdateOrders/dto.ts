@@ -169,6 +169,12 @@ class Dto {
     return validRecords.map((record: any) => record.trackingNumber);
   };
 
+  static getOnlyIdOrders = ({ dataByCarrierTrackingNumber }: any): number[] => {
+    return dataByCarrierTrackingNumber.map((record: any) =>
+      Number(record.idOrder)
+    );
+  };
+
   static mergeEventWithOrderData = ({ validRecords, recordsData }: any) => {
     const findOrderData = (trackingNumber: any) => {
       const trackingString = String(trackingNumber);

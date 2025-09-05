@@ -65,11 +65,21 @@ class Model {
       const dataByCarrierTrackingNumber =
         await this.dao.getDataByCarrierTrackingNumber({ trackingNumbers });
 
+      if (!dataByCarrierTrackingNumber) {
+        console.error("No data found for tracking numbers:", trackingNumbers);
+        return { recordsWithData: [], recordsWithoutData: [] };
+      }
+
+      const idOrders = dto.getOnlyIdOrders({ dataByCarrierTrackingNumber });
+
       const ordersSource = await this.dao.getOrderPrecedence({
-        idOrders: dataByCarrierTrackingNumber.map(
-          (record: IRecordData) => record.idOrder
-        )
+        idOrders
       });
+
+      if (!ordersSource) {
+        console.error("No data found for tracking numbers:", trackingNumbers);
+        return { recordsWithData: [], recordsWithoutData: [] };
+      }
 
       const recordsData = dto.filterRecordsBySource({
         dataByCarrierTrackingNumber,
@@ -123,28 +133,44 @@ class Model {
           const parsedRecord: IRecord = record.parsedRecord;
           const orderData: IRecordData = record.orderData;
 
-          const { carrierStatus, shipmentUpdate, returnCodes } =
-            await this.getCarrierConfig({ idCarrier: parsedRecord.idCarrier });
+          const carrierConfig = await this.getCarrierConfig({
+            idCarrier: parsedRecord.idCarrier
+          });
 
-          const newStatusGuideParsed = await this.parseNewStatusGuide({
+          if (!carrierConfig) {
+            console.log(
+              "No carrier config found for carrier",
+              parsedRecord.idCarrier
+            );
+            return;
+          }
+
+          const { carrierStatus, shipmentUpdate, returnCodes } = carrierConfig;
+
+          const newStatusOrder = this.parseNewStatusGuide({
             parsedRecord,
             carrierStatus,
-            shipmentUpdate,
+            shipmentUpdate
+          });
+
+          const newStatusOrderParsed = await this.validateAndHandleStatusGuide({
+            newStatusOrder,
+            parsedRecord,
             logStreamId
           });
 
-          if (!newStatusGuideParsed) {
+          if (!newStatusOrderParsed) {
             console.log("No data to send, skipping");
             return;
           }
 
           const shouldProcessRecord =
-            !newStatusGuideParsed.haveInactiveRule ||
-            newStatusGuideParsed.forcedExecution;
+            !newStatusOrderParsed.haveInactiveRule ||
+            newStatusOrderParsed.forcedExecution;
 
           if (shouldProcessRecord) {
             await this.processOrderBasedOnSource({
-              newStatusGuideParsed,
+              newStatusOrderParsed,
               orderData,
               returnCodes
             });
@@ -165,6 +191,11 @@ class Model {
     const carrierStatus = await this.dao.getCarrierStatus({ idCarrier });
     const shipmentUpdate = await this.dao.getShipmentUpdates({ idCarrier });
 
+    if (!carrierStatus || shipmentUpdate) {
+      console.log("No carrier config found for carrier", idCarrier);
+      return null;
+    }
+
     const returnIdStatusCodeInSystem = 10;
 
     const returnCodes = carrierStatus
@@ -180,13 +211,12 @@ class Model {
     };
   };
 
-  parseNewStatusGuide = async ({
+  parseNewStatusGuide = ({
     parsedRecord,
     carrierStatus,
-    shipmentUpdate,
-    logStreamId
+    shipmentUpdate
   }: any) => {
-    const { trackingNumber, status, novelty, carrierName } = parsedRecord;
+    const { trackingNumber, status, novelty } = parsedRecord;
 
     const dataToSend = dto.searchNewStatus({
       carrierTrackingCode: trackingNumber,
@@ -196,24 +226,34 @@ class Model {
       shipmentUpdate
     });
 
-    if (dataToSend.notFoundCode) {
+    return dataToSend;
+  };
+
+  validateAndHandleStatusGuide = async ({
+    newStatusOrder,
+    parsedRecord,
+    logStreamId
+  }: any) => {
+    const { trackingNumber, carrierName } = parsedRecord;
+
+    if (newStatusOrder.notFoundCode) {
       console.warn(
-        `Error code '${dataToSend.notFoundCode}' found for tracking number '${trackingNumber}'. Sending error notification.`
+        `Error code '${newStatusOrder.notFoundCode}' found for tracking number '${trackingNumber}'. Sending error notification.`
       );
       await this.dao.sendErrorNotification({
         logStreamId,
         trackingNumber,
         carrierName,
-        error: dataToSend.notFoundCode
+        error: newStatusOrder.notFoundCode
       });
       return null;
     }
 
-    return { ...dataToSend, ...parsedRecord };
+    return { ...newStatusOrder, ...parsedRecord };
   };
 
   processOrderBasedOnSource = async ({
-    newStatusGuideParsed,
+    newStatusOrderParsed,
     orderData,
     returnCodes
   }: any) => {
@@ -223,28 +263,28 @@ class Model {
 
       if (source === OrderSources.Order) {
         await this.handleOrder({
-          newStatusGuideParsed,
+          newStatusOrderParsed,
           orderData,
           returnCodes
         });
       }
       if (source === OrderSources.OrderLeg) {
         await this.handleOrder({
-          newStatusGuideParsed,
+          newStatusOrderParsed,
           orderData,
           returnCodes
         });
       }
       if (source === OrderSources.OrderReturn) {
         await this.handleOrderReturn({
-          newStatusGuideParsed,
+          newStatusOrderParsed,
           orderData,
           returnCodes
         });
       }
       if (source === OrderSources.OrderReturnLeg) {
         await this.handleOrderReturn({
-          newStatusGuideParsed,
+          newStatusOrderParsed,
           orderData,
           returnCodes
         });
@@ -256,11 +296,11 @@ class Model {
   };
 
   handleOrder = async ({
-    newStatusGuideParsed,
+    newStatusOrderParsed,
     orderData,
     returnCodes
   }: any) => {
-    const data = { ...newStatusGuideParsed, ...orderData };
+    const data = { ...newStatusOrderParsed, ...orderData };
     const {
       idOrder,
       idStatus,
@@ -350,11 +390,11 @@ class Model {
   };
 
   handleOrderReturn = async ({
-    newStatusGuideParsed,
+    newStatusOrderParsed,
     orderData,
     returnCodes
   }: any) => {
-    const data = { ...newStatusGuideParsed, ...orderData };
+    const data = { ...newStatusOrderParsed, ...orderData };
     const {
       idOrderReturn,
       idStatus,
@@ -494,44 +534,37 @@ class Model {
     carrierName,
     returnTrackingNumber
   }: any) => {
-    try {
-      const orderData: any = await this.dao.getOrderData({
-        idOrder
-      });
-      if (!orderData) {
-        console.log(
-          `No data found for idOrder ${idOrder} for createOrderReturn`
-        );
-        return null;
-      }
-
-      const updatedShippingRate = dto.getShippingRate({
-        orderData,
-        carrierName
-      });
-
-      const sanitizedOriginAddress = utils.validateAndSanitizeJSON(
-        orderData.originAddress
-      );
-      const sanitizedShippingAddress = utils.validateAndSanitizeJSON(
-        orderData.shippingAddress
-      );
-      const sanitizedCarrierTracking = utils.validateAndSanitizeJSON(
-        orderData.carrierTracking
-      );
-
-      return await this.dao.createOrderReturnIfNotExists({
-        idOrder,
-        returnTrackingNumber,
-        originAddress: sanitizedOriginAddress,
-        shippingAddress: sanitizedShippingAddress,
-        carrierTracking: sanitizedCarrierTracking,
-        shippingRate: updatedShippingRate
-      });
-    } catch (error) {
-      console.error("Error creating order return:", error);
-      throw error;
+    const orderData: any = await this.dao.getOrderData({
+      idOrder
+    });
+    if (!orderData) {
+      console.log(`No data found for idOrder ${idOrder} for createOrderReturn`);
+      return null;
     }
+
+    const updatedShippingRate = dto.getShippingRate({
+      orderData,
+      carrierName
+    });
+
+    const sanitizedOriginAddress = utils.validateAndSanitizeJSON(
+      orderData.originAddress
+    );
+    const sanitizedShippingAddress = utils.validateAndSanitizeJSON(
+      orderData.shippingAddress
+    );
+    const sanitizedCarrierTracking = utils.validateAndSanitizeJSON(
+      orderData.carrierTracking
+    );
+
+    return this.dao.createOrderReturnIfNotExists({
+      idOrder,
+      returnTrackingNumber,
+      originAddress: sanitizedOriginAddress,
+      shippingAddress: sanitizedShippingAddress,
+      carrierTracking: sanitizedCarrierTracking,
+      shippingRate: updatedShippingRate
+    });
   };
 
   sendEventToProcessAdditionalSteps = async ({ mergedData }: any) => {
@@ -539,19 +572,14 @@ class Model {
 
     const detail = { ...mergedData, contextStage: this.environment };
 
-    try {
-      console.log(
-        `Sending event for guide '${trackingNumber}', additional steps required.`
-      );
-      return await this.dao.sendEvent({
-        source: "MASTERSHOP-PROCESS-ADDITIONAL-STEPS-IN-ORDERS-UPDATES",
-        detailType: carrierName.toUpperCase(),
-        detail: detail
-      });
-    } catch (error) {
-      console.error("Error sending event to process additional steps:", error);
-      throw error;
-    }
+    console.log(
+      `Sending event for guide '${trackingNumber}', additional steps required.`
+    );
+    return this.dao.sendEvent({
+      source: "MASTERSHOP-PROCESS-ADDITIONAL-STEPS-IN-ORDERS-UPDATES",
+      detailType: carrierName.toUpperCase(),
+      detail: detail
+    });
   };
 
   validateOrderLeg = async ({ source, idOrder, trackingNumber }: any) => {

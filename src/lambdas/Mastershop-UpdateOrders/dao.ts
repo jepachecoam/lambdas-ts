@@ -1,12 +1,15 @@
 import { QueryTypes } from "sequelize";
 
+import Database from "../../shared/databases/sequelize";
 import db from "./database/config";
 import { IRecordData } from "./types";
 import utils from "./utils";
 
 class Dao {
+  private db: Database;
   private environment: string;
   constructor(environment: string) {
+    this.db = new Database(environment);
     this.environment = environment;
   }
 
@@ -85,9 +88,8 @@ class Dao {
     trackingNumbers
   }: {
     trackingNumbers: string[];
-  }): Promise<IRecordData[]> => {
-    try {
-      const query = `
+  }): Promise<IRecordData[] | null> => {
+    const query = `
       WITH OrdersReturnLeg AS (SELECT o.idUser,
                                       o.idBussiness    AS idBusiness,
                                       orr.idOrder,
@@ -158,21 +160,14 @@ class Dao {
       SELECT *
       FROM OrdersReturn;
         `;
-      const result = await db.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: { trackingNumbers }
-      });
 
-      return result.length > 0 ? (result as IRecordData[]) : [];
-    } catch (error) {
-      console.error("Error getRecordsData dao =>>>", error);
-      throw error;
-    }
+    return this.db.fetchMany(query, {
+      replacements: { trackingNumbers }
+    });
   };
 
   getOrderPrecedence = async ({ idOrders }: { idOrders: number[] }) => {
-    try {
-      const query = `
+    const query = `
       WITH OrdersReturnLeg AS (SELECT ore.idOrder,
                                       'orderReturnLeg' AS source
                               FROM orderReturnLeg orl
@@ -221,82 +216,45 @@ class Dao {
       SELECT *
       FROM OrdersReturn;`;
 
-      const result = await db.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: { idOrders }
-      });
-
-      return result.length > 0 ? result : [];
-    } catch (error) {
-      console.error("Error getOrderPrecedence dao =>>>", error);
-      throw error;
-    }
+    return this.db.fetchMany(query, {
+      replacements: { idOrders }
+    });
   };
 
   getCarrierStatus = async ({ idCarrier }: any) => {
-    try {
-      const query = `SELECT carrierCode, idCarrierStatusUpdate, isActive, statusAuxLabel, s.idStatus, s.name as statusName, requiresAdditionalSteps
+    const query = `SELECT carrierCode, idCarrierStatusUpdate, isActive, statusAuxLabel, s.idStatus, s.name as statusName, requiresAdditionalSteps
                     FROM carrierStatusUpdate  csu inner join status s  on csu.idStatus = s.idStatus
                     WHERE idCarrier = :idCarrier`;
-      const result = await db.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: { idCarrier }
-      });
-
-      return result.length > 0 ? result : [];
-    } catch (error) {
-      console.error("Error getCarrierStatus dao =>>>", error);
-      throw error;
-    }
+    return this.db.fetchMany(query, {
+      replacements: { idCarrier }
+    });
   };
 
   getShipmentUpdates = async ({ idCarrier }: any) => {
-    try {
-      const query = `SELECT codeCarrierShipmentUpdate, isActive, idShipmentUpdate, name, requiresAdditionalSteps
+    const query = `SELECT codeCarrierShipmentUpdate, isActive, idShipmentUpdate, name, requiresAdditionalSteps
                        FROM shipmentUpdate
                        WHERE idCarrier = :idCarrier`;
-      const result = await db.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: { idCarrier }
-      });
-
-      return result.length > 0 ? result : [];
-    } catch (error) {
-      console.error("Error getShipmentUpdates dao =>>>", error);
-      throw error;
-    }
+    return this.db.fetchMany(query, {
+      replacements: { idCarrier }
+    });
   };
 
   getOrderData = async ({ idOrder }: { idOrder: number }) => {
-    try {
-      const query = "select * from `order` where idOrder = :idOrder;";
-      const result = await db.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: { idOrder }
-      });
-      return result.length > 0 ? result[0] : null;
-    } catch (error) {
-      console.error("Error getOrderDataForPutOrderReturn dao =>>>", error);
-      throw error;
-    }
+    const query = "select * from `order` where idOrder = :idOrder;";
+    return this.db.fetchOne(query, {
+      replacements: { idOrder }
+    });
   };
 
   getLatestOrderLeg = async ({ idOrder }: { idOrder: number }) => {
-    try {
-      const query = `select ol.idOrderLeg, ol.carrierTrackingCode, ol.createdAt
+    const query = `select ol.idOrderLeg, ol.carrierTrackingCode, ol.createdAt
                      from orderLeg ol
                      where ol.idOrder = :idOrder
                      order by ol.createdAt desc, ol.idOrderLeg desc
                      limit 1;`;
-      const result = await db.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: { idOrder }
-      });
-      return result.length > 0 ? result[0] : null;
-    } catch (error) {
-      console.error("Error getLatestOrderLeg dao =>>>", error);
-      throw error;
-    }
+    return this.db.fetchOne(query, {
+      replacements: { idOrder }
+    });
   };
 
   getLatestOrderReturnLeg = async ({
@@ -304,21 +262,14 @@ class Dao {
   }: {
     idOrderReturn: number;
   }) => {
-    try {
-      const query = `select orl.idOrderReturnLeg, orl.carrierTrackingCode, orl.createdAt
+    const query = `select orl.idOrderReturnLeg, orl.carrierTrackingCode, orl.createdAt
                      from orderReturnLeg orl
                      where orl.idOrderReturn = :idOrderReturn
                      order by orl.createdAt desc, orl.idOrderReturnLeg desc
                      limit 1;`;
-      const result = await db.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: { idOrderReturn }
-      });
-      return result.length > 0 ? result[0] : null;
-    } catch (error) {
-      console.error("Error getLatestOrderReturnLeg dao =>>>", error);
-      throw error;
-    }
+    return this.db.insert(query, {
+      replacements: { idOrderReturn }
+    });
   };
 
   createOrderShipmentUpdateHistoryIfNotExists = async ({
@@ -330,8 +281,7 @@ class Dao {
     updateSource,
     idOrderLeg
   }: any) => {
-    try {
-      const query = `
+    const query = `
                 INSERT INTO orderShipmentUpdateHistory
                 (idOrder, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource, idOrderLeg)
                 SELECT :idOrder,
@@ -353,24 +303,17 @@ class Dao {
                                          oh.idCarrierStatusUpdate = :idCarrierStatusUpdate AND oh.idShipmentUpdate IS NULL));
         `;
 
-      const result = await db.query(query, {
-        type: QueryTypes.INSERT,
-        replacements: {
-          idOrder,
-          idCarrierStatusUpdate,
-          carrierData,
-          idShipmentUpdate,
-          status,
-          updateSource,
-          idOrderLeg
-        }
-      });
-
-      return result[1] > 0;
-    } catch (err) {
-      console.error("Error createOrderShipmentUpdateHistory dao =>>>", err);
-      throw err;
-    }
+    return this.db.insert(query, {
+      replacements: {
+        idOrder,
+        idCarrierStatusUpdate,
+        carrierData,
+        idShipmentUpdate,
+        status,
+        updateSource,
+        idOrderLeg
+      }
+    });
   };
 
   createOrderReturnShipmentUpdateHistoryIfNotExists = async ({
@@ -382,8 +325,7 @@ class Dao {
     status,
     idOrderReturnLeg
   }: any) => {
-    try {
-      const query = `
+    const query = `
             INSERT INTO orderReturnShipmentUpdateHistory
             (idOrderReturn, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource, idOrderReturnLeg)
             SELECT
@@ -413,27 +355,17 @@ class Dao {
             );
         `;
 
-      const result = await db.query(query, {
-        type: QueryTypes.INSERT,
-        replacements: {
-          idOrderReturn,
-          idCarrierStatusUpdate,
-          carrierData,
-          idShipmentUpdate,
-          status,
-          updateSource,
-          idOrderReturnLeg
-        }
-      });
-
-      return result[1] > 0;
-    } catch (err) {
-      console.error(
-        "Error createOrderReturnShipmentUpdateHistory dao =>>>",
-        err
-      );
-      throw err;
-    }
+    return this.db.insert(query, {
+      replacements: {
+        idOrderReturn,
+        idCarrierStatusUpdate,
+        carrierData,
+        idShipmentUpdate,
+        status,
+        updateSource,
+        idOrderReturnLeg
+      }
+    });
   };
 
   createOrderReturnIfNotExists = async ({
@@ -444,8 +376,7 @@ class Dao {
     returnTrackingNumber,
     carrierTracking
   }: any) => {
-    try {
-      const query = `
+    const query = `
                 INSERT INTO orderReturn (idOrder, idStatus, orderReturnDate, originAddress, shippingAddress, shippingRate,
                                          carrierTrackingCode, carrierTracking, createdAt, updatedAt)
                 SELECT :idOrder,
@@ -464,47 +395,34 @@ class Dao {
                                     AND carrierTrackingCode = :returnTrackingNumber)
         `;
 
-      const result = await db.query(query, {
-        type: QueryTypes.INSERT,
-        replacements: {
-          idOrder,
-          shippingAddress,
-          originAddress,
-          shippingRate,
-          returnTrackingNumber,
-          carrierTracking
-        }
-      });
-      return result[1] > 0;
-    } catch (error) {
-      console.error("Error createOrderReturn dao =>>>", error);
-      throw error;
-    }
+    return this.db.insert(query, {
+      replacements: {
+        idOrder,
+        shippingAddress,
+        originAddress,
+        shippingRate,
+        returnTrackingNumber,
+        carrierTracking
+      }
+    });
   };
 
   updateStatusOrderReturn = async ({ idStatus, idOrderReturn }: any) => {
-    try {
-      const query = `
+    const query = `
             UPDATE orderReturn
             SET idStatus = :idStatus, updatedAt = now()
             WHERE idOrderReturn = :idOrderReturn;
         `;
-      return await db.query(query, {
-        type: QueryTypes.UPDATE,
-        replacements: { idStatus, idOrderReturn }
-      });
-    } catch (err) {
-      console.error("Error updateStatusOrderReturn dao =>>>", err);
-      throw err;
-    }
+    return this.db.update(query, {
+      replacements: { idStatus, idOrderReturn }
+    });
   };
 
   createOrderReturnStatusLogIfNotExists = async ({
     idOrderReturn,
     idStatus
   }: any) => {
-    try {
-      const query = `
+    const query = `
             INSERT INTO orderReturnStatusLog (idOrderReturn, idStatus, createdAt, updatedAt)
             SELECT :idOrderReturn, :idStatus, NOW(), NOW()
             WHERE NOT EXISTS (
@@ -520,16 +438,9 @@ class Dao {
             );
         `;
 
-      const result = await db.query(query, {
-        type: QueryTypes.INSERT,
-        replacements: { idOrderReturn, idStatus }
-      });
-
-      return result[1] > 0;
-    } catch (err) {
-      console.error("Error createOrderReturnStatusLog dao =>>>", err);
-      throw err;
-    }
+    return this.db.insert(query, {
+      replacements: { idOrderReturn, idStatus }
+    });
   };
 
   createOrderLeg = async ({
@@ -544,8 +455,7 @@ class Dao {
     idAlert,
     parentLegId
   }: any) => {
-    try {
-      const query = `
+    const query = `
         INSERT INTO orderLeg 
         (idOrder, carrierTrackingCode, legReason, source, originAddress, shippingAddress, notes, shippingRate, idAlert, parentLegId, createdAt, updatedAt)
         SELECT :idOrder, :carrierTrackingCode, :legReason, :source, :originAddress, :shippingAddress, :notes, :shippingRate, :idAlert, :parentLegId, NOW(), NOW()
@@ -557,27 +467,20 @@ class Dao {
         )
       `;
 
-      const result = await db.query(query, {
-        type: QueryTypes.INSERT,
-        replacements: {
-          idOrder,
-          carrierTrackingCode,
-          legReason,
-          source,
-          originAddress,
-          shippingAddress,
-          notes,
-          shippingRate,
-          idAlert,
-          parentLegId
-        }
-      });
-
-      return result[1] > 0;
-    } catch (error) {
-      console.error("Error createOrderLeg dao =>>>", error);
-      throw error;
-    }
+    return this.db.insert(query, {
+      replacements: {
+        idOrder,
+        carrierTrackingCode,
+        legReason,
+        source,
+        originAddress,
+        shippingAddress,
+        notes,
+        shippingRate,
+        idAlert,
+        parentLegId
+      }
+    });
   };
 
   createOrderReturnLeg = async ({
@@ -592,8 +495,7 @@ class Dao {
     idAlert,
     parentLegId
   }: any) => {
-    try {
-      const query = `
+    const query = `
         INSERT INTO orderReturnLeg 
         (idOrderReturn, carrierTrackingCode, legReason, source, originAddress, shippingAddress, notes, shippingRate, idAlert, parentLegId, createdAt, updatedAt)
         SELECT :idOrderReturn, :carrierTrackingCode, :legReason, :source, :originAddress, :shippingAddress, :notes, :shippingRate, :idAlert, :parentLegId, NOW(), NOW()
@@ -605,27 +507,20 @@ class Dao {
         )
       `;
 
-      const result = await db.query(query, {
-        type: QueryTypes.INSERT,
-        replacements: {
-          idOrderReturn,
-          carrierTrackingCode,
-          legReason,
-          source,
-          originAddress,
-          shippingAddress,
-          notes,
-          shippingRate,
-          idAlert,
-          parentLegId
-        }
-      });
-
-      return result[1] > 0;
-    } catch (error) {
-      console.error("Error createOrderReturnLeg dao =>>>", error);
-      throw error;
-    }
+    return this.db.insert(query, {
+      replacements: {
+        idOrderReturn,
+        carrierTrackingCode,
+        legReason,
+        source,
+        originAddress,
+        shippingAddress,
+        notes,
+        shippingRate,
+        idAlert,
+        parentLegId
+      }
+    });
   };
 }
 

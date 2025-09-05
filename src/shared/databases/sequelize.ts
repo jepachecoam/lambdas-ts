@@ -70,7 +70,7 @@ class Database {
     return this.db;
   }
 
-  async fetchOne(query: string, config?: QueryOptions) {
+  async fetchOne(query: string, config?: QueryOptions): Promise<any | null> {
     const result = await this.db.query(query, {
       ...config,
       type: QueryTypes.SELECT
@@ -78,21 +78,21 @@ class Database {
     return Array.isArray(result) && result.length > 0 ? result[0] : null;
   }
 
-  async fetchMany(query: string, config?: QueryOptions) {
+  async fetchMany(query: string, config?: QueryOptions): Promise<any[] | null> {
     const result = await this.db.query(query, {
       ...config,
       type: QueryTypes.SELECT
     });
     return Array.isArray(result) && result.length > 0 ? result : null;
   }
-  async insert(query: string, config?: QueryOptions) {
+  async insert(query: string, config?: QueryOptions): Promise<boolean | null> {
     const result = await this.db.query(query, {
       ...config,
       type: QueryTypes.INSERT
     });
     return Array.isArray(result) && result.length > 0 ? result[1] > 0 : null;
   }
-  async update(query: string, config?: QueryOptions) {
+  async update(query: string, config?: QueryOptions): Promise<boolean | null> {
     const result = await this.db.query(query, {
       ...config,
       type: QueryTypes.UPDATE
