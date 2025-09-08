@@ -222,8 +222,9 @@ class Dto {
 
   static parseEventParams = ({ event, context }: any) => {
     try {
-      // const records = event.Records.map((record: any) => JSON.parse(record.body));
-      const records = event.Records.map((record: any) => record.body);
+      const records = event.Records.map((record: any) =>
+        JSON.parse(record.body)
+      );
 
       const logStreamId = context.logStreamName;
       return { records, logStreamId };
