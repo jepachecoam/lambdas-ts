@@ -27,8 +27,9 @@ class Dao {
                           group by ol.idOrder),
         LastOrdersLeg as (select ol.idOrder, ol.carrierTrackingCode
                           from orderLeg ol
-                                    inner join MaxCreatedAt mca
-                                              on ol.idOrder = mca.idOrder and ol.createdAt = mca.createdAt)
+                                inner join MaxCreatedAt mca
+                                           on ol.idOrder = mca.idOrder and ol.createdAt = mca.createdAt
+                                inner join OrdersToCheck otc on otc.idOrder = ol.idOrder)
     select otc.carrierTrackingCode
     from OrdersToCheck otc
     where idOrder not in (select log.idOrder from LastOrdersLeg log)
@@ -51,8 +52,9 @@ class Dao {
                           group by orl.idOrderReturn),
         LastOrdersLeg as (select orl.idOrderReturn, orl.carrierTrackingCode
                           from orderReturnLeg orl
-                                    inner join MaxCreatedAt mca
-                                              on orl.idOrderReturn = mca.idOrderReturn and orl.createdAt = mca.createdAt)
+                                inner join MaxCreatedAt mca
+                                           on orl.idOrderReturn = mca.idOrderReturn and orl.createdAt = mca.createdAt
+                                inner join OrdersToCheck otc on otc.idOrderReturn = orl.idOrderReturn)
     select otc.carrierTrackingCode
     from OrdersToCheck otc
     where otc.idOrderReturn not in (select log.idOrderReturn from LastOrdersLeg log)
