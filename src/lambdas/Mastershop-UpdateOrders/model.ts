@@ -370,7 +370,7 @@ class Model {
     }
 
     if (linkedShipment && linkedShipment?.linkedCarrierTrackingCode) {
-      await this.dao.createOrderLeg({
+      const orderLegResult = await this.dao.createOrderLeg({
         idOrder,
         source: OrderLegSource.PROCESS,
         notes: null,
@@ -383,9 +383,7 @@ class Model {
         parentLegId:
           source === OrderSources.OrderLeg ? latestOrderLeg.idOrderLeg : null
       });
-      console.log(
-        `Order leg created for idOrder ${idOrder} with carrierTrackingCode ${linkedShipment.linkedCarrierTrackingCode}`
-      );
+      console.log(`orderLegResult insert ${orderLegResult}`);
     }
 
     if (requiresAdditionalSteps) {
@@ -455,7 +453,7 @@ class Model {
       );
     }
     if (linkedShipment && linkedShipment?.linkedCarrierTrackingCode) {
-      await this.dao.createOrderReturnLeg({
+      const orderReturnLegResult = await this.dao.createOrderReturnLeg({
         idOrderReturn,
         source: OrderLegSource.PROCESS,
         notes: null,
@@ -470,6 +468,7 @@ class Model {
             ? latestOrderReturnLeg.idOrderReturnLeg
             : null
       });
+      console.log(`OrderReturnLegResult insert ${orderReturnLegResult}`);
     }
 
     if (requiresAdditionalSteps) {
