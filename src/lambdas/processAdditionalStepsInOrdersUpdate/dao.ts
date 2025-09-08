@@ -62,7 +62,7 @@ class Dao {
       const parameter = {
         source,
         detailType,
-        detail
+        detail: { ...detail, contextStage: this.environment }
       };
 
       console.log("payloadSend to MASTERSHOP-SHIPMENT-UPDATE =>>>", parameter);
