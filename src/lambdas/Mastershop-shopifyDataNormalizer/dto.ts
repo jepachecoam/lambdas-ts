@@ -659,6 +659,9 @@ export function convertToOrderSchemaExpected(input: any): {
     input.lineItems?.edges?.map((edge: any) => {
       const node = edge.node;
       const variant = node.variant;
+      const price =
+        node?.originalUnitPriceSet?.shopMoney?.amount || variant.price || 0;
+
       const productId = parseInt(node.product.id.split("/").pop() || "0");
       const variantId = parseInt(variant.id.split("/").pop() || "0");
 
@@ -666,7 +669,7 @@ export function convertToOrderSchemaExpected(input: any): {
         name: node.title,
         current_quantity: node.quantity,
         grams: variant.inventoryItem?.measurement?.weight?.value || 0,
-        price: parseFloat(variant.price),
+        price: parseFloat(price),
         title: node.title,
         product_id: productId,
         variant_id: variantId,

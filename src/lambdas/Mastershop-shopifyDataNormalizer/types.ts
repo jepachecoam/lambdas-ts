@@ -69,6 +69,12 @@ export interface IShopifyLineItem {
   quantity: number;
   variant: IShopifyVariant;
   product: IShopifyProduct;
+  originalUnitPriceSet: {
+    shopMoney: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
 }
 
 export interface ILineItems {

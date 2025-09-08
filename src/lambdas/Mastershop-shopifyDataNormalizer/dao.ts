@@ -130,6 +130,12 @@ class Dao {
                 node {
                     title
                     quantity
+                    originalUnitPriceSet {
+                        shopMoney {
+                            amount
+                            currencyCode
+                        }
+                    }
                     variant {
                         price
                         id
