@@ -119,7 +119,7 @@ class Dao {
             displayName
             phone
           }
-          totalShippingPriceSet {
+          currentShippingPriceSet {
             shopMoney {
                 amount
                 currencyCode
@@ -130,6 +130,12 @@ class Dao {
                 node {
                     title
                     quantity
+                    originalUnitPriceSet {
+                        shopMoney {
+                            amount
+                            currencyCode
+                        }
+                    }
                     variant {
                         price
                         id

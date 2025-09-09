@@ -49,7 +49,7 @@ const normalizeOrderData = (order: IShopifyOrder) => {
   const totalDiscounts = order?.totalDiscounts;
   const totalPrice = order?.totalPrice;
   const lineItems = order?.lineItems;
-  const totalShippingPriceSet = order?.totalShippingPriceSet;
+  const currentShippingPriceSet = order?.currentShippingPriceSet;
 
   const { billingAddr, shippingAddr } = normalizeAddresses(
     billing,
@@ -90,7 +90,7 @@ const normalizeOrderData = (order: IShopifyOrder) => {
       lineItems,
       documentType: fallbackData.documentType,
       documentNumber: fallbackData.documentNumber,
-      totalShippingPriceSet
+      currentShippingPriceSet
     }
   };
 };
@@ -659,6 +659,9 @@ export function convertToOrderSchemaExpected(input: any): {
     input.lineItems?.edges?.map((edge: any) => {
       const node = edge.node;
       const variant = node.variant;
+      const price =
+        node?.originalUnitPriceSet?.shopMoney?.amount || variant.price || 0;
+
       const productId = parseInt(node.product.id.split("/").pop() || "0");
       const variantId = parseInt(variant.id.split("/").pop() || "0");
 
@@ -666,7 +669,7 @@ export function convertToOrderSchemaExpected(input: any): {
         name: node.title,
         current_quantity: node.quantity,
         grams: variant.inventoryItem?.measurement?.weight?.value || 0,
-        price: parseFloat(variant.price),
+        price: parseFloat(price),
         title: node.title,
         product_id: productId,
         variant_id: variantId,
@@ -674,10 +677,11 @@ export function convertToOrderSchemaExpected(input: any): {
       };
     }) || [];
 
-  const totalShippingPriceSet = input?.totalShippingPriceSet?.shopMoney?.amount;
+  const currentShippingPriceSet =
+    input?.currentShippingPriceSet?.shopMoney?.amount;
 
   const orderSchemaExpected: OrderSchemaExpected = {
-    total_shipping_price_set: Number(totalShippingPriceSet) || 0,
+    total_shipping_price_set: Number(currentShippingPriceSet) || 0,
     billing_address: {
       country: checkCritical(billingAddress.country),
       city: checkCritical(billingAddress.city),
