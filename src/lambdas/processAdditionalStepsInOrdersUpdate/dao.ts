@@ -1,5 +1,5 @@
 import Database from "../../shared/databases/sequelize";
-import { b2bClientMs } from "./utils/b2bRequest";
+import { b2bClientMs } from "./utils/request";
 
 class Dao {
   private db: Database;

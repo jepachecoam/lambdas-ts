@@ -8,5 +8,6 @@ export const envs = {
   tcc: {
     ACCESS_TOKEN_TCC: process.env[EnvsEnum.ACCESS_TOKEN_TCC]!,
     URL_API_NOVEDADES_TCC: process.env[EnvsEnum.URL_API_NOVEDADES_TCC]!
-  }
+  },
+  URL_WEBHOOK_ERROR_LOGS: process.env[EnvsEnum.URL_WEBHOOK_ERROR_LOGS]!
 };

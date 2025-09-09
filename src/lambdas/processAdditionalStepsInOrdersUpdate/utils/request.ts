@@ -17,3 +17,10 @@ export const b2bClientCarriers = axios.create({
   },
   baseURL: envs.URL_CARRIERS
 });
+
+export const clientSlackNotification = axios.create({
+  baseURL: envs.URL_WEBHOOK_ERROR_LOGS,
+  headers: {
+    "Content-Type": "application/json"
+  }
+});

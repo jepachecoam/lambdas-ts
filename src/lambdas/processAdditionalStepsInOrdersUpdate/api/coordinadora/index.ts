@@ -9,7 +9,7 @@ class Coordinadora {
 
   handleCoordinadoraRequest = async ({ detail }: any) => {
     const carrierCode = detail?.status?.statusCode;
-    if (carrierCode === CarrierCodes.CerradoPorIncidencia) {
+    if (String(carrierCode) === CarrierCodes.CerradoPorIncidencia) {
       await this.model.reexpeditionProcess(detail);
     } else {
       console.log("Process not found ");
