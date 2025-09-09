@@ -1,5 +1,5 @@
 import Model from "./model";
-import { EnviaCarrierStatusUpdateIds } from "./types";
+import { EnviaCarrierStatusCode } from "./types";
 
 class Envia {
   private model: Model;
@@ -7,13 +7,19 @@ class Envia {
     this.model = new Model(environment);
   }
   handleEnviaRequest = async ({ detail }: any) => {
-    const idCarrierStatusUpdate = detail.idCarrierStatusUpdate;
-    if (
-      idCarrierStatusUpdate === EnviaCarrierStatusUpdateIds.SolucionadoEnMalla
-    ) {
-      await this.model.updateShipmentUpdate(detail);
-    } else {
-      console.log("Process not found ");
+    const carrierCode = String(detail?.status?.statusCode);
+
+    switch (carrierCode) {
+      case EnviaCarrierStatusCode.SolucionadoEnMalla:
+        await this.model.updateShipmentUpdate(detail);
+        break;
+
+      case EnviaCarrierStatusCode.Redireccionando:
+        await this.model.redirectionProcess(detail);
+        break;
+      default:
+        console.log("Process not found ");
+        break;
     }
   };
 }

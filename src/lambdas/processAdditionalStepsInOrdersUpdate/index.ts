@@ -13,12 +13,12 @@ export const handler = async (event: any, context: any) => {
 
     const model = new Model(environment);
 
-    // if (detail && !eventProcess) {
-    //   await model.dispatchShipmentUpdate({
-    //     carrierName: carrier,
-    //     detail: detail
-    //   });
-    // }
+    if (detail && !eventProcess) {
+      await model.dispatchShipmentUpdate({
+        carrierName: carrier,
+        detail: detail
+      });
+    }
 
     await model.routeRequestToCarrier({
       detail: detail,
@@ -27,22 +27,11 @@ export const handler = async (event: any, context: any) => {
     });
 
     console.log("Finished");
-
-    return {
-      statusCode: 200,
-      body: "OK"
-    };
   } catch (err: any) {
     console.error("Error: =>>>", err);
-
     clientSlackNotification.post("", {
       logStreamId: context.logStreamName,
       error: "Unexpected error in process aditional Steps"
     });
-
-    return {
-      statusCode: 500,
-      body: err.message
-    };
   }
 };

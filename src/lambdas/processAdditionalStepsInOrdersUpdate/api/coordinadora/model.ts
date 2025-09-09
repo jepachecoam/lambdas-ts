@@ -27,25 +27,29 @@ class Model {
       return;
     }
 
-    if (!data.linkedShipment.linkedCarrierTrackingCode) {
-      console.log(
-        "LinkedShipment not found and reexpedition process not valid"
-      );
+    if (!data.returnProcess.returnTrackingNumber) {
+      console.log("returnProcess not found");
+      return;
+    }
+
+    if (data.trackingNumber === data.returnProcess.returnTrackingNumber) {
+      console.log("Tracking number is the same as return tracking number");
       return;
     }
 
     const payload: IRecord = {
       carrierData: data.carrierData,
       carrierName: data.carrierName,
-      trackingNumber: data.linkedShipment.linkedCarrierTrackingCode,
+      trackingNumber: data.trackingNumber,
       status: {
         statusCode: "301",
         statusName: "REEXPEDICION DETECTADA POR EL SISTEMA"
       },
-      novelty: data.novelty,
-      returnProcess: data.returnProcess,
-      linkedShipment: data.linkedShipment,
-      source: data.source
+      novelty: { noveltyCode: null },
+      returnProcess: { returnTrackingNumber: null },
+      linkedShipment: {
+        linkedCarrierTrackingCode: data.returnProcess.returnTrackingNumber
+      }
     };
 
     const response = await this.dao.sendToUpdateOrderQueue(payload);

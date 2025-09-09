@@ -8,11 +8,15 @@ class Coordinadora {
   }
 
   handleCoordinadoraRequest = async ({ detail }: any) => {
-    const carrierCode = detail?.status?.statusCode;
-    if (String(carrierCode) === CarrierCodes.CerradoPorIncidencia) {
-      await this.model.reexpeditionProcess(detail);
-    } else {
-      console.log("Process not found ");
+    const carrierCode = String(detail?.status?.statusCode);
+
+    switch (carrierCode) {
+      case CarrierCodes.CerradoPorIncidencia:
+        await this.model.reexpeditionProcess(detail);
+        break;
+      default:
+        console.log("Process not found ");
+        break;
     }
   };
 }

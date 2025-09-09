@@ -6,11 +6,16 @@ class Dao {
   }
 
   sendToUpdateOrderQueue = async (payload: any) => {
-    const response = await b2bClientCarriers.post(
-      `/${this.environment}/b2b/api/UpdateOrder`,
-      payload
-    );
-    return response.data;
+    try {
+      const response = await b2bClientCarriers.post(
+        `/${this.environment}/b2b/api/UpdateOrder`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error:", error);
+      return null;
+    }
   };
 }
 

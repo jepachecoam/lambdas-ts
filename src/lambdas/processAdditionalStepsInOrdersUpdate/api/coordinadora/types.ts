@@ -25,11 +25,7 @@ export const recordSchema = z.object({
       .nullable()
   }),
   linkedShipment: z.object({
-    linkedCarrierTrackingCode: z.string().regex(/^[0-9]+$/),
-    shippingRate: z.number().nullable().optional(),
-    originAddress: z.any().nullable().optional(),
-    shippingAddress: z.any().nullable().optional(),
-    legReason: z.string().nullable().optional()
+    linkedCarrierTrackingCode: z.string().regex(/^[0-9]+$/)
   }),
   source: z.string().optional().nullable()
 });
