@@ -94,7 +94,7 @@ export interface IShopifyOrder {
   customer: IShopifyCustomer | null;
   totalDiscounts: string | null;
   totalPrice: string | null;
-  totalShippingPriceSet: {
+  currentShippingPriceSet: {
     shopMoney: {
       amount: string;
       currencyCode: string;

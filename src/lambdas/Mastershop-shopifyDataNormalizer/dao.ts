@@ -119,7 +119,7 @@ class Dao {
             displayName
             phone
           }
-          totalShippingPriceSet {
+          currentShippingPriceSet {
             shopMoney {
                 amount
                 currencyCode
