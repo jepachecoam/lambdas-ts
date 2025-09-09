@@ -10,13 +10,21 @@ class Model {
   reexpeditionProcess = async (detail: any) => {
     const source: any = detail.source;
     if (
-      source === OrderSourcesTypes.OrderReturn ||
-      source === OrderSourcesTypes.OrderReturnLeg
+      source !== OrderSourcesTypes.OrderReturn ||
+      source !== OrderSourcesTypes.OrderReturnLeg
     ) {
-      await this.dao.sendToUpdateOrderQueue({ example: "" });
-    } else {
-      console.log("No need to updateCancelReason");
+      return null;
     }
+
+    const payload = {
+      ...detail,
+      status: {
+        statusCode: "301",
+        statusName: "REEXPEDICION DETECTADA POR EL SISTEMA"
+      }
+    };
+
+    await this.dao.sendToUpdateOrderQueue(payload);
   };
 }
 

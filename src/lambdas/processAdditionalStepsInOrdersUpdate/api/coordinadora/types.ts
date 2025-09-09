@@ -1,3 +1,3 @@
 export enum CarrierCodes {
-  CerradoPorIncidencia = 8
+  CerradoPorIncidencia = "8"
 }
