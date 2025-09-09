@@ -12,9 +12,7 @@ class Model {
   }
 
   private getOrdersWithIncidentsTCC = async (remesas: string[]) => {
-    const URL_API =
-      "https://somos.tcc.com.co/api/novedades/v2/consultarnovedades";
-
+    const URL_API = envs.tcc.URL_API_NOVEDADES_TCC;
     const accesstoken = envs.tcc.ACCESS_TOKEN_TCC;
 
     const currentDate = new Date();

@@ -1,9 +1,7 @@
-import axios from "axios";
-
+import Coordinadora from "./api/coordinadora";
 import Envia from "./api/envia";
 import Swayp from "./api/swayp";
 import Tcc from "./api/tcc";
-import { envs } from "./conf/envs";
 import Dao from "./dao";
 import { Carriers } from "./types";
 
@@ -12,13 +10,13 @@ class Model {
   private envia: Envia;
   private tcc: Tcc;
   private swayp: Swayp;
-  private environment: string;
+  private coordinadora: Coordinadora;
   constructor(environment: string) {
-    this.environment = environment;
     this.dao = new Dao(environment);
     this.envia = new Envia(environment);
     this.tcc = new Tcc(environment);
     this.swayp = new Swayp(environment);
+    this.coordinadora = new Coordinadora(environment);
   }
 
   routeRequestToCarrier = async ({
@@ -35,6 +33,12 @@ class Model {
         break;
       case Carriers.swayp:
         await this.swayp.handleSwaypRequest({ detail, eventProcess });
+        break;
+      case Carriers.coordinadora:
+        await this.coordinadora.handleCoordinadoraRequest({
+          detail,
+          eventProcess
+        });
         break;
       default:
         console.log("Not found cases to hanlde for carrier: ", carrierName);
@@ -56,7 +60,7 @@ class Model {
       mainOrder = await this.dao.getOrder({ idOrder: detail.idOrder });
 
       if (mainOrder) {
-        orderLogistic = await this.fetchMainOrder({
+        orderLogistic = await this.dao.fetchMainOrder({
           idUser: mainOrder.idUser,
           idBusiness: mainOrder.idBusiness,
           idOrder: mainOrder.idOrder
@@ -98,29 +102,6 @@ class Model {
       return sendEventResult;
     } catch (err) {
       console.error("Error sending event:", err);
-      throw err;
-    }
-  };
-
-  private fetchMainOrder = async ({ idUser, idOrder, idBusiness }: any) => {
-    try {
-      const parameter = {
-        orderId: idOrder,
-        idBussiness: idBusiness
-      };
-      const objectResp = await axios.post(
-        `${envs.URL_MS}/${this.environment}/api/b2b/logistics/order/${idUser}`,
-        parameter,
-        {
-          headers: {
-            "x-app-name": envs.APP_NAME_MS,
-            "x-api-key": envs.API_KEY_MS
-          }
-        }
-      );
-      return objectResp.data.data;
-    } catch (err) {
-      console.error(err);
       throw err;
     }
   };

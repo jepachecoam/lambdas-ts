@@ -1,7 +1,5 @@
-import axios from "axios";
-
 import Database from "../../shared/databases/sequelize";
-import { envs } from "./conf/envs";
+import { b2bClientMs } from "./utils/b2bRequest";
 
 class Dao {
   private db: Database;
@@ -67,19 +65,30 @@ class Dao {
 
       console.log("payloadSend to MASTERSHOP-SHIPMENT-UPDATE =>>>", parameter);
 
-      const response = await axios.post(
-        `${envs.URL_API_SEND_EVENT}/${this.environment}/api/b2b/logistics/processevents`,
-        parameter,
-        {
-          headers: {
-            "x-api-key": envs.API_KEY_MS,
-            "x-app-name": envs.APP_NAME_MS
-          }
-        }
+      const response = await b2bClientMs.post(
+        `/${this.environment}/api/b2b/logistics/processevents`,
+        parameter
       );
       return response.data;
     } catch (err) {
       console.error("Error in sendEventData dao =>>>", err);
+      throw err;
+    }
+  };
+
+  fetchMainOrder = async ({ idUser, idOrder, idBusiness }: any) => {
+    try {
+      const parameter = {
+        orderId: idOrder,
+        idBussiness: idBusiness
+      };
+      const objectResp = await b2bClientMs.post(
+        `/${this.environment}/api/b2b/logistics/order/${idUser}`,
+        parameter
+      );
+      return objectResp.data.data;
+    } catch (err) {
+      console.error(err);
       throw err;
     }
   };

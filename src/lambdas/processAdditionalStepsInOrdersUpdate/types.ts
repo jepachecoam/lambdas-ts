@@ -8,7 +8,9 @@ export enum Carriers {
 
 export enum OrderSourcesTypes {
   Order = "order",
-  OrderReturn = "orderReturn"
+  OrderLeg = "orderLeg",
+  OrderReturn = "orderReturn",
+  OrderReturnLeg = "orderReturnLeg"
 }
 
 export enum EventProcessEnum {
@@ -16,9 +18,10 @@ export enum EventProcessEnum {
 }
 
 export enum EnvsEnum {
-  ACCESS_TOKEN_TCC = "ACCESS_TOKEN_TCC",
   API_KEY_MS = "API_KEY_MS",
   APP_NAME_MS = "APP_NAME_MS",
-  URL_API_SEND_EVENT = "URL_API_SEND_EVENT",
-  URL_MS = "URL_MS"
+  URL_MS = "URL_MS",
+  URL_CARRIERS = "URL_CARRIERS",
+  ACCESS_TOKEN_TCC = "ACCESS_TOKEN_TCC",
+  URL_API_NOVEDADES_TCC = "URL_API_NOVEDADES_TCC"
 }
