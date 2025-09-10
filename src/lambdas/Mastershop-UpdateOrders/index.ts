@@ -1,16 +1,17 @@
 import { dbEnv } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
+import { envs } from "./conf/envs";
 import Model from "./model";
-import { Envs } from "./types";
+import { EnvsEnum } from "./types";
 import utils from "./utils";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log("Event :>>>", JSON.stringify(event));
 
-    checkEnv({ ...Envs, ...dbEnv });
+    checkEnv({ ...EnvsEnum, ...dbEnv });
 
-    const model = new Model(process.env["ENVIRONMENT"]!);
+    const model = new Model(envs.ENVIRONMENT);
 
     const { records, logStreamId } = model.parseEventParams({ event, context });
 

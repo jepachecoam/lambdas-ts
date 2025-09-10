@@ -48,9 +48,7 @@ const getDatabaseInstance = (environment: string): Sequelize => {
     dialect: "mysql",
     dialectOptions: { decimalNumbers: true },
     timezone: "+00:00",
-    logging: ["dev", "qa"].includes(environment)
-      ? (msg) => console.log(`Environment(${environment}) - Query =>>> ${msg}`)
-      : false
+    logging: environment === "prod" ? false : console.log
   });
 };
 

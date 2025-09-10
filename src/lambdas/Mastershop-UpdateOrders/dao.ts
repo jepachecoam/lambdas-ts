@@ -1,7 +1,5 @@
-import { QueryTypes } from "sequelize";
-
 import Database from "../../shared/databases/sequelize";
-import db from "./database/config";
+import { envs } from "./conf/envs";
 import { IRecordData } from "./types";
 import utils from "./utils";
 
@@ -16,12 +14,12 @@ class Dao {
   putOrder = async ({ orderData }: { orderData: any }) => {
     return utils.httpRequest({
       method: "put",
-      url: `${process.env["BASE_URL_MS"]}/${this.environment}/api/b2b/logistics/order`,
+      url: `${envs.BASE_URL_MS}/${this.environment}/api/b2b/logistics/order`,
       data: orderData,
       config: {
         headers: {
-          "x-app-name": `${process.env["APP_NAME_MS"]}`,
-          "x-api-key": `${process.env["API_KEY_MS"]}`
+          "x-app-name": `${envs.APP_NAME_MS}`,
+          "x-api-key": `${envs.API_KEY_MS}`
         }
       }
     });
@@ -40,12 +38,12 @@ class Dao {
 
     return utils.httpRequest({
       method: "post",
-      url: `${process.env["BASE_URL_MS"]}/${this.environment}/api/b2b/logistics/order/${idUser}`,
+      url: `${envs.BASE_URL_MS}/${this.environment}/api/b2b/logistics/order/${idUser}`,
       data: parameter,
       config: {
         headers: {
-          "x-app-name": `${process.env["APP_NAME_MS"]}`,
-          "x-api-key": `${process.env["API_KEY_MS"]}`
+          "x-app-name": `${envs.APP_NAME_MS}`,
+          "x-api-key": `${envs.API_KEY_MS}`
         }
       }
     });
@@ -60,12 +58,12 @@ class Dao {
 
     return utils.httpRequest({
       method: "post",
-      url: `${process.env["BASE_URL_MS"]}/${this.environment}/api/b2b/logistics/processevents`,
+      url: `${envs.BASE_URL_MS}/${this.environment}/api/b2b/logistics/processevents`,
       data: parameter,
       config: {
         headers: {
-          "x-api-key": `${process.env["API_KEY_MS"]}`,
-          "x-app-name": `${process.env["APP_NAME_MS"]}`
+          "x-app-name": `${envs.APP_NAME_MS}`,
+          "x-api-key": `${envs.API_KEY_MS}`
         }
       }
     });
@@ -74,7 +72,7 @@ class Dao {
   sendErrorNotification = async (data: any) => {
     return utils.httpRequest({
       method: "post",
-      url: process.env["URL_WEBHOOK_ERROR_LOGS"],
+      url: envs.URL_WEBHOOK_ERROR_LOGS,
       data: { ...data },
       config: {
         headers: {
@@ -168,7 +166,7 @@ class Dao {
 
   getOrderPrecedence = async ({ idOrders }: { idOrders: number[] }) => {
     const query = `
-      WITH OrdersReturnLeg AS (SELECT ore.idOrder,
+      WITH OrdersReturnLeg AS (SELECT DISTINCT ore.idOrder,
                                       'orderReturnLeg' AS source
                               FROM orderReturnLeg orl
                                         INNER JOIN orderReturn ore
@@ -181,7 +179,7 @@ class Dao {
                               AND NOT EXISTS (SELECT 1
                                               FROM OrdersReturnLeg orl
                                               WHERE orl.idOrder = ore.idOrder)),
-          OrdersLeg AS (SELECT ol.idOrder,
+          OrdersLeg AS (SELECT DISTINCT ol.idOrder,
                                 'orderLeg' AS source
                         FROM orderLeg ol
                         WHERE ol.idOrder IN (:idOrders)
