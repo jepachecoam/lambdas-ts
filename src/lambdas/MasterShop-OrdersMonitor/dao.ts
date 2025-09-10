@@ -17,7 +17,7 @@ class Dao {
                           WHERE o.carrierTrackingCode != ''
                             AND o.carrierTrackingCode IS NOT NULL
                             AND (o.idStatus IN (3, 4, 5, 6, 7) OR o.idOrder IN (SELECT osl.idOrder
-                                                                                FROM db_mastershop_orders.orderStatusLog osl
+                                                                                FROM orderStatusLog osl
                                                                                 WHERE osl.idStatus IN (8)
                                                                                   AND DATEDIFF(NOW(), osl.createdAt) < 3))
                             AND o.idCarrier = :idCarrier),
