@@ -24,12 +24,14 @@ export const recordSchema = z.object({
       .regex(/^[0-9]+$/)
       .nullable()
   }),
-  linkedShipment: z.object({
-    linkedCarrierTrackingCode: z
-      .string()
-      .regex(/^[0-9]+$/)
-      .nullable()
-  }),
+  linkedShipment: z
+    .object({
+      linkedCarrierTrackingCode: z
+        .string()
+        .regex(/^[0-9]+$/)
+        .nullable()
+    })
+    .optional(),
   source: z.string().optional().nullable(),
   updateSource: z.string().optional().nullable()
 });
