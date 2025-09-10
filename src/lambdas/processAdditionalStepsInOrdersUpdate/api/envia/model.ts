@@ -57,7 +57,8 @@ class Model {
       returnProcess: { returnTrackingNumber: null },
       linkedShipment: {
         linkedCarrierTrackingCode: linkedCarrierTrackingCode
-      }
+      },
+      updateSource: "aditional_steps"
     };
 
     console.log("status", status);

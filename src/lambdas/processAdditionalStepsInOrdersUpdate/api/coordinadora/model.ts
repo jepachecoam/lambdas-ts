@@ -49,7 +49,8 @@ class Model {
       returnProcess: { returnTrackingNumber: null },
       linkedShipment: {
         linkedCarrierTrackingCode: data.returnProcess.returnTrackingNumber
-      }
+      },
+      updateSource: "aditional_steps"
     };
 
     const response = await this.dao.sendToUpdateOrderQueue(payload);

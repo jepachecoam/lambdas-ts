@@ -31,7 +31,8 @@ export const recordSchema = z.object({
       .regex(/^[0-9]+$/)
       .nullable()
   }),
-  source: z.string().optional().nullable()
+  source: z.string().optional().nullable(),
+  updateSource: z.string().optional().nullable()
 });
 
 export type IRecord = z.infer<typeof recordSchema>;
