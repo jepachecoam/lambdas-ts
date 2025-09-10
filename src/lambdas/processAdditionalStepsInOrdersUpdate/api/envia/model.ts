@@ -39,7 +39,7 @@ class Model {
     });
 
     const linkedCarrierTrackingCode =
-      status?.linkedShipment?.likedCarrierTrackingCode;
+      status?.linkedShipment?.linkedCarrierTrackingCode;
     if (!linkedCarrierTrackingCode) {
       console.log("linkedCarrierTrackingCode not found");
       return null;
