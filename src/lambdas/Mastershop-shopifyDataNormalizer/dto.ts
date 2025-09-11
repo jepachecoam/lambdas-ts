@@ -842,7 +842,8 @@ const buildProcessOrderBody = (
       first_name: order.customer?.first_name || null,
       email: order.customer?.email || null
     },
-    order_items: normalizeProductsResp.order_items || []
+    order_items: normalizeProductsResp.order_items || [],
+    origin_platform: "shopify"
   };
 
   return result;
