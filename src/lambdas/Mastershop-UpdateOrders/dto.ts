@@ -13,7 +13,8 @@ class Dto {
       idCarrierStatusUpdate: null,
       idShipmentUpdate: null,
       idStatus: null,
-      statusName: null
+      statusName: null,
+      isLinkedShipmentCode: false
     };
 
     if (carrierStatus.length === 0 || shipmentUpdate.length === 0) {
@@ -22,6 +23,14 @@ class Dto {
     }
 
     const carrierStatusMatch = carrierStatus.find(
+      (status: any) => String(status.carrierCode) === String(statusCode)
+    );
+
+    const linkedShipmentCodes = carrierStatus.filter(
+      (status: any) => String(status.statusAuxLabel) === "LINKED-SHIPMENT"
+    );
+
+    result.isLinkedShipmentCode = linkedShipmentCodes.some(
       (status: any) => String(status.carrierCode) === String(statusCode)
     );
 

@@ -313,6 +313,7 @@ class Model {
       updateSource,
       carrierName,
       returnProcess,
+      isLinkedShipmentCode,
       status,
       source,
       statusName,
@@ -369,7 +370,11 @@ class Model {
       }
     }
 
-    if (linkedShipment && linkedShipment?.linkedCarrierTrackingCode) {
+    if (
+      isLinkedShipmentCode &&
+      linkedShipment &&
+      linkedShipment?.linkedCarrierTrackingCode
+    ) {
       const orderLegResult = await this.dao.createOrderLeg({
         idOrder,
         source: OrderLegSource.PROCESS,
@@ -403,6 +408,7 @@ class Model {
       trackingNumber,
       linkedShipment,
       idCarrierStatusUpdate,
+      isLinkedShipmentCode,
       status,
       source,
       carrierData,
@@ -452,7 +458,11 @@ class Model {
         "OrderReturn not created because already exists in these tables"
       );
     }
-    if (linkedShipment && linkedShipment?.linkedCarrierTrackingCode) {
+    if (
+      isLinkedShipmentCode &&
+      linkedShipment &&
+      linkedShipment?.linkedCarrierTrackingCode
+    ) {
       const orderReturnLegResult = await this.dao.createOrderReturnLeg({
         idOrderReturn,
         source: OrderLegSource.PROCESS,
