@@ -52,7 +52,10 @@ class Model {
       let orderLogistic = null;
       let shipmentUpdateInfo = null;
 
-      if (detail.source === "orderReturn") {
+      if (
+        detail.source === "orderReturn" ||
+        detail.source === "orderReturnLeg"
+      ) {
         returnData = await this.dao.getOrderReturn({
           idOrderReturn: detail.idOrderReturn
         });
