@@ -9,15 +9,20 @@ class Model {
   }
   updateShipmentUpdate = async ({
     idOrder,
+    idOrderReturn,
     source
   }: {
     idOrder: number;
+    idOrderReturn: number;
     source: string;
   }) => {
     let result: any = false;
-    if (source === OrderSourcesTypes.OrderReturn) {
+    if (
+      source === OrderSourcesTypes.OrderReturn ||
+      source === OrderSourcesTypes.OrderReturnLeg
+    ) {
       result = await this.dao.updateReturnShipmentUpdate({
-        idOrderReturn: idOrder
+        idOrderReturn: idOrderReturn
       });
     } else {
       result = await this.dao.updateShipmentUpdate({ idOrder });

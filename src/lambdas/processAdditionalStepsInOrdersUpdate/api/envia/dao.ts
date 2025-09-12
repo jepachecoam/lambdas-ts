@@ -24,7 +24,11 @@ class Dao {
     return this.db.update(query, { replacements: { idOrder } });
   };
 
-  updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
+  updateReturnShipmentUpdate = async ({
+    idOrderReturn
+  }: {
+    idOrderReturn: number;
+  }) => {
     const query = `
         update orderReturnShipmentUpdateHistory osuh
         set status       = 'RESOLVED',

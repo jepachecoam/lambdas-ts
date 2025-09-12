@@ -3,7 +3,7 @@ import Envia from "./api/envia";
 import Swayp from "./api/swayp";
 import Tcc from "./api/tcc";
 import Dao from "./dao";
-import { Carriers } from "./types";
+import { Carriers, OrderSourcesTypes } from "./types";
 
 class Model {
   private dao: Dao;
@@ -53,8 +53,8 @@ class Model {
       let shipmentUpdateInfo = null;
 
       if (
-        detail.source === "orderReturn" ||
-        detail.source === "orderReturnLeg"
+        detail.source === OrderSourcesTypes.OrderReturn ||
+        detail.source === OrderSourcesTypes.OrderReturnLeg
       ) {
         returnData = await this.dao.getOrderReturn({
           idOrderReturn: detail.idOrderReturn
