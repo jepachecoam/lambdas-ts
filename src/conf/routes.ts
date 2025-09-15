@@ -6,6 +6,7 @@ import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
 import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/index";
+import { handler as mastershopNormalizeCustomer } from "../lambdas/Mastershop-normalizeCustomer/index";
 import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
 import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/reconciliation-checkReconciliationDocumentAndLoadItemsToDb/index";
@@ -18,6 +19,11 @@ const router = Router();
 router.post(
   "/example",
   serverResponse({ handler: example, responseType: "http" })
+);
+
+router.post(
+  "/normalize-customer",
+  serverResponse({ handler: mastershopNormalizeCustomer, responseType: "http" })
 );
 
 router.post(
