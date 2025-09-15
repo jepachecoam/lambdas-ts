@@ -1,8 +1,7 @@
 import z from "zod";
 
-export enum EnviaCarrierStatusCode {
-  SolucionadoEnMalla = "21",
-  Redireccionando = "28"
+export enum CarrierCodes {
+  CerradoPorIncidencia = "8"
 }
 
 export const recordSchema = z.object({

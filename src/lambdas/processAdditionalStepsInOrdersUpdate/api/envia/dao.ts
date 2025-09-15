@@ -1,7 +1,16 @@
-import db from "../../conf/db";
+import Database from "../../../../shared/databases/sequelize";
+import { b2bClientCarriers } from "../../utils/request";
 
-const updateShipmentUpdate = async ({ idOrder }: any) => {
-  const query = `
+class Dao {
+  private db: Database;
+  private environment: string;
+  constructor(environment: string) {
+    this.db = new Database(environment);
+    this.environment = environment;
+  }
+
+  updateShipmentUpdate = async ({ idOrder }: any) => {
+    const query = `
         update orderShipmentUpdateHistory osuh
         set status       = 'RESOLVED',
             solution     = 'AUTOMATIC',
@@ -12,11 +21,15 @@ const updateShipmentUpdate = async ({ idOrder }: any) => {
         and status = 'PENDING'
         `;
 
-  return db.update(query, { replacements: { idOrder } });
-};
+    return this.db.update(query, { replacements: { idOrder } });
+  };
 
-const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
-  const query = `
+  updateReturnShipmentUpdate = async ({
+    idOrderReturn
+  }: {
+    idOrderReturn: number;
+  }) => {
+    const query = `
         update orderReturnShipmentUpdateHistory osuh
         set status       = 'RESOLVED',
             solution     = 'AUTOMATIC',
@@ -27,10 +40,36 @@ const updateReturnShipmentUpdate = async ({ idOrderReturn }: any) => {
         and status = 'PENDING';
           `;
 
-  return db.update(query, { replacements: { idOrderReturn } });
-};
+    return this.db.update(query, { replacements: { idOrderReturn } });
+  };
 
-export default {
-  updateShipmentUpdate,
-  updateReturnShipmentUpdate
-};
+  getStatusGuide = async ({
+    carrierTrackingCode
+  }: {
+    carrierTrackingCode: string;
+  }) => {
+    try {
+      const url = `/${this.environment}/b2b/api/envia/statusGuide/${carrierTrackingCode}`;
+      const response = await b2bClientCarriers.get(url);
+      return response.data.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  };
+
+  sendToUpdateOrderQueue = async (payload: any) => {
+    try {
+      const response = await b2bClientCarriers.post(
+        `/${this.environment}/b2b/api/UpdateOrder`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error:", error);
+      return null;
+    }
+  };
+}
+
+export default Dao;

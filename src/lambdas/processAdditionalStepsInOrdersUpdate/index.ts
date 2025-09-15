@@ -1,39 +1,37 @@
 import { dbEnv } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
-import handleEnviaRequest from "./api/envia";
-import handleSwaypRequest from "./api/swayp";
-import handleTccRequest from "./api/tcc";
 import dto from "./dto";
-import model from "./model";
-import { Carriers, EnvsEnum } from "./types";
+import Model from "./model";
+import { EnvsEnum } from "./types";
+import { clientSlackNotification } from "./utils/request";
 
-export const handler = async (event: any, _context: any) => {
+export const handler = async (event: any, context: any) => {
   try {
     checkEnv({ ...dbEnv, ...EnvsEnum });
-    const { carrier, detail, eventProcess } = dto.extractParamsFromEvent(event);
+    const { carrier, detail, eventProcess, environment } =
+      dto.extractParamsFromEvent(event);
 
-    if (detail) {
+    const model = new Model(environment);
+
+    if (detail && !eventProcess) {
       await model.dispatchShipmentUpdate({
         carrierName: carrier,
         detail: detail
       });
     }
 
-    switch (carrier) {
-      case Carriers.tcc:
-        await handleTccRequest({ detail, eventProcess });
-        break;
-      case Carriers.envia:
-        await handleEnviaRequest({ detail, eventProcess });
-        break;
-      case Carriers.swayp:
-        await handleSwaypRequest({ detail, eventProcess });
-        break;
-      default:
-        console.log("Not found cases to hanlde for carrier: ", carrier);
-    }
+    await model.routeRequestToCarrier({
+      detail: detail,
+      carrierName: carrier,
+      eventProcess: eventProcess
+    });
+
     console.log("Finished");
   } catch (err: any) {
     console.error("Error: =>>>", err);
+    clientSlackNotification.post("", {
+      logStreamId: context.logStreamName,
+      error: "Unexpected error in process aditional Steps"
+    });
   }
 };

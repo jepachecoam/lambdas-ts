@@ -1,12 +1,17 @@
-import db from "../../conf/db";
+import Database from "../../../../shared/databases/sequelize";
 
-const updateCancelReason = async ({ idOrder }: any) => {
-  const query =
-    "update `order` o set idCancelReason = 58 where idOrder = :idOrder";
+class Dao {
+  private db: Database;
+  constructor(environment: string) {
+    this.db = new Database(environment);
+  }
 
-  return db.update(query, { replacements: { idOrder } });
-};
+  updateCancelReason = async ({ idOrder }: any) => {
+    const query =
+      "update `order` o set idCancelReason = 58 where idOrder = :idOrder";
 
-export default {
-  updateCancelReason
-};
+    return this.db.update(query, { replacements: { idOrder } });
+  };
+}
+
+export default Dao;

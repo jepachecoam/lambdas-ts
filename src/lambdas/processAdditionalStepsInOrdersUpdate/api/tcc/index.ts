@@ -1,12 +1,19 @@
 import { EventProcessEnum } from "../../types";
-import model from "./model";
+import Model from "./model";
 
-const handleTccRequest = async ({ eventProcess }: any) => {
-  if (eventProcess === EventProcessEnum.CRONJOB_NOVEDAD) {
-    await model.insertIncidentId();
-  } else {
-    console.log("Process not found ");
+class Tcc {
+  private model: Model;
+  constructor(environment: string) {
+    this.model = new Model(environment);
   }
-};
 
-export default handleTccRequest;
+  handleTccRequest = async ({ eventProcess }: any) => {
+    if (eventProcess === EventProcessEnum.CRONJOB_NOVEDAD) {
+      await this.model.insertIncidentId();
+    } else {
+      console.log("Process not found ");
+    }
+  };
+}
+
+export default Tcc;

@@ -1,0 +1,7 @@
+export enum carrierNames {
+  ENVIA = "ENVIA",
+  INTERRAPIDISIMO = "INTERRAPIDISIMO",
+  TCC = "TCC",
+  SWAYP = "SWAYP",
+  COORDINADORA = "COORDINADORA"
+}

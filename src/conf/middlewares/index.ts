@@ -53,7 +53,7 @@ function serverResponse({
         }
 
         case "void": {
-          return res.status(result.statusCode).send();
+          return res.status(200).send({ result: "proccesed" });
         }
       }
     } catch (error) {

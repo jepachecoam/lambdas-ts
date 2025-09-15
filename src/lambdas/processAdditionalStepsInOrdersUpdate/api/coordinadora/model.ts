@@ -7,30 +7,8 @@ class Model {
   constructor(environment: string) {
     this.dao = new Dao(environment);
   }
-  updateShipmentUpdate = async ({
-    idOrder,
-    idOrderReturn,
-    source
-  }: {
-    idOrder: number;
-    idOrderReturn: number;
-    source: string;
-  }) => {
-    let result: any = false;
-    if (
-      source === OrderSourcesTypes.OrderReturn ||
-      source === OrderSourcesTypes.OrderReturnLeg
-    ) {
-      result = await this.dao.updateReturnShipmentUpdate({
-        idOrderReturn: idOrderReturn
-      });
-    } else {
-      result = await this.dao.updateShipmentUpdate({ idOrder });
-    }
-    console.log(`updateShipmentUpdate ${result}`);
-  };
 
-  redirectionProcess = async (detail: any) => {
+  reexpeditionProcess = async (detail: any): Promise<void> => {
     const validation = recordSchema.safeParse(detail);
     if (!validation.success) {
       console.log("Record validation failed:", validation.error.message);
@@ -38,16 +16,25 @@ class Model {
     }
 
     const data: IRecord = validation.data;
+    const source = data.source;
+    if (
+      source === OrderSourcesTypes.Order ||
+      source === OrderSourcesTypes.OrderLeg
+    ) {
+      console.log(
+        "Source of reexpedition process should be OrderReturn/OrderReturnLeg"
+      );
+      return;
+    }
 
-    const status = await this.dao.getStatusGuide({
-      carrierTrackingCode: data.trackingNumber
-    });
+    if (!data.returnProcess.returnTrackingNumber) {
+      console.log("returnProcess not found");
+      return;
+    }
 
-    const linkedCarrierTrackingCode =
-      status?.linkedShipment?.linkedCarrierTrackingCode;
-    if (!linkedCarrierTrackingCode) {
-      console.log("linkedCarrierTrackingCode not found");
-      return null;
+    if (data.trackingNumber === data.returnProcess.returnTrackingNumber) {
+      console.log("Tracking number is the same as return tracking number");
+      return;
     }
 
     const payload: IRecord = {
@@ -61,12 +48,11 @@ class Model {
       novelty: { noveltyCode: null },
       returnProcess: { returnTrackingNumber: null },
       linkedShipment: {
-        linkedCarrierTrackingCode: linkedCarrierTrackingCode
+        linkedCarrierTrackingCode: data.returnProcess.returnTrackingNumber
       },
       updateSource: "aditional_steps"
     };
 
-    console.log("status", status);
     const response = await this.dao.sendToUpdateOrderQueue(payload);
     console.log("Response from updateOrderQueue :>>>", response);
   };
