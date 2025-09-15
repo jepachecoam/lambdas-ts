@@ -10,7 +10,7 @@ const AddressSchema = z.object({
   first_name: z.string().nullable().default(null),
   last_name: z.string().nullable().default(null),
   full_name: z.string(),
-  phone: z.string(),
+  phone: z.string().nullable(),
   state: z.string(),
   state_code: z.string().nullable().default(null)
 });

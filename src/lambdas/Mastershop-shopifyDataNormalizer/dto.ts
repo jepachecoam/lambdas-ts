@@ -692,7 +692,7 @@ export function convertToOrderSchemaExpected(input: any): {
       first_name: billingAddress.firstName || "Sin datos",
       last_name: billingAddress.lastName || "Sin datos",
       full_name: checkCritical(billingAddress.name),
-      phone: checkCritical(billingAddress.phone),
+      phone: billingAddress.phone || null,
       state: checkCritical(billingAddress.province),
       state_code: billingAddress.provinceCode || "Sin datos"
     },
@@ -706,7 +706,7 @@ export function convertToOrderSchemaExpected(input: any): {
       first_name: shippingAddress.firstName || "Sin datos",
       last_name: shippingAddress.lastName || "Sin datos",
       full_name: checkCritical(shippingAddress.name),
-      phone: checkCritical(shippingAddress.phone),
+      phone: shippingAddress.phone || null,
       state: checkCritical(shippingAddress.province),
       state_code: shippingAddress.provinceCode || "Sin datos"
     },
@@ -714,8 +714,8 @@ export function convertToOrderSchemaExpected(input: any): {
       full_name: checkCritical(input.customer.displayName),
       first_name: input.customer.firstName || "Sin datos",
       last_name: input.customer.lastName || "Sin datos",
-      phone: input.customer.phone || "Sin datos",
-      email: input.customer.email || "Sin datos",
+      phone: input.customer.phone || null,
+      email: input.customer.email || null,
       documentType: input.documentType || null,
       documentNumber: input.documentNumber || null
     },
