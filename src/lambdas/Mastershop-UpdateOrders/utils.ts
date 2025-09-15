@@ -2,8 +2,22 @@ import axios from "axios";
 
 import { objectSchema, recordSchema } from "./types";
 
-const validateRecordSchema = (data: any) => {
-  return recordSchema.safeParse(data).success;
+const validateRecordSchema = (data: unknown): boolean => {
+  console.log("Validating record schema...", JSON.stringify(data));
+  const result = recordSchema.safeParse(data);
+
+  if (!result.success) {
+    console.error("❌ Error de validación en recordSchema:");
+    result.error.issues.forEach((err) => {
+      console.error(
+        `- Campo: "${err.path.join(".")}" → ${err.message} (code: ${err.code})`
+      );
+    });
+    return false;
+  }
+
+  console.log("✅ Validación exitosa");
+  return true;
 };
 
 export const validateAndSanitizeJSON = (input: any) => {
