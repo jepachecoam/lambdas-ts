@@ -94,8 +94,7 @@ class Dto {
 
   static getShippingRate = ({ carrierName, orderData }: any) => {
     try {
-      const { shippingRate, paymentMethod, totalSeller, carrierInfo } =
-        orderData;
+      const { shippingRate, paymentMethod, carrierInfo } = orderData;
       console.log("orderData =>>>", orderData);
 
       switch (carrierName.toUpperCase()) {
@@ -104,13 +103,13 @@ class Dto {
             if (
               carrierInfo &&
               typeof carrierInfo === "object" &&
-              "extraData" in carrierInfo
+              "extraData" in carrierInfo &&
+              "insuredValueReturn" in carrierInfo.extraData
             ) {
               return 0;
             }
-            const extraCharge =
-              totalSeller < 180000 ? 3600 * 1.19 : totalSeller * 0.02 * 1.19;
-            return shippingRate - extraCharge;
+            const collectionFee = carrierInfo.collectionFee ?? 0;
+            return shippingRate - collectionFee;
           } else {
             return shippingRate;
           }
