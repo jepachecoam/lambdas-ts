@@ -52,6 +52,10 @@ class Model {
       (order: any) => order.carrierTrackingCode
     );
     const ordersIncidentsTcc = await this.getOrdersWithIncidentsTCC(remesas);
+    if (!ordersIncidentsTcc) {
+      console.log("Not found ordersIncidentsTcc");
+      return null;
+    }
     const dataToInsert = dto.findMatches({
       ordersIncidentsMs,
       ordersIncidentsTcc
