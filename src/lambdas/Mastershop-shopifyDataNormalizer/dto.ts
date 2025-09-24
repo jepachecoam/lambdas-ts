@@ -662,13 +662,13 @@ export function convertToOrderSchemaExpected(input: any): {
       const price =
         node?.originalUnitPriceSet?.shopMoney?.amount || variant.price || 0;
 
-      const productId = parseInt(node.product.id.split("/").pop() || "0");
-      const variantId = parseInt(variant.id.split("/").pop() || "0");
+      const productId = parseInt(node?.product?.id.split("/").pop() || "0");
+      const variantId = parseInt(variant?.id.split("/").pop() || "0");
 
       return {
         name: node.title,
         current_quantity: node.quantity,
-        grams: variant.inventoryItem?.measurement?.weight?.value || 0,
+        grams: variant?.inventoryItem?.measurement?.weight?.value || 0,
         price: parseFloat(price),
         title: node.title,
         product_id: productId,
