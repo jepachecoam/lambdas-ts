@@ -5,6 +5,7 @@ import { handler as b2cAuth } from "../lambdas/b2c-auth/index";
 import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-wallet/index";
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
+import { handler as customerDeduplicationJob } from "../lambdas/Mastershop-CustomerDeduplicationJob/index";
 import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/index";
 import { handler as ordersMonitor } from "../lambdas/MasterShop-OrdersMonitor/index";
 import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
@@ -20,6 +21,11 @@ const router = Router();
 router.post(
   "/example",
   serverResponse({ handler: example, responseType: "http" })
+);
+
+router.post(
+  "/customer-deduplication-job",
+  serverResponse({ handler: customerDeduplicationJob, responseType: "http" })
 );
 
 router.post(
