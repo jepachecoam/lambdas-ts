@@ -113,8 +113,7 @@ class Dao {
   }
 
   async getAllActiveCustomers(): Promise<Customer[] | null> {
-    const query =
-      "SELECT * FROM customer WHERE isActive = 1 and idBussiness = 456";
+    const query = "SELECT * FROM customer WHERE isActive = 1";
     return this.db.fetchMany(query) as Promise<Customer[] | null>;
   }
   async reassignOrdersToWinner(
