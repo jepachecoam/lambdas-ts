@@ -172,7 +172,7 @@ class Model {
     );
 
     for (const duplicate of group.duplicates) {
-      await this.dao.reassignOrdersToWinner(
+      await this.reassignOrdersToWinner(
         duplicate.idCustomer,
         group.winner.idCustomer
       );
@@ -182,6 +182,25 @@ class Model {
 
     for (const duplicate of group.duplicates) {
       await this.dao.deactivateCustomer(duplicate.idCustomer);
+    }
+  }
+
+  private async reassignOrdersToWinner(
+    oldCustomerId: number,
+    newCustomerId: number
+  ): Promise<void> {
+    const orders = await this.dao.getOrdersByCustomer(oldCustomerId);
+
+    if (orders && orders.length > 0) {
+      await this.dao.updateOrdersCustomer(oldCustomerId, newCustomerId);
+
+      for (const order of orders) {
+        await this.dao.createOrderReassignmentRecord(
+          order.idOrder,
+          oldCustomerId,
+          newCustomerId
+        );
+      }
     }
   }
 
