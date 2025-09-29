@@ -3,16 +3,14 @@ import Fuse from "fuse.js";
 import { EnvironmentTypes } from "../../shared/types/database";
 import Dao from "./dao";
 import {
-  countryPhoneCodes,
-  MATCH_WEIGHTS,
-  MATCHING_CONFIG
-} from "./types/constants";
-import {
   BatchDeduplicationResult,
+  countryPhoneCodes,
   Customer,
   DuplicateGroup,
+  MATCH_WEIGHTS,
+  MATCHING_CONFIG,
   MatchResult
-} from "./types/interfaces";
+} from "./types";
 
 class Model {
   private dao: Dao;

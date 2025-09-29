@@ -1,12 +1,14 @@
 import httpResponse from "../../shared/responses/http";
+import dto from "./dto";
 import Model from "./model";
 
 export const handler = async (event: any) => {
   try {
     console.log("event :>>>", JSON.stringify(event));
 
-    const environment = event.environment || "dev";
-    const model = new Model(environment as "dev" | "prod" | "qa");
+    const { environment } = dto.getParams(event);
+
+    const model = new Model(environment);
 
     const result = await model.processBatchDeduplication();
 

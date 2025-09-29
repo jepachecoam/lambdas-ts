@@ -2,7 +2,7 @@ import { QueryTypes } from "sequelize";
 
 import Database from "../../shared/databases/sequelize";
 import { EnvironmentTypes } from "../../shared/types/database";
-import { Customer, ResolveIdCustomerRequest } from "./types/interfaces";
+import { Customer, ResolveIdCustomerRequest } from "./types";
 
 class Dao {
   private db: Database;
