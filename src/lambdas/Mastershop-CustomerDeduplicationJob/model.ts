@@ -190,11 +190,17 @@ class Model {
     duplicates: Customer[]
   ): Promise<void> {
     for (const duplicate of duplicates) {
-      if (duplicate.phone && duplicate.phone !== winner.phone) {
+      if (
+        duplicate.phone &&
+        !this.phoneExistsInWinner(duplicate.phone, winner.phone)
+      ) {
         await this.dao.createCustomerPhone(winner.idCustomer, duplicate.phone);
       }
 
-      if (duplicate.email && duplicate.email !== winner.email) {
+      if (
+        duplicate.email &&
+        !this.emailExistsInWinner(duplicate.email, winner.email)
+      ) {
         await this.dao.createCustomerEmail(winner.idCustomer, duplicate.email);
       }
 
@@ -207,7 +213,10 @@ class Model {
 
       if (
         duplicate.defaultAddress &&
-        this.isDifferentAddress(winner.defaultAddress, duplicate.defaultAddress)
+        !this.addressExistsInWinner(
+          duplicate.defaultAddress,
+          winner.defaultAddress
+        )
       ) {
         await this.dao.createCustomerAddress(
           winner.idCustomer,
@@ -217,15 +226,50 @@ class Model {
     }
   }
 
-  private isDifferentAddress(address1: any, address2: any): boolean {
-    if (!address1 || !address2) return !!address2;
+  private phoneExistsInWinner(
+    duplicatePhone: string,
+    winnerPhone: string | null
+  ): boolean {
+    if (!winnerPhone) return false;
+    return (
+      this.normalizePhone(duplicatePhone) === this.normalizePhone(winnerPhone)
+    );
+  }
 
-    const parsed1 = this.parseCustomerAddress(address1);
-    const parsed2 = this.parseCustomerAddress(address2);
+  private emailExistsInWinner(
+    duplicateEmail: string,
+    winnerEmail: string | null | undefined
+  ): boolean {
+    if (!winnerEmail) return false;
+    return (
+      this.normalizeText(duplicateEmail) === this.normalizeText(winnerEmail)
+    );
+  }
 
-    if (!parsed1 || !parsed2) return true;
+  private addressExistsInWinner(
+    duplicateAddress: any,
+    winnerAddress: any
+  ): boolean {
+    if (!winnerAddress || !duplicateAddress) return false;
 
-    return parsed1.city !== parsed2.city || parsed1.state !== parsed2.state;
+    const FUZZY_THRESHOLD = 0.3;
+    const parsedDuplicate = this.parseCustomerAddress(duplicateAddress);
+    const parsedWinner = this.parseCustomerAddress(winnerAddress);
+
+    if (!parsedDuplicate || !parsedWinner) return false;
+
+    const stateScore = this.fuzzySearch(
+      this.normalizeText(parsedDuplicate.state || ""),
+      this.normalizeText(parsedWinner.state || ""),
+      FUZZY_THRESHOLD
+    );
+    const cityScore = this.fuzzySearch(
+      this.normalizeText(parsedDuplicate.city || ""),
+      this.normalizeText(parsedWinner.city || ""),
+      FUZZY_THRESHOLD
+    );
+
+    return stateScore !== null && cityScore !== null;
   }
 
   private normalizeCustomerData(customer: Customer): Customer {

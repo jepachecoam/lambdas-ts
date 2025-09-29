@@ -30,21 +30,6 @@ export enum MATCHING_CONFIG {
   MIN_SCORE = 55
 }
 
-export interface ResolveIdCustomerRequest {
-  idUser: number;
-  idBusiness: number;
-  externalId?: string | null;
-  fullName: string;
-  firstName: string;
-  lastName?: string | null;
-  tags?: any | null;
-  email?: string | null;
-  phone?: string | null;
-  address?: any;
-  documentType?: string | null;
-  document?: string | null;
-}
-
 export interface Customer {
   idCustomer: number;
   idUser: number;
@@ -53,7 +38,7 @@ export interface Customer {
   firstName: string;
   lastName: string;
   email?: string | null;
-  phone: string;
+  phone: string | null;
   defaultAddress: any;
   tags?: any;
   documentType?: string | null;
