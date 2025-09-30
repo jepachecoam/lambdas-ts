@@ -30,28 +30,18 @@ class Model {
     }
 
     const customersByBusiness = this.groupCustomersByBusiness(allCustomers);
-    console.log(
-      `Processing ${Object.keys(customersByBusiness).length} businesses`
-    );
 
     let totalDuplicateGroups = 0;
     let totalMergedCustomers = 0;
 
-    for (const [idBusiness, customers] of Object.entries(customersByBusiness)) {
-      console.log(
-        `Processing business ${idBusiness} with ${customers.length} customers`
-      );
-
+    for (const customers of Object.values(customersByBusiness)) {
       const duplicateGroups = this.findDuplicateGroups(customers);
-      console.log(
-        `Found ${duplicateGroups.length} duplicate groups in business ${idBusiness}`
-      );
 
       for (const group of duplicateGroups) {
         await this.mergeDuplicateGroup(group);
+
         totalMergedCustomers += group.duplicates.length;
       }
-
       totalDuplicateGroups += duplicateGroups.length;
     }
 
@@ -157,10 +147,7 @@ class Model {
 
     scores.sort((a, b) => {
       if (a.fieldCount !== b.fieldCount) return b.fieldCount - a.fieldCount;
-      return (
-        new Date(a.customer.createdAt || 0).getTime() -
-        new Date(b.customer.createdAt || 0).getTime()
-      );
+      return a.customer.idCustomer - b.customer.idCustomer;
     });
 
     return scores[0].customer;
