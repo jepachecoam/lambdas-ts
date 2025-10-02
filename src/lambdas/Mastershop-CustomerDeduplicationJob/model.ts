@@ -1,5 +1,3 @@
-import Fuse from "fuse.js";
-
 import { EnvironmentTypes } from "../../shared/types/database";
 import Dao from "./dao";
 import {
@@ -37,11 +35,16 @@ class Model {
     for (const customers of Object.values(customersByBusiness)) {
       const duplicateGroups = this.findDuplicateGroups(customers);
 
-      for (const group of duplicateGroups) {
-        await this.mergeDuplicateGroup(group);
+      const mergePromises = duplicateGroups.map((group) =>
+        this.mergeDuplicateGroup(group)
+      );
 
-        totalMergedCustomers += group.duplicates.length;
-      }
+      await Promise.all(mergePromises);
+
+      totalMergedCustomers += duplicateGroups.reduce(
+        (sum, group) => sum + group.duplicates.length,
+        0
+      );
       totalDuplicateGroups += duplicateGroups.length;
     }
 
@@ -74,42 +77,250 @@ class Model {
     const groups: DuplicateGroup[] = [];
     const processed = new Set<number>();
 
-    for (let i = 0; i < customers.length; i++) {
-      if (processed.has(customers[i].idCustomer)) continue;
+    // Build hash indices O(n)
+    const indices = this.buildHashIndices(customers);
 
+    // Find duplicates using hash lookups O(n)
+    for (const customer of customers) {
+      const startTime = Date.now();
+
+      if (processed.has(customer.idCustomer)) continue;
+
+      const candidates = this.findCandidates(customer, indices);
       const duplicates: Customer[] = [];
-      const mainCustomer = customers[i];
 
-      for (let j = i + 1; j < customers.length; j++) {
-        if (processed.has(customers[j].idCustomer)) continue;
+      for (const candidate of candidates) {
+        if (
+          processed.has(candidate.idCustomer) ||
+          candidate.idCustomer === customer.idCustomer
+        ) {
+          continue;
+        }
 
-        const score = this.calculateMatchScore(mainCustomer, customers[j]);
+        const score = this.calculateMatchScore(customer, candidate);
 
         if (
           score.totalScore >= MATCHING_CONFIG.MIN_SCORE &&
           score.matches.length >= MATCHING_CONFIG.MIN_MATCHES
         ) {
-          duplicates.push(customers[j]);
-          processed.add(customers[j].idCustomer);
+          duplicates.push(candidate);
+          processed.add(candidate.idCustomer);
         }
       }
 
       if (duplicates.length > 0) {
-        const allInGroup = [mainCustomer, ...duplicates];
+        const allInGroup = [customer, ...duplicates];
         const winner = this.selectWinner(allInGroup);
 
-        groups.push({
+        const result = {
           winner,
           duplicates: allInGroup.filter(
             (c) => c.idCustomer !== winner.idCustomer
           )
-        });
+        };
 
-        processed.add(mainCustomer.idCustomer);
+        console.log(
+          `Match >>> Winner: ${winner.idCustomer}, Losers: [${allInGroup
+            .filter((c) => c.idCustomer !== winner.idCustomer)
+            .map((c) => c.idCustomer)
+            .join(", ")}]`
+        );
+
+        groups.push(result);
+
+        processed.add(customer.idCustomer);
       }
+
+      const endTime = Date.now();
+      console.log(
+        `Customer ${customer.idCustomer} processed in ${endTime - startTime}ms`
+      );
     }
 
     return groups;
+  }
+
+  private buildHashIndices(customers: Customer[]) {
+    const phoneIndex = new Map<string, Customer[]>();
+    const emailIndex = new Map<string, Customer[]>();
+    const documentIndex = new Map<string, Customer[]>();
+    const fullNameIndex = new Map<string, Customer[]>();
+    const firstNameIndex = new Map<string, Customer[]>();
+    const lastNameIndex = new Map<string, Customer[]>();
+    const stateIndex = new Map<string, Customer[]>();
+    const cityIndex = new Map<string, Customer[]>();
+
+    for (const customer of customers) {
+      const normalized = this.normalizeCustomerData(customer);
+
+      // Phone index - must be > 6 characters and not "null"
+      if (
+        normalized.phone &&
+        normalized.phone.length > 6 &&
+        normalized.phone !== "null"
+      ) {
+        this.addToIndex(phoneIndex, normalized.phone, customer);
+      }
+
+      // Email index - must be > 7 characters and not "null"
+      if (
+        normalized.email &&
+        normalized.email.length > 7 &&
+        normalized.email !== "null"
+      ) {
+        this.addToIndex(emailIndex, normalized.email, customer);
+      }
+
+      // Document index - must be > 6 characters and not "null"
+      if (
+        normalized.document &&
+        normalized.document.length > 6 &&
+        normalized.document !== "null"
+      ) {
+        this.addToIndex(documentIndex, normalized.document, customer);
+      }
+
+      // Name indices - already filtered by normalizeNameText (removes < 3 chars)
+      if (normalized.fullName && normalized.fullName.length > 0) {
+        this.addToIndex(fullNameIndex, normalized.fullName, customer);
+      }
+      if (normalized.firstName && normalized.firstName.length > 0) {
+        this.addToIndex(firstNameIndex, normalized.firstName, customer);
+      }
+      if (normalized.lastName && normalized.lastName.length > 0) {
+        this.addToIndex(lastNameIndex, normalized.lastName, customer);
+      }
+
+      // Address indices
+      const address = this.parseCustomerAddress(normalized.defaultAddress);
+      if (address) {
+        if (address.state && address.state !== "null") {
+          const normalizedState = this.normalizeNameText(address.state);
+          if (normalizedState && normalizedState.length > 3) {
+            this.addToIndex(stateIndex, normalizedState, customer);
+          }
+        }
+        if (address.city && address.city !== "null") {
+          const normalizedCity = this.normalizeNameText(address.city);
+          if (normalizedCity && normalizedCity.length > 3) {
+            this.addToIndex(cityIndex, normalizedCity, customer);
+          }
+        }
+      }
+    }
+
+    return {
+      phoneIndex,
+      emailIndex,
+      documentIndex,
+      fullNameIndex,
+      firstNameIndex,
+      lastNameIndex,
+      stateIndex,
+      cityIndex
+    };
+  }
+
+  private addToIndex(
+    index: Map<string, Customer[]>,
+    key: string,
+    customer: Customer
+  ): void {
+    if (!index.has(key)) {
+      index.set(key, []);
+    }
+    index.get(key)!.push(customer);
+  }
+
+  private findCandidates(customer: Customer, indices: any): Set<Customer> {
+    const candidates = new Set<Customer>();
+    const normalized = this.normalizeCustomerData(customer);
+
+    // Search in all indices with same validations as buildHashIndices
+    if (
+      normalized.phone &&
+      normalized.phone.length > 6 &&
+      normalized.phone !== "null" &&
+      indices.phoneIndex.has(normalized.phone)
+    ) {
+      indices.phoneIndex
+        .get(normalized.phone)!
+        .forEach((c: Customer) => candidates.add(c));
+    }
+
+    if (
+      normalized.email &&
+      normalized.email.length > 7 &&
+      normalized.email !== "null" &&
+      indices.emailIndex.has(normalized.email)
+    ) {
+      indices.emailIndex
+        .get(normalized.email)!
+        .forEach((c: Customer) => candidates.add(c));
+    }
+
+    if (
+      normalized.document &&
+      normalized.document.length > 6 &&
+      normalized.document !== "null" &&
+      indices.documentIndex.has(normalized.document)
+    ) {
+      indices.documentIndex
+        .get(normalized.document)!
+        .forEach((c: Customer) => candidates.add(c));
+    }
+
+    if (normalized.fullName && indices.fullNameIndex.has(normalized.fullName)) {
+      indices.fullNameIndex
+        .get(normalized.fullName)!
+        .forEach((c: Customer) => candidates.add(c));
+    }
+
+    if (
+      normalized.firstName &&
+      indices.firstNameIndex.has(normalized.firstName)
+    ) {
+      indices.firstNameIndex
+        .get(normalized.firstName)!
+        .forEach((c: Customer) => candidates.add(c));
+    }
+
+    if (normalized.lastName && indices.lastNameIndex.has(normalized.lastName)) {
+      indices.lastNameIndex
+        .get(normalized.lastName)!
+        .forEach((c: Customer) => candidates.add(c));
+    }
+
+    // Address candidates
+    const address = this.parseCustomerAddress(normalized.defaultAddress);
+    if (address) {
+      if (address.state && address.state !== "null") {
+        const normalizedState = this.normalizeNameText(address.state);
+        if (
+          normalizedState &&
+          normalizedState.length > 3 &&
+          indices.stateIndex.has(normalizedState)
+        ) {
+          indices.stateIndex
+            .get(normalizedState)!
+            .forEach((c: Customer) => candidates.add(c));
+        }
+      }
+      if (address.city && address.city !== "null") {
+        const normalizedCity = this.normalizeNameText(address.city);
+        if (
+          normalizedCity &&
+          normalizedCity.length > 3 &&
+          indices.cityIndex.has(normalizedCity)
+        ) {
+          indices.cityIndex
+            .get(normalizedCity)!
+            .forEach((c: Customer) => candidates.add(c));
+        }
+      }
+    }
+
+    return candidates;
   }
 
   private calculateMatchScore(
@@ -141,7 +352,6 @@ class Model {
       if (customer.defaultAddress) fieldCount++;
       if (customer.firstName) fieldCount++;
       if (customer.lastName) fieldCount++;
-      if (customer.externalId) fieldCount++;
       return { customer, fieldCount };
     });
 
@@ -158,63 +368,44 @@ class Model {
       `Merging group: winner ${group.winner.idCustomer}, duplicates: ${group.duplicates.map((d) => d.idCustomer).join(", ")}`
     );
 
-    for (const duplicate of group.duplicates) {
-      await this.reassignOrdersToWinner(
-        duplicate.idCustomer,
-        group.winner.idCustomer
-      );
-    }
+    const duplicateIds = group.duplicates.map((d) => d.idCustomer);
 
-    await this.addUniqueDataToWinner(group.winner, group.duplicates);
+    await this.dao.batchCreateOrderReassignmentRecords(
+      duplicateIds,
+      group.winner.idCustomer
+    );
 
-    for (const duplicate of group.duplicates) {
-      await this.dao.deactivateCustomer(duplicate.idCustomer);
-    }
+    await this.dao.batchUpdateOrdersCustomer(
+      duplicateIds,
+      group.winner.idCustomer
+    );
+
+    await this.batchAddUniqueDataToWinner(group.winner, group.duplicates);
+
+    await this.dao.batchDeactivateCustomers(duplicateIds);
   }
 
-  private async reassignOrdersToWinner(
-    oldCustomerId: number,
-    newCustomerId: number
-  ): Promise<void> {
-    const orders = await this.dao.getOrdersByCustomer(oldCustomerId);
-
-    if (orders && orders.length > 0) {
-      await this.dao.updateOrdersCustomer(oldCustomerId, newCustomerId);
-
-      for (const order of orders) {
-        await this.dao.createOrderReassignmentRecord(
-          order.idOrder,
-          oldCustomerId,
-          newCustomerId
-        );
-      }
-    }
-  }
-
-  private async addUniqueDataToWinner(
+  private async batchAddUniqueDataToWinner(
     winner: Customer,
     duplicates: Customer[]
   ): Promise<void> {
+    const phones: string[] = [];
+    const emails: string[] = [];
+    const addresses: any[] = [];
+
     for (const duplicate of duplicates) {
       if (
         duplicate.phone &&
         !this.phoneExistsInWinner(duplicate.phone, winner.phone)
       ) {
-        await this.dao.createCustomerPhone(winner.idCustomer, duplicate.phone);
+        phones.push(duplicate.phone);
       }
 
       if (
         duplicate.email &&
         !this.emailExistsInWinner(duplicate.email, winner.email)
       ) {
-        await this.dao.createCustomerEmail(winner.idCustomer, duplicate.email);
-      }
-
-      if (duplicate.externalId && duplicate.externalId !== winner.externalId) {
-        await this.dao.createCustomerExternalKey(
-          winner.idCustomer,
-          duplicate.externalId
-        );
+        emails.push(duplicate.email);
       }
 
       if (
@@ -224,12 +415,28 @@ class Model {
           winner.defaultAddress
         )
       ) {
-        await this.dao.createCustomerAddress(
-          winner.idCustomer,
-          duplicate.defaultAddress
-        );
+        addresses.push(duplicate.defaultAddress);
       }
     }
+
+    const promises = [];
+    if (phones.length > 0) {
+      promises.push(
+        this.dao.batchCreateCustomerPhones(winner.idCustomer, phones)
+      );
+    }
+    if (emails.length > 0) {
+      promises.push(
+        this.dao.batchCreateCustomerEmails(winner.idCustomer, emails)
+      );
+    }
+    if (addresses.length > 0) {
+      promises.push(
+        this.dao.batchCreateCustomerAddresses(winner.idCustomer, addresses)
+      );
+    }
+
+    await Promise.all(promises);
   }
 
   private phoneExistsInWinner(
@@ -248,7 +455,7 @@ class Model {
   ): boolean {
     if (!winnerEmail) return false;
     return (
-      this.normalizeText(duplicateEmail) === this.normalizeText(winnerEmail)
+      this.normalizeEmail(duplicateEmail) === this.normalizeEmail(winnerEmail)
     );
   }
 
@@ -258,24 +465,17 @@ class Model {
   ): boolean {
     if (!winnerAddress || !duplicateAddress) return false;
 
-    const FUZZY_THRESHOLD = 0.3;
     const parsedDuplicate = this.parseCustomerAddress(duplicateAddress);
     const parsedWinner = this.parseCustomerAddress(winnerAddress);
 
     if (!parsedDuplicate || !parsedWinner) return false;
 
-    const stateScore = this.fuzzySearch(
-      this.normalizeText(parsedDuplicate.state || ""),
-      this.normalizeText(parsedWinner.state || ""),
-      FUZZY_THRESHOLD
-    );
-    const cityScore = this.fuzzySearch(
-      this.normalizeText(parsedDuplicate.city || ""),
-      this.normalizeText(parsedWinner.city || ""),
-      FUZZY_THRESHOLD
-    );
+    const duplicateState = this.normalizeNameText(parsedDuplicate.state || "");
+    const winnerState = this.normalizeNameText(parsedWinner.state || "");
+    const duplicateCity = this.normalizeNameText(parsedDuplicate.city || "");
+    const winnerCity = this.normalizeNameText(parsedWinner.city || "");
 
-    return stateScore !== null && cityScore !== null;
+    return duplicateState === winnerState && duplicateCity === winnerCity;
   }
 
   private normalizeCustomerData(customer: Customer): Customer {
@@ -284,18 +484,20 @@ class Model {
       ? {
           ...parsedAddress,
           state: parsedAddress.state
-            ? this.normalizeText(parsedAddress.state)
+            ? this.normalizeNameText(parsedAddress.state)
             : "",
-          city: parsedAddress.city ? this.normalizeText(parsedAddress.city) : ""
+          city: parsedAddress.city
+            ? this.normalizeNameText(parsedAddress.city)
+            : ""
         }
       : customer.defaultAddress;
 
     return {
       ...customer,
-      fullName: this.normalizeText(customer.fullName),
-      firstName: this.normalizeText(customer.firstName),
-      lastName: this.normalizeText(customer.lastName || ""),
-      email: customer.email ? this.normalizeText(customer.email) : null,
+      fullName: this.normalizeNameText(customer.fullName),
+      firstName: this.normalizeNameText(customer.firstName),
+      lastName: this.normalizeNameText(customer.lastName || ""),
+      email: customer.email ? this.normalizeEmail(customer.email) : null,
       phone: customer.phone ? this.normalizePhone(customer.phone) : "",
       document: customer.document ? this.normalizeText(customer.document) : "",
       defaultAddress: normalizedAddress
@@ -321,11 +523,6 @@ class Model {
       matchResult.matches.push("document");
       matchResult.totalScore += MATCH_WEIGHTS.DOCUMENT;
     }
-
-    if (this.exactMatch(customer1.externalId, customer2.externalId)) {
-      matchResult.matches.push("externalId");
-      matchResult.totalScore += MATCH_WEIGHTS.EXTERNAL_PLATFORM_ID;
-    }
   }
 
   private processNameMatches(
@@ -333,48 +530,19 @@ class Model {
     customer2: Customer,
     matchResult: MatchResult
   ): void {
-    const NAME_THRESHOLD = 0.5;
-
-    const fullNameScore = this.fuzzySearch(
-      this.removeInitials(customer1.fullName),
-      this.removeInitials(customer2.fullName),
-      NAME_THRESHOLD
-    );
-    if (fullNameScore !== null) {
+    if (this.exactMatch(customer1.fullName, customer2.fullName)) {
       matchResult.matches.push("fullName");
-      matchResult.fuzzyMatches.push({
-        field: "fullName",
-        score: fullNameScore
-      });
       matchResult.totalScore += MATCH_WEIGHTS.FULL_NAME;
       return;
     }
 
-    const firstNameScore = this.fuzzySearch(
-      this.removeInitials(customer1.firstName),
-      this.removeInitials(customer2.firstName),
-      NAME_THRESHOLD
-    );
-    if (firstNameScore !== null) {
+    if (this.exactMatch(customer1.firstName, customer2.firstName)) {
       matchResult.matches.push("firstName");
-      matchResult.fuzzyMatches.push({
-        field: "firstName",
-        score: firstNameScore
-      });
       matchResult.totalScore += MATCH_WEIGHTS.FIRST_NAME;
     }
 
-    const lastNameScore = this.fuzzySearch(
-      this.removeInitials(customer1.lastName || ""),
-      this.removeInitials(customer2.lastName || ""),
-      NAME_THRESHOLD
-    );
-    if (lastNameScore !== null) {
+    if (this.exactMatch(customer1.lastName, customer2.lastName)) {
       matchResult.matches.push("lastName");
-      matchResult.fuzzyMatches.push({
-        field: "lastName",
-        score: lastNameScore
-      });
       matchResult.totalScore += MATCH_WEIGHTS.LAST_NAME;
     }
   }
@@ -391,40 +559,22 @@ class Model {
 
     if (!address1 || !address2) return;
 
-    const STATE_THRESHOLD = 0.3;
-    const CITY_THRESHOLD = 0.15;
+    const state1 = this.normalizeNameText(address1.state || "");
+    const state2 = this.normalizeNameText(address2.state || "");
+    const city1 = this.normalizeNameText(address1.city || "");
+    const city2 = this.normalizeNameText(address2.city || "");
 
     let isStateValid = false;
 
-    const stateScore = this.fuzzySearch(
-      address1.state,
-      address2.state,
-      STATE_THRESHOLD
-    );
-    if (stateScore !== null) {
+    if (state1 && state2 && state1 === state2) {
       isStateValid = true;
       matchResult.matches.push("address_state");
-      matchResult.fuzzyMatches.push({
-        field: "address_state",
-        score: stateScore
-      });
       matchResult.totalScore += MATCH_WEIGHTS.ADDRESS_STATE;
     }
 
-    if (isStateValid) {
-      const cityScore = this.fuzzySearch(
-        address1.city,
-        address2.city,
-        CITY_THRESHOLD
-      );
-      if (cityScore !== null) {
-        matchResult.matches.push("address_city");
-        matchResult.fuzzyMatches.push({
-          field: "address_city",
-          score: cityScore
-        });
-        matchResult.totalScore += MATCH_WEIGHTS.ADDRESS_CITY;
-      }
+    if (isStateValid && city1 && city2 && city1 === city2) {
+      matchResult.matches.push("address_city");
+      matchResult.totalScore += MATCH_WEIGHTS.ADDRESS_CITY;
     }
   }
 
@@ -441,36 +591,7 @@ class Model {
 
   private exactMatch(value1: any, value2: any): boolean {
     if (!value1 || !value2) return false;
-    return (
-      this.normalizeText(value1.toString()) ===
-      this.normalizeText(value2.toString())
-    );
-  }
-
-  private fuzzySearch(
-    searchValue: string | null | undefined,
-    targetValue: string | null | undefined,
-    threshold: number
-  ): number | null {
-    if (!searchValue || !targetValue) return null;
-
-    const normalizedSearch = this.normalizeText(searchValue);
-    const normalizedTarget = this.normalizeText(targetValue);
-
-    if (normalizedSearch.length < 3 || normalizedTarget.length < 3) return null;
-
-    const fuse = new Fuse([normalizedTarget], { includeScore: true });
-    const result = fuse.search(normalizedSearch);
-
-    if (
-      result.length > 0 &&
-      result[0]?.score !== undefined &&
-      result[0].score <= threshold
-    ) {
-      return result[0].score;
-    }
-
-    return null;
+    return value1.toString() === value2.toString();
   }
 
   private normalizeText(text: string): string {
@@ -483,12 +604,24 @@ class Model {
       .replace(/[\u0300-\u036f]/g, "");
   }
 
-  private removeInitials(name: string | null | undefined): string {
-    if (!name) return "";
-    return this.normalizeText(name)
+  private normalizeEmail(email: string): string {
+    if (!email) return "";
+    return email.toString().trim().toLowerCase();
+  }
+
+  private normalizeNameText(text: string): string {
+    if (!text) return "";
+
+    return text
+      .toString()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove accents
+      .replace(/[^a-z\s]/g, "") // Remove numbers and special chars
       .split(" ")
-      .filter((part) => part.length > 1)
-      .join(" ");
+      .filter((word) => word.length >= 3) // Remove words < 3 chars
+      .join("") // Join without spaces
+      .trim();
   }
 
   private normalizePhone(phone: string): string {

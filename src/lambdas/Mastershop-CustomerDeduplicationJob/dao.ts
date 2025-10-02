@@ -9,122 +9,95 @@ class Dao {
     this.db = new Database(environment);
   }
 
-  async createCustomerPhone(
-    idCustomer: number,
-    phone: string
-  ): Promise<boolean | null> {
-    const query = `
-        INSERT INTO customerPhone (idCustomer, phone)
-        SELECT :idCustomer, :phone
-        WHERE NOT EXISTS (
-          SELECT 1 FROM customerPhone 
-          WHERE idCustomer = :idCustomer AND phone = :phone
-        )
-      `;
-    return this.db.insert(query, {
-      replacements: { idCustomer, phone }
-    });
-  }
-
-  async createCustomerExternalKey(
-    idCustomer: number,
-    externalId: string
-  ): Promise<boolean | null> {
-    const query = `
-        INSERT INTO customerExternalKey (idCustomer, externalId)
-        SELECT :idCustomer, :externalId
-        WHERE NOT EXISTS (
-          SELECT 1 FROM customerExternalKey 
-          WHERE idCustomer = :idCustomer AND externalId = :externalId
-        )
-      `;
-    return this.db.insert(query, {
-      replacements: { idCustomer, externalId }
-    });
-  }
-
-  async createCustomerAddress(
-    idCustomer: number,
-    address: any
-  ): Promise<boolean | null> {
-    const query = `
-        INSERT INTO customerAddress (idCustomer, address)
-        SELECT :idCustomer, :address
-        WHERE NOT EXISTS (
-          SELECT 1 FROM customerAddress 
-          WHERE idCustomer = :idCustomer 
-          AND JSON_UNQUOTE(JSON_EXTRACT(address, '$.state')) = :state
-          AND JSON_UNQUOTE(JSON_EXTRACT(address, '$.city')) = :city
-        )
-      `;
-    return this.db.insert(query, {
-      replacements: {
-        idCustomer,
-        address: JSON.stringify(address),
-        state: address.state,
-        city: address.city
-      }
-    });
-  }
-
-  async createCustomerEmail(
-    idCustomer: number,
-    email: string
-  ): Promise<boolean | null> {
-    const query = `
-        INSERT INTO customerEmail (idCustomer, email)
-        SELECT :idCustomer, :email
-        WHERE NOT EXISTS (
-          SELECT 1 FROM customerEmail 
-          WHERE idCustomer = :idCustomer AND email = :email
-        )
-      `;
-
-    return this.db.insert(query, {
-      replacements: { idCustomer, email }
-    });
-  }
-
   async getAllActiveCustomers(): Promise<Customer[] | null> {
-    const query = "SELECT * FROM customer WHERE isActive = 1";
+    const query =
+      "SELECT * FROM customer WHERE isActive = 1 and idCustomer in (10637, 14506, 14707, 15595, 15719)";
     return this.db.fetchMany(query) as Promise<Customer[] | null>;
   }
-  async getOrdersByCustomer(customerId: number): Promise<any[] | null> {
-    const query = "SELECT idOrder FROM `order` WHERE idCustomer = :customerId";
-    return this.db.fetchMany(query, {
-      replacements: { customerId }
-    });
+
+  async batchDeactivateCustomers(
+    customerIds: number[]
+  ): Promise<boolean | null> {
+    if (customerIds.length === 0) return true;
+    const query = `UPDATE customer SET isActive = 0 WHERE idCustomer IN (${customerIds.join(",")})`;
+    return this.db.update(query);
   }
 
-  async updateOrdersCustomer(
-    oldCustomerId: number,
+  async batchCreateOrderReassignmentRecords(
+    oldCustomerIds: number[],
     newCustomerId: number
   ): Promise<boolean | null> {
-    const query =
-      "UPDATE `order` SET idCustomer = :newCustomerId WHERE idCustomer = :oldCustomerId";
-    return this.db.update(query, {
-      replacements: { oldCustomerId, newCustomerId }
-    });
-  }
+    if (oldCustomerIds.length === 0) return true;
 
-  async createOrderReassignmentRecord(
-    idOrder: number,
-    oldCustomerId: number,
-    newCustomerId: number
-  ): Promise<boolean | null> {
     const query = `
       INSERT INTO customerOrderReassignment (idOrder, oldIdCustomer, newIdCustomer)
-      VALUES (:idOrder, :oldCustomerId, :newCustomerId)
+      SELECT idOrder, idCustomer, ${newCustomerId} 
+      FROM \`order\` 
+      WHERE idCustomer IN (${oldCustomerIds.join(",")})
     `;
-    return this.db.insert(query, {
-      replacements: { idOrder, oldCustomerId, newCustomerId }
-    });
+    return this.db.insert(query);
   }
 
-  async deactivateCustomer(idCustomer: number): Promise<boolean | null> {
-    const query =
-      "UPDATE customer SET isActive = 0 WHERE idCustomer = :idCustomer";
-    return this.db.update(query, { replacements: { idCustomer } });
+  async batchUpdateOrdersCustomer(
+    oldCustomerIds: number[],
+    newCustomerId: number
+  ): Promise<boolean | null> {
+    if (oldCustomerIds.length === 0) return true;
+
+    const query = `UPDATE \`order\` SET idCustomer = ${newCustomerId} WHERE idCustomer IN (${oldCustomerIds.join(",")})`;
+    return this.db.update(query);
+  }
+
+  async batchCreateCustomerPhones(
+    idCustomer: number,
+    phones: string[]
+  ): Promise<boolean | null> {
+    if (phones.length === 0) return true;
+
+    const values = phones
+      .map((phone) => `(${idCustomer}, '${phone}')`)
+      .join(",");
+    const query = `
+      INSERT IGNORE INTO customerPhone (idCustomer, phone)
+      VALUES ${values}
+    `;
+    return this.db.insert(query);
+  }
+
+  async batchCreateCustomerEmails(
+    idCustomer: number,
+    emails: string[]
+  ): Promise<boolean | null> {
+    if (emails.length === 0) return true;
+
+    const values = emails
+      .map((email) => `(${idCustomer}, '${email}')`)
+      .join(",");
+    const query = `
+      INSERT IGNORE INTO customerEmail (idCustomer, email)
+      VALUES ${values}
+    `;
+    return this.db.insert(query);
+  }
+
+  async batchCreateCustomerAddresses(
+    idCustomer: number,
+    addresses: any[]
+  ): Promise<boolean | null> {
+    if (addresses.length === 0) return true;
+
+    const values = addresses
+      .map(
+        (address) =>
+          `(${idCustomer}, '${JSON.stringify(address).replace(/'/g, "\\'")}')`
+      )
+      .join(",");
+
+    const query = `
+      INSERT IGNORE INTO customerAddress (idCustomer, address)
+      VALUES ${values}
+    `;
+    return this.db.insert(query);
   }
 }
 
