@@ -77,13 +77,9 @@ class Model {
     const groups: DuplicateGroup[] = [];
     const processed = new Set<number>();
 
-    // Build hash indices O(n)
     const indices = this.buildHashIndices(customers);
 
-    // Find duplicates using hash lookups O(n)
     for (const customer of customers) {
-      const startTime = Date.now();
-
       if (processed.has(customer.idCustomer)) continue;
 
       const candidates = this.findCandidates(customer, indices);
@@ -130,11 +126,6 @@ class Model {
 
         processed.add(customer.idCustomer);
       }
-
-      const endTime = Date.now();
-      console.log(
-        `Customer ${customer.idCustomer} processed in ${endTime - startTime}ms`
-      );
     }
 
     return groups;
