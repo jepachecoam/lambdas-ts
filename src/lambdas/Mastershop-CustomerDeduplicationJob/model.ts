@@ -233,94 +233,97 @@ class Model {
   }
 
   private findCandidates(customer: Customer, indices: any): Set<Customer> {
-    const candidates = new Set<Customer>();
+    const candidateMatches = new Map<number, number>();
+    const allCustomers = new Map<number, Customer>();
     const normalized = this.normalizeCustomerData(customer);
 
-    // Search in all indices with same validations as buildHashIndices
+    const addMatches = (customers: Customer[]) => {
+      customers.forEach((c) => {
+        if (c.idCustomer !== customer.idCustomer) {
+          candidateMatches.set(
+            c.idCustomer,
+            (candidateMatches.get(c.idCustomer) || 0) + 1
+          );
+          allCustomers.set(c.idCustomer, c);
+        }
+      });
+    };
+
+    // Primary fields first
     if (
       normalized.phone &&
       normalized.phone.length > 6 &&
       normalized.phone !== "null" &&
       indices.phoneIndex.has(normalized.phone)
     ) {
-      indices.phoneIndex
-        .get(normalized.phone)!
-        .forEach((c: Customer) => candidates.add(c));
+      addMatches(indices.phoneIndex.get(normalized.phone)!);
     }
-
     if (
       normalized.email &&
       normalized.email.length > 7 &&
       normalized.email !== "null" &&
       indices.emailIndex.has(normalized.email)
     ) {
-      indices.emailIndex
-        .get(normalized.email)!
-        .forEach((c: Customer) => candidates.add(c));
+      addMatches(indices.emailIndex.get(normalized.email)!);
     }
-
     if (
       normalized.document &&
       normalized.document.length > 6 &&
       normalized.document !== "null" &&
       indices.documentIndex.has(normalized.document)
     ) {
-      indices.documentIndex
-        .get(normalized.document)!
-        .forEach((c: Customer) => candidates.add(c));
+      addMatches(indices.documentIndex.get(normalized.document)!);
     }
-
     if (normalized.fullName && indices.fullNameIndex.has(normalized.fullName)) {
-      indices.fullNameIndex
-        .get(normalized.fullName)!
-        .forEach((c: Customer) => candidates.add(c));
+      addMatches(indices.fullNameIndex.get(normalized.fullName)!);
     }
-
     if (
       normalized.firstName &&
       indices.firstNameIndex.has(normalized.firstName)
     ) {
-      indices.firstNameIndex
-        .get(normalized.firstName)!
-        .forEach((c: Customer) => candidates.add(c));
+      addMatches(indices.firstNameIndex.get(normalized.firstName)!);
     }
-
     if (normalized.lastName && indices.lastNameIndex.has(normalized.lastName)) {
-      indices.lastNameIndex
-        .get(normalized.lastName)!
-        .forEach((c: Customer) => candidates.add(c));
+      addMatches(indices.lastNameIndex.get(normalized.lastName)!);
     }
 
-    // Address candidates
-    const address = this.parseCustomerAddress(normalized.defaultAddress);
-    if (address) {
-      if (address.state && address.state !== "null") {
-        const normalizedState = this.normalizeNameText(address.state);
-        if (
-          normalizedState &&
-          normalizedState.length > 3 &&
-          indices.stateIndex.has(normalizedState)
-        ) {
-          indices.stateIndex
-            .get(normalizedState)!
-            .forEach((c: Customer) => candidates.add(c));
+    // Location fields only if we have primary matches
+    if (candidateMatches.size > 0) {
+      const address = this.parseCustomerAddress(normalized.defaultAddress);
+      if (address) {
+        if (address.state && address.state !== "null") {
+          const normalizedState = this.normalizeNameText(address.state);
+          if (
+            normalizedState &&
+            normalizedState.length > 3 &&
+            indices.stateIndex.has(normalizedState)
+          ) {
+            addMatches(indices.stateIndex.get(normalizedState)!);
+          }
         }
-      }
-      if (address.city && address.city !== "null") {
-        const normalizedCity = this.normalizeNameText(address.city);
-        if (
-          normalizedCity &&
-          normalizedCity.length > 3 &&
-          indices.cityIndex.has(normalizedCity)
-        ) {
-          indices.cityIndex
-            .get(normalizedCity)!
-            .forEach((c: Customer) => candidates.add(c));
+        if (address.city && address.city !== "null") {
+          const normalizedCity = this.normalizeNameText(address.city);
+          if (
+            normalizedCity &&
+            normalizedCity.length > 3 &&
+            indices.cityIndex.has(normalizedCity)
+          ) {
+            addMatches(indices.cityIndex.get(normalizedCity)!);
+          }
         }
       }
     }
 
-    return candidates;
+    // Return only candidates with MIN_MATCHES or more
+    const validCandidates = new Set<Customer>();
+    candidateMatches.forEach((matchCount, customerId) => {
+      if (matchCount >= MATCHING_CONFIG.MIN_MATCHES) {
+        const candidate = allCustomers.get(customerId);
+        if (candidate) validCandidates.add(candidate);
+      }
+    });
+
+    return validCandidates;
   }
 
   private calculateMatchScore(
