@@ -1,11 +1,3 @@
-import { b2bRequestEnvs } from "../../shared/types/b2b-request";
-import { dbEnv } from "../../shared/types/database";
-
-export type CustomerDeduplicationEnvs = Record<
-  keyof typeof b2bRequestEnvs | keyof typeof dbEnv,
-  string
->;
-
 export const countryPhoneCodes = [
   "1", // Estados Unidos, Canadá
   "52", // México
@@ -63,6 +55,11 @@ export interface MatchResult {
   totalScore: number;
 }
 
+export interface BatchDeduplicationResult {
+  processedBusinesses: number;
+  duplicateGroups: number;
+  mergedCustomers: number;
+}
 export interface DuplicateGroup {
   winner: Customer;
   duplicates: Customer[];

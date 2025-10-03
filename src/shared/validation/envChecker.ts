@@ -6,6 +6,20 @@ const validateEnvVariables = (requiredVars: string[]): void | Error => {
   }
 };
 
-export const checkEnv = (EnvVariables: object) => {
-  validateEnvVariables(Object.values(EnvVariables));
+type EnvRecord<T extends Record<string, string>> = {
+  [K in keyof T]: string;
+};
+
+export const checkEnv = <T extends Record<string, string>>(
+  EnvVariables: T
+): EnvRecord<T> => {
+  const envKeys = Object.values(EnvVariables);
+  validateEnvVariables(envKeys);
+
+  const envValues = {} as EnvRecord<T>;
+  for (const [key, envKey] of Object.entries(EnvVariables)) {
+    envValues[key as keyof T] = process.env[envKey]!;
+  }
+
+  return envValues;
 };
