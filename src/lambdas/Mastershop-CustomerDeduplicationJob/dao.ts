@@ -24,7 +24,7 @@ class Dao {
       from customer c
                inner join ActiveBusines ab on ab.idBussiness = c.idBussiness
                inner join BusinessWithMinData bwd on bwd.idBussiness = c.idBussiness
-     -- where c.isActive = 1`;
+     where c.isActive = 1`;
     return this.db.fetchMany(query) as Promise<Customer[] | null>;
   }
 
