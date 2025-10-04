@@ -39,21 +39,43 @@ class Model {
       const duplicateGroups = this.findDuplicateGroups(customers);
 
       if (duplicateGroups.length > 0) {
-        await b2bRequest.post(
-          `${this.environment}/api/b2b/customer/deduplication/enqueue`,
-          {
-            businessId: businessId,
-            duplicateGroups
-          }
-        );
-
-        console.log(
-          `Sent ${duplicateGroups.length} duplicate groups for business ${businessId}`
-        );
+        await this.sendDuplicateGroupsInChunks(businessId, duplicateGroups);
       }
     }
 
     console.log("Batch deduplication process completed successfully");
+  }
+
+  private async sendDuplicateGroupsInChunks(
+    businessId: string,
+    duplicateGroups: DuplicateGroup[]
+  ): Promise<void> {
+    const MAX_CHUNK_SIZE = 10;
+    const chunks = this.chunkArray(duplicateGroups, MAX_CHUNK_SIZE);
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+
+      await b2bRequest.post(
+        `${this.environment}/api/b2b/customer/deduplication/enqueue`,
+        {
+          businessId: businessId,
+          duplicateGroups: chunk
+        }
+      );
+
+      console.log(
+        `Sent chunk ${i + 1}/${chunks.length} with ${chunk.length} duplicate groups for business ${businessId}`
+      );
+    }
+  }
+
+  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
   }
 
   private groupCustomersByBusiness(
