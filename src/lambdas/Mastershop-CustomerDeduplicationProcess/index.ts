@@ -4,7 +4,7 @@ import { checkEnv } from "../../shared/validation/envChecker";
 import dto from "./dto";
 import Model from "./model";
 
-const ENVIRONMENT = "qa";
+const ENVIRONMENT = process.env["ENVIRONMENT"]!;
 
 export const handler = async (event: any) => {
   try {

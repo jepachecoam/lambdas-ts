@@ -1,11 +1,9 @@
 import Database from "../../shared/databases/sequelize";
-import { EnvironmentTypes } from "../../shared/types/database";
-import { Customer } from "./types";
 
 class Dao {
   private db: Database;
 
-  constructor(environment: EnvironmentTypes) {
+  constructor(environment: string) {
     this.db = new Database(environment);
   }
 

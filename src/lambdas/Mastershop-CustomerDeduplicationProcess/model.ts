@@ -1,4 +1,3 @@
-import { EnvironmentTypes } from "../../shared/types/database";
 import Dao from "./dao";
 import {
   countryPhoneCodes,
@@ -11,7 +10,7 @@ class Model {
   private dao: Dao;
   private envs: CustomerDeduplicationEnvs;
 
-  constructor(environment: EnvironmentTypes, envs: CustomerDeduplicationEnvs) {
+  constructor(environment: string, envs: CustomerDeduplicationEnvs) {
     this.dao = new Dao(environment);
     this.envs = envs;
   }
