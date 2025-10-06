@@ -1,20 +1,12 @@
-function getParams(event: any) {
+function getRecords(event: any) {
   console.log("event :>>>", JSON.stringify(event));
 
-  const environment = event.environment;
+  const records = event["Records"].map((record: any) => {
+    const body = JSON.parse(record.body);
+    return body;
+  });
 
-  if (
-    !environment ||
-    typeof environment !== "string" ||
-    !["prod", "dev", "qa"].includes(environment)
-  ) {
-    throw new Error("Environment is needed");
-  }
-
-  return {
-    ...event,
-    environment
-  };
+  return records;
 }
 
-export default { getParams };
+export default { getRecords };

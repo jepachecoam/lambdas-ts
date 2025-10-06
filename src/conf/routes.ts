@@ -6,6 +6,7 @@ import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
 import { handler as customerDeduplicationJob } from "../lambdas/Mastershop-CustomerDeduplicationJob/index";
+import { handler as customerDeduplicationProcess } from "../lambdas/Mastershop-CustomerDeduplicationProcess/index";
 import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/index";
 import { handler as ordersMonitor } from "../lambdas/MasterShop-OrdersMonitor/index";
 import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
@@ -26,6 +27,14 @@ router.post(
 router.post(
   "/customer-deduplication-job",
   serverResponse({ handler: customerDeduplicationJob, responseType: "http" })
+);
+
+router.post(
+  "/customer-deduplication-process",
+  serverResponse({
+    handler: customerDeduplicationProcess,
+    responseType: "http"
+  })
 );
 
 router.post(

@@ -1,30 +1,35 @@
 import httpResponse from "../../shared/responses/http";
+import { dbEnv } from "../../shared/types/database";
+import { checkEnv } from "../../shared/validation/envChecker";
 import dto from "./dto";
 import Model from "./model";
 
+const ENVIRONMENT = "qa";
+
 export const handler = async (event: any) => {
   try {
-    console.log("event :>>>", JSON.stringify(event));
+    console.log("Event received:", JSON.stringify(event));
 
-    const { environment } = dto.getParams(event);
+    const envs = checkEnv({
+      ...dbEnv,
+      ENVIRONMENT: "ENVIRONMENT"
+    });
 
-    const model = new Model(environment);
+    const records = dto.getRecords(event);
+    const model = new Model(ENVIRONMENT, envs);
 
-    const result = await model.processBatchDeduplication();
+    await model.processRecords(records);
 
     return httpResponse({
       statusCode: 200,
-      body: {
-        message: "Batch deduplication completed",
-        data: result
-      }
+      body: { message: "Process completed successfully" }
     });
-  } catch (error: any) {
-    console.error("ErrorLog :>>>", error);
+  } catch (error) {
+    console.error("Process failed:", error);
     return httpResponse({
       statusCode: 500,
       body: {
-        message: error.message || "Internal server error",
+        message: "Internal server error",
         data: null
       }
     });
