@@ -1,3 +1,4 @@
+import concurrency from "../../shared/services/concurrency";
 import { b2bRequest } from "../../shared/services/httpRequest";
 import { EnvironmentTypes } from "../../shared/types/database";
 import Dao from "./dao";
@@ -35,47 +36,71 @@ class Model {
 
     const customersByBusiness = this.groupCustomersByBusiness(allCustomers);
 
-    for (const [businessId, customers] of Object.entries(customersByBusiness)) {
-      const duplicateGroups = this.findDuplicateGroups(customers);
+    const businessTasks = Object.entries(customersByBusiness).map(
+      ([businessId, customers]) =>
+        () =>
+          this.processBusiness(businessId, customers)
+    );
 
-      if (duplicateGroups.length > 0) {
-        await this.sendDuplicateGroupsInChunks(businessId, duplicateGroups);
-      }
-    }
+    await concurrency.executeWithLimit({
+      tasks: businessTasks,
+      concurrencyLimit: 10
+    });
 
     console.log("Batch deduplication process completed successfully");
+  }
+
+  private async processBusiness(
+    businessId: string,
+    customers: Customer[]
+  ): Promise<void> {
+    const duplicateGroups = this.findDuplicateGroups(customers);
+
+    if (duplicateGroups.length > 0) {
+      await this.sendDuplicateGroupsInChunks(businessId, duplicateGroups);
+    }
   }
 
   private async sendDuplicateGroupsInChunks(
     businessId: string,
     duplicateGroups: DuplicateGroup[]
   ): Promise<void> {
-    const MAX_CHUNK_SIZE = 10;
-    const chunks = this.chunkArray(duplicateGroups, MAX_CHUNK_SIZE);
+    const chunks = this.createChunks(duplicateGroups, 10);
+    const tasks = chunks.map(
+      (chunk, index) => () =>
+        this.sendChunk(businessId, chunk, index + 1, chunks.length)
+    );
 
-    for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i];
-
-      await b2bRequest.post(
-        `${this.environment}/api/b2b/customer/deduplication/enqueue`,
-        {
-          businessId: businessId,
-          duplicateGroups: chunk
-        }
-      );
-
-      console.log(
-        `Sent chunk ${i + 1}/${chunks.length} with ${chunk.length} duplicate groups for business ${businessId}`
-      );
-    }
+    await concurrency.executeWithLimit({
+      tasks,
+      concurrencyLimit: 10
+    });
   }
 
-  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  private createChunks<T>(array: T[], chunkSize: number): T[][] {
     const chunks: T[][] = [];
     for (let i = 0; i < array.length; i += chunkSize) {
       chunks.push(array.slice(i, i + chunkSize));
     }
     return chunks;
+  }
+
+  private async sendChunk(
+    businessId: string,
+    chunk: DuplicateGroup[],
+    chunkIndex: number,
+    totalChunks: number
+  ): Promise<void> {
+    await b2bRequest.post(
+      `${this.environment}/api/b2b/customer/deduplication/enqueue`,
+      {
+        businessId: businessId,
+        duplicateGroups: chunk
+      }
+    );
+    console.log(
+      `Sent chunk ${chunkIndex}/${totalChunks} with ${chunk.length} duplicate groups for business ${businessId}`
+    );
   }
 
   private groupCustomersByBusiness(

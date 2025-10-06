@@ -39,7 +39,6 @@ export enum MATCHING_CONFIG {
 
 export interface Customer {
   idCustomer: number;
-  idUser: number;
   idBussiness: number;
   fullName: string;
   firstName: string;
@@ -47,14 +46,7 @@ export interface Customer {
   email?: string | null;
   phone: string | null;
   defaultAddress: any;
-  tags?: any;
-  documentType?: string | null;
   document?: string | null;
-  inBlackList?: number;
-  dateInBlackList?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-  externalId?: string | null;
 }
 
 export interface MatchResult {
