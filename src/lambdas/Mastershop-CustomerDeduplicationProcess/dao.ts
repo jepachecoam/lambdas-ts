@@ -7,17 +7,23 @@ class Dao {
     this.db = new Database(environment);
   }
 
+  async createTransaction(): Promise<any> {
+    return this.db.getInstance().transaction();
+  }
+
   async batchDeactivateCustomers(
-    customerIds: number[]
+    customerIds: number[],
+    transaction?: any
   ): Promise<boolean | null> {
     if (customerIds.length === 0) return true;
     const query = `UPDATE customer SET isActive = 0 WHERE idCustomer IN (${customerIds.join(",")})`;
-    return this.db.update(query);
+    return this.db.update(query, { transaction });
   }
 
   async batchCreateOrderReassignmentRecords(
     oldCustomerIds: number[],
-    newCustomerId: number
+    newCustomerId: number,
+    transaction?: any
   ): Promise<boolean | null> {
     if (oldCustomerIds.length === 0) return true;
 
@@ -27,22 +33,24 @@ class Dao {
       FROM \`order\` 
       WHERE idCustomer IN (${oldCustomerIds.join(",")})
     `;
-    return this.db.insert(query);
+    return this.db.insert(query, { transaction });
   }
 
   async batchUpdateOrdersCustomer(
     oldCustomerIds: number[],
-    newCustomerId: number
+    newCustomerId: number,
+    transaction?: any
   ): Promise<boolean | null> {
     if (oldCustomerIds.length === 0) return true;
 
     const query = `UPDATE \`order\` SET idCustomer = ${newCustomerId} WHERE idCustomer IN (${oldCustomerIds.join(",")})`;
-    return this.db.update(query);
+    return this.db.update(query, { transaction });
   }
 
   async batchCreateCustomerPhones(
     idCustomer: number,
-    phones: string[]
+    phones: string[],
+    transaction?: any
   ): Promise<boolean | null> {
     if (phones.length === 0) return true;
 
@@ -53,12 +61,13 @@ class Dao {
       INSERT IGNORE INTO customerPhone (idCustomer, phone)
       VALUES ${values}
     `;
-    return this.db.insert(query);
+    return this.db.insert(query, { transaction });
   }
 
   async batchCreateCustomerEmails(
     idCustomer: number,
-    emails: string[]
+    emails: string[],
+    transaction?: any
   ): Promise<boolean | null> {
     if (emails.length === 0) return true;
 
@@ -69,12 +78,13 @@ class Dao {
       INSERT IGNORE INTO customerEmail (idCustomer, email)
       VALUES ${values}
     `;
-    return this.db.insert(query);
+    return this.db.insert(query, { transaction });
   }
 
   async batchCreateCustomerAddresses(
     idCustomer: number,
-    addresses: any[]
+    addresses: any[],
+    transaction?: any
   ): Promise<boolean | null> {
     if (addresses.length === 0) return true;
 
@@ -89,7 +99,7 @@ class Dao {
       INSERT IGNORE INTO customerAddress (idCustomer, address)
       VALUES ${values}
     `;
-    return this.db.insert(query);
+    return this.db.insert(query, { transaction });
   }
 }
 

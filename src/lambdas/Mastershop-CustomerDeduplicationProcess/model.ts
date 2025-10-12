@@ -17,39 +17,76 @@ class Model {
 
   async processRecords(records: any[]): Promise<void> {
     for (const record of records) {
-      await Promise.all(
-        record.duplicateGroups.map((group: any) =>
-          this.mergeDuplicateGroup(group)
-        )
-      );
+      for (const group of record.duplicateGroups) {
+        await this.mergeDuplicateGroup(group);
+      }
     }
   }
 
-  async mergeDuplicateGroup(group: DuplicateGroup): Promise<void> {
-    console.log(
-      `Merging group: winner ${group.winner.idCustomer}, duplicates: ${group.duplicates.map((d) => d.idCustomer).join(", ")}`
-    );
-
+  async mergeDuplicateGroup(
+    group: DuplicateGroup,
+    retryCount = 0
+  ): Promise<void> {
+    const winnerId = group.winner.idCustomer;
     const duplicateIds = group.duplicates.map((d) => d.idCustomer);
 
-    await this.dao.batchCreateOrderReassignmentRecords(
-      duplicateIds,
-      group.winner.idCustomer
+    console.log(
+      `[${winnerId}] Starting merge - duplicates: ${duplicateIds.join(", ")}${retryCount > 0 ? ` (retry ${retryCount})` : ""}`
     );
 
-    await this.dao.batchUpdateOrdersCustomer(
-      duplicateIds,
-      group.winner.idCustomer
-    );
+    const transaction = await this.dao.createTransaction();
 
-    await this.batchAddUniqueDataToWinner(group.winner, group.duplicates);
+    try {
+      console.log(`[${winnerId}] Creating order reassignment records`);
+      await this.dao.batchCreateOrderReassignmentRecords(
+        duplicateIds,
+        winnerId,
+        transaction
+      );
 
-    await this.dao.batchDeactivateCustomers(duplicateIds);
+      console.log(`[${winnerId}] Updating orders customer`);
+      await this.dao.batchUpdateOrdersCustomer(
+        duplicateIds,
+        winnerId,
+        transaction
+      );
+
+      console.log(`[${winnerId}] Adding unique data to winner`);
+      await this.batchAddUniqueDataToWinner(
+        group.winner,
+        group.duplicates,
+        transaction
+      );
+
+      console.log(`[${winnerId}] Deactivating customers`);
+      await this.dao.batchDeactivateCustomers(duplicateIds, transaction);
+
+      await transaction.commit();
+      console.log(`[${winnerId}] Merge completed successfully`);
+    } catch (error: any) {
+      if (transaction && !transaction.finished) {
+        await transaction.rollback();
+      }
+
+      if (error.parent?.code === "ER_LOCK_DEADLOCK" && retryCount < 3) {
+        console.log(
+          `[${winnerId}] Deadlock detected, retrying in ${(retryCount + 1) * 1000}ms`
+        );
+        await new Promise((resolve) =>
+          setTimeout(resolve, (retryCount + 1) * 1000)
+        );
+        return this.mergeDuplicateGroup(group, retryCount + 1);
+      }
+
+      console.error(`[${winnerId}] Error in merge process:`, error);
+      throw error;
+    }
   }
 
   private async batchAddUniqueDataToWinner(
     winner: Customer,
-    duplicates: Customer[]
+    duplicates: Customer[],
+    transaction?: any
   ): Promise<void> {
     const phones: string[] = [];
     const emails: string[] = [];
@@ -84,17 +121,29 @@ class Model {
     const promises = [];
     if (phones.length > 0) {
       promises.push(
-        this.dao.batchCreateCustomerPhones(winner.idCustomer, phones)
+        this.dao.batchCreateCustomerPhones(
+          winner.idCustomer,
+          phones,
+          transaction
+        )
       );
     }
     if (emails.length > 0) {
       promises.push(
-        this.dao.batchCreateCustomerEmails(winner.idCustomer, emails)
+        this.dao.batchCreateCustomerEmails(
+          winner.idCustomer,
+          emails,
+          transaction
+        )
       );
     }
     if (addresses.length > 0) {
       promises.push(
-        this.dao.batchCreateCustomerAddresses(winner.idCustomer, addresses)
+        this.dao.batchCreateCustomerAddresses(
+          winner.idCustomer,
+          addresses,
+          transaction
+        )
       );
     }
 
