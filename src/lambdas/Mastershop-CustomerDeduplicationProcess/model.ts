@@ -68,7 +68,7 @@ class Model {
         await transaction.rollback();
       }
 
-      if (error.parent?.code === "ER_LOCK_DEADLOCK" && retryCount < 3) {
+      if (error.parent?.code === "ER_LOCK_DEADLOCK" && retryCount < 5) {
         console.log(
           `[${winnerId}] Deadlock detected, retrying in ${(retryCount + 1) * 1000}ms`
         );
