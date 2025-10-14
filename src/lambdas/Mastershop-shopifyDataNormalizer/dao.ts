@@ -48,11 +48,12 @@ class Dao {
         success: true,
         data: response.data
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("💥 [ERROR] Error en el procesamiento de la orden:", error);
+      const message = error?.response?.data?.message;
       return {
         success: false,
-        data: error
+        data: message ? message : error
       };
     }
   }
