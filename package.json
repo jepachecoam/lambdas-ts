@@ -35,7 +35,7 @@
     "@aws-sdk/lib-dynamodb": "3.775.0",
     "ajv": "8.17.1",
     "aws-jwt-verify": "5.0.0",
-    "axios": "1.8.3",
+    "axios": "^1.12.2",
     "date-fns": "4.1.0",
     "dotenv": "16.4.7",
     "exceljs": "4.4.0",
@@ -45,7 +45,8 @@
     "jsonwebtoken": "9.0.2",
     "jwks-rsa": "3.2.0",
     "mysql2": "3.12.0",
-    "sequelize": "6.37.5",
+    "pdf-lib": "^1.17.1",
+    "sequelize": "^6.37.7",
     "zod": "4.0.5"
   },
   "lint-staged": {

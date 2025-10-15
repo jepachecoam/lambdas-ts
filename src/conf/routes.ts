@@ -7,6 +7,7 @@ import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
 import { handler as customerDeduplicationJob } from "../lambdas/Mastershop-CustomerDeduplicationJob/index";
 import { handler as customerDeduplicationProcess } from "../lambdas/Mastershop-CustomerDeduplicationProcess/index";
+import { handler as generateInvoiceStatementGMF } from "../lambdas/Mastershop-GenerateInvoiceStatementGMF";
 import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/index";
 import { handler as ordersMonitor } from "../lambdas/MasterShop-OrdersMonitor/index";
 import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
@@ -22,6 +23,11 @@ const router = Router();
 router.post(
   "/example",
   serverResponse({ handler: example, responseType: "http" })
+);
+
+router.post(
+  "/generate-invoice-statement-gmf",
+  serverResponse({ handler: generateInvoiceStatementGMF, responseType: "pdf" })
 );
 
 router.post(
