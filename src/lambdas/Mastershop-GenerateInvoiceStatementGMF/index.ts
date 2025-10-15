@@ -12,11 +12,11 @@ export const handler = async (event: any) => {
       ...dbEnv
     });
 
-    const { environment } = dto.getParams(event);
+    const { environment, idInvoice } = dto.getParams(event);
 
     const model = new Model(environment, envs);
 
-    const pdfBuffer = await model.processCustomer();
+    const pdfBuffer = await model.getGmfStatement({ idInvoice });
 
     return {
       statusCode: 200,

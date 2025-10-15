@@ -7,12 +7,34 @@ class Dao {
     this.db = new Database(environment);
   }
 
-  async getAllActiveCustomers(): Promise<any[] | null> {
+  async getInvoice({
+    idInvoice
+  }: {
+    idInvoice: number;
+  }): Promise<any[] | null> {
     const query = `
-    select * from customer limit 100;
+    select i.totalValue, i.createdAt, ub.name, ub.documentNumber, ub.documentType
+    from invoice i
+         inner join userBeneficiary ub on i.idBusiness = ub.idBussiness
+    where i.idInvoice = :idInvoice
+    and ub.state = 1
+    and ub.beneficiaryType = 'fiscal';
     `;
-    return this.db.fetchMany(query) as Promise<any[] | null>;
+    return this.db.fetchOne(query, { replacements: { idInvoice } }) as Promise<
+      any[] | null
+    >;
+  }
+
+  async getInvoiceDetail({
+    idInvoice
+  }: {
+    idInvoice: number;
+  }): Promise<any[] | null> {
+    const query =
+      "select * from invoiceDetail where category = 'GMF' and idInvoice = :idInvoice";
+    return this.db.fetchMany(query, { replacements: { idInvoice } }) as Promise<
+      any[] | null
+    >;
   }
 }
-
 export default Dao;

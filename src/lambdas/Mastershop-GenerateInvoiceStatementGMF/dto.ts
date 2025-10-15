@@ -2,6 +2,11 @@ function getParams(event: any) {
   console.log("event :>>>", JSON.stringify(event));
 
   const environment = event.environment;
+  const idInvoince = event.idInvoice;
+
+  if (!idInvoince || typeof idInvoince !== "number") {
+    throw new Error("idInvoice is needed");
+  }
 
   if (
     !environment ||
@@ -13,7 +18,8 @@ function getParams(event: any) {
 
   return {
     ...event,
-    environment
+    environment,
+    idInvoince
   };
 }
 
