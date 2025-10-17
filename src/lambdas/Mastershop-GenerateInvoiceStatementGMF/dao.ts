@@ -31,7 +31,7 @@ class Dao {
     idInvoice: number;
   }): Promise<any[] | null> {
     const query =
-      "select * from invoiceDetail where category = 'GMF' and idInvoice = :idInvoice";
+      "select * from invoiceDetail where idInvoice = :idInvoice and category = 'GMF';";
     return this.db.fetchMany(query, { replacements: { idInvoice } }) as Promise<
       any[] | null
     >;

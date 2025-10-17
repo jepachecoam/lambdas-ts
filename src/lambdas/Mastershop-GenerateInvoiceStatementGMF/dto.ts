@@ -1,11 +1,12 @@
 function getParams(event: any) {
   console.log("event :>>>", JSON.stringify(event));
 
-  const environment = event.environment;
-  const idInvoince = event.idInvoice;
+  const environment = event.requestContext?.stage;
+  const pathParameters = event.pathParameters;
+  const idInvoice = pathParameters?.idInvoice;
 
-  if (!idInvoince || typeof idInvoince !== "number") {
-    throw new Error("idInvoice is needed");
+  if (!idInvoice || typeof idInvoice !== "string" || !/^\d+$/.test(idInvoice)) {
+    throw new Error("idInvoice must be a valid number");
   }
 
   if (
@@ -19,7 +20,7 @@ function getParams(event: any) {
   return {
     ...event,
     environment,
-    idInvoince
+    idInvoice: Number(idInvoice)
   };
 }
 

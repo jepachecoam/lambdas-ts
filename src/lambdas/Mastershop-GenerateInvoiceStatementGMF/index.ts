@@ -8,15 +8,25 @@ export const handler = async (event: any) => {
   try {
     console.log("event :>>>", JSON.stringify(event));
 
-    const envs = checkEnv({
+    checkEnv({
       ...dbEnv
     });
 
     const { environment, idInvoice } = dto.getParams(event);
 
-    const model = new Model(environment, envs);
+    const model = new Model(environment);
 
     const pdfBuffer = await model.getGmfStatement({ idInvoice });
+
+    if (!pdfBuffer) {
+      return httpResponse({
+        statusCode: 404,
+        body: {
+          message: "Invoice not found",
+          data: null
+        }
+      });
+    }
 
     return {
       statusCode: 200,

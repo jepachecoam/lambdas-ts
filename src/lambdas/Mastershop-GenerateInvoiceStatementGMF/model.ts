@@ -1,26 +1,24 @@
 import Dao from "./dao";
 import { generateGMFCertificationPDF } from "./pdfGenerator";
-import { CustomerDeduplicationEnvs } from "./types";
 
 class Model {
   private dao: Dao;
-  private environment: string;
-  private envs: CustomerDeduplicationEnvs;
-
-  constructor(environment: string, envs: CustomerDeduplicationEnvs) {
+  constructor(environment: string) {
     this.dao = new Dao(environment);
-    this.envs = envs;
-    this.environment = environment;
   }
 
-  async getGmfStatement({ idInvoice }: { idInvoice: number }): Promise<Buffer> {
+  async getGmfStatement({
+    idInvoice
+  }: {
+    idInvoice: number;
+  }): Promise<Buffer | null> {
     const [invoice, invoiceDetails]: any = await Promise.all([
       this.dao.getInvoice({ idInvoice }),
       this.dao.getInvoiceDetail({ idInvoice })
     ]);
 
     if (!invoice || !invoiceDetails || !invoiceDetails.length) {
-      throw new Error("Invoice or invoice details not found");
+      return null;
     }
 
     const pdfData = {
@@ -36,7 +34,7 @@ class Model {
       total4xMil: invoice.totalValue
     };
 
-    return await generateGMFCertificationPDF(pdfData);
+    return generateGMFCertificationPDF(pdfData);
   }
 }
 
