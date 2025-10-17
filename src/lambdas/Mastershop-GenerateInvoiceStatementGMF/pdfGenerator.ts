@@ -176,8 +176,12 @@ export async function generateGMFCertificationPDF(
   const drawTableHeader = () => {
     const tableY = yPosition;
     const col1X = MARGIN_LEFT;
-    const col2X = MARGIN_LEFT + 150;
-    const col3X = MARGIN_LEFT + 380;
+    const col1Width = 100;
+    const col2X = col1X + col1Width;
+    const col3X = MARGIN_LEFT + 400;
+    const col3Width =
+      LETTER_WIDTH - MARGIN_LEFT - MARGIN_RIGHT - col3X + MARGIN_LEFT;
+    const col2Width = col3X - col2X;
 
     currentPage.drawRectangle({
       x: col1X,
@@ -202,24 +206,30 @@ export async function generateGMFCertificationPDF(
       thickness: 1
     });
 
-    currentPage.drawText("FECHA", {
-      x: col1X + 10,
+    const fechaText = "FECHA";
+    const fechaWidth = fontBold.widthOfTextAtSize(fechaText, 10);
+    currentPage.drawText(fechaText, {
+      x: col1X + (col1Width - fechaWidth) / 2,
       y: tableY - 12,
       size: 10,
       font: fontBold,
       color: rgb(0, 0, 0)
     });
 
-    currentPage.drawText("DETALLE", {
-      x: col2X + 10,
+    const detalleText = "DETALLE";
+    const detalleWidth = fontBold.widthOfTextAtSize(detalleText, 10);
+    currentPage.drawText(detalleText, {
+      x: col2X + (col2Width - detalleWidth) / 2,
       y: tableY - 12,
       size: 10,
       font: fontBold,
       color: rgb(0, 0, 0)
     });
 
-    currentPage.drawText("4XMIL", {
-      x: col3X + 10,
+    const xmilText = "4XMIL";
+    const xmilWidth = fontBold.widthOfTextAtSize(xmilText, 10);
+    currentPage.drawText(xmilText, {
+      x: col3X + (col3Width - xmilWidth) / 2,
       y: tableY - 12,
       size: 10,
       font: fontBold,
@@ -232,8 +242,11 @@ export async function generateGMFCertificationPDF(
   const drawTableRow = (item: InvoiceDetailItem) => {
     const rowY = yPosition;
     const col1X = MARGIN_LEFT;
-    const col2X = MARGIN_LEFT + 150;
-    const col3X = MARGIN_LEFT + 380;
+    const col1Width = 100;
+    const col2X = col1X + col1Width;
+    const col3X = MARGIN_LEFT + 400;
+    const col3Width =
+      LETTER_WIDTH - MARGIN_LEFT - MARGIN_RIGHT - col3X + MARGIN_LEFT;
 
     currentPage.drawRectangle({
       x: col1X,
@@ -258,18 +271,28 @@ export async function generateGMFCertificationPDF(
       thickness: 1
     });
 
-    currentPage.drawText(formatDate(new Date(item.createdAt)), {
-      x: col1X + 10,
+    const dateText = formatDate(new Date(item.createdAt));
+    const dateWidth = font.widthOfTextAtSize(dateText, 9);
+    currentPage.drawText(dateText, {
+      x: col1X + (col1Width - dateWidth) / 2,
       y: rowY - 12,
       size: 9,
       font,
       color: rgb(0, 0, 0)
     });
 
-    const detailText =
-      item.detail.length > 30
-        ? item.detail.substring(0, 27) + "..."
-        : item.detail;
+    const col2Width = col3X - col2X - 20;
+    let detailText = item.detail;
+    let detailWidth = font.widthOfTextAtSize(detailText, 9);
+
+    if (detailWidth > col2Width) {
+      while (detailWidth > col2Width && detailText.length > 0) {
+        detailText = detailText.substring(0, detailText.length - 1);
+        detailWidth = font.widthOfTextAtSize(detailText + "...", 9);
+      }
+      detailText += "...";
+    }
+
     currentPage.drawText(detailText, {
       x: col2X + 10,
       y: rowY - 12,
@@ -278,8 +301,10 @@ export async function generateGMFCertificationPDF(
       color: rgb(0, 0, 0)
     });
 
-    currentPage.drawText(formatCurrency(item.value), {
-      x: col3X + 10,
+    const valueText = formatCurrency(item.value);
+    const valueWidth = font.widthOfTextAtSize(valueText, 9);
+    currentPage.drawText(valueText, {
+      x: col3X + (col3Width - valueWidth) / 2,
       y: rowY - 12,
       size: 9,
       font,
