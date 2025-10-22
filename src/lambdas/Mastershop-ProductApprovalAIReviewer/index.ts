@@ -6,20 +6,7 @@ import axios from "axios";
 
 import httpResponse from "../../shared/responses/http";
 
-interface EventInput {
-  url: string;
-}
-
-interface StructuredOutput {
-  historia: string;
-  categoria: string;
-  personajes: string[];
-}
-
-export const handler = async (
-  event: EventInput,
-  _context: unknown
-): Promise<any> => {
+export const handler = async (event: any, _context: unknown): Promise<any> => {
   try {
     console.log("Event =>>>", event);
 
@@ -70,18 +57,30 @@ export const handler = async (
     });
     const imageBytes = new Uint8Array(imageResponse.data);
 
+    // Detect image format from content-type header
+    const contentType = imageResponse.headers["content-type"] || "";
+    let imageFormat: "jpeg" | "png" | "gif" | "webp" = "jpeg";
+
+    if (contentType.includes("png")) {
+      imageFormat = "png";
+    } else if (contentType.includes("gif")) {
+      imageFormat = "gif";
+    } else if (contentType.includes("webp")) {
+      imageFormat = "webp";
+    }
+
     const command = new ConverseCommand({
-      modelId: "anthropic.claude-3-sonnet-20240229-v1:0",
+      modelId: "amazon.nova-lite-v1:0",
       messages: [
         {
           role: "user",
           content: [
             {
-              text: "Analiza esta imagen y crea una historia creativa basada en lo que ves. Incluye personajes, trama y categoría."
+              text: "Analiza esta imagen y crea una historia creativa basada en lo que ves, debe ser minimo 100 palabras"
             },
             {
               image: {
-                format: "jpeg",
+                format: imageFormat,
                 source: { bytes: imageBytes }
               }
             }
@@ -105,7 +104,8 @@ export const handler = async (
       });
     }
 
-    const structuredResponse = toolUse.input as unknown as StructuredOutput;
+    const structuredResponse = toolUse.input;
+
     console.log("Structured Response:", structuredResponse);
 
     return httpResponse({
@@ -116,7 +116,7 @@ export const handler = async (
     console.error("Error:", error);
     return httpResponse({
       statusCode: 500,
-      body: { error: error.message }
+      body: { message: "Internal server Error" }
     });
   }
 };
