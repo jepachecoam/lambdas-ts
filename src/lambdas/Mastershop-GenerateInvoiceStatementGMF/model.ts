@@ -36,6 +36,14 @@ class Model {
 
     return generateGMFCertificationPDF(pdfData);
   }
+
+  async getStream(bucket: string, key: string) {
+    return this.dao.getStream(bucket, key);
+  }
+
+  async putObject(bucket: string, key: string, body: any) {
+    return this.dao.putObject(bucket, key, body);
+  }
 }
 
 export default Model;
