@@ -6,111 +6,217 @@ import axios from "axios";
 
 import httpResponse from "../../shared/responses/http";
 
+interface ImageAnalysisResult {
+  shouldBeReviewed: boolean;
+  shouldBeRejected: boolean;
+  weight: number;
+  hasDimensions: boolean;
+  description: string;
+}
+
+interface AnalysisResponse {
+  result: "approved" | "rejected" | "underReview";
+  note: string;
+  imgResult: ImageAnalysisResult;
+}
+
+interface BedrockAnalysis {
+  description: string;
+  isProhibited: boolean;
+  prohibitedReason?: string;
+  weightKg: number;
+  hasDimensions: boolean;
+}
+
+const getImageFormat = (
+  contentType: string
+): "jpeg" | "png" | "gif" | "webp" => {
+  if (contentType.includes("png")) return "png";
+  if (contentType.includes("gif")) return "gif";
+  if (contentType.includes("webp")) return "webp";
+  return "jpeg";
+};
+
+const downloadImage = async (imageUrl: string) => {
+  const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
+  const imageBytes = new Uint8Array(response.data);
+  const contentType = response.headers["content-type"] || "";
+  const format = getImageFormat(contentType);
+  return { imageBytes, format };
+};
+
+const createBedrockToolConfig = () => ({
+  tools: [
+    {
+      toolSpec: {
+        name: "image_analysis",
+        description: "Analyze product image for approval process",
+        inputSchema: {
+          json: {
+            type: "object",
+            properties: {
+              description: { type: "string" },
+              isProhibited: { type: "boolean" },
+              prohibitedReason: { type: "string" },
+              weightKg: {
+                type: "number",
+                description:
+                  "Weight in kg from visible labels, 0 if no weight visible"
+              },
+              hasDimensions: { type: "boolean" }
+            },
+            required: [
+              "description",
+              "isProhibited",
+              "weightKg",
+              "hasDimensions"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  toolChoice: { tool: { name: "image_analysis" } }
+});
+
+const createAnalysisPrompt = (): string => `
+Analyze this product image in detail. Describe what you see and check for prohibited content.
+
+PROHIBITED CATEGORIES:
+1. Alcohol and tobacco (liquor, wine, beer, cigarettes, vapes)
+2. Drugs and paraphernalia (illegal substances, drug accessories)
+3. Weapons and ammunition (firearms, knives except kitchen knives, explosives) - TOYS ARE ALLOWED
+4. Dangerous materials (flammable, toxic, industrial chemicals)
+5. Animals and animal products (live/dead animals, organs)
+6. Adult content (sexual toys, explicit content) - sexual supplements are allowed
+7. Financial services
+8. Medical/pharmaceutical products (medicine, not supplements)
+9. Violence/discrimination promoting content
+10. Weapons (knives except kitchen, grenades) - TOYS ARE ALLOWED
+
+TASKS:
+1. Provide detailed description of the product in the image
+2. Check if it belongs to prohibited categories (distinguish toys from real items)
+3. Extract weight from visible labels (kg, g, lb - convert to kg). If NO weight is visible in the image, use 0
+4. Check if dimensions are visible in the image
+
+Use the tool to provide structured analysis.`;
+
+const callBedrockAnalysis = async (
+  client: BedrockRuntimeClient,
+  imageBytes: Uint8Array,
+  imageFormat: "jpeg" | "png" | "gif" | "webp"
+): Promise<BedrockAnalysis> => {
+  const command = new ConverseCommand({
+    modelId: "amazon.nova-lite-v1:0",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { text: createAnalysisPrompt() },
+          {
+            image: {
+              format: imageFormat,
+              source: { bytes: imageBytes }
+            }
+          }
+        ]
+      }
+    ],
+    toolConfig: createBedrockToolConfig(),
+    inferenceConfig: {
+      maxTokens: 2000,
+      temperature: 0.1
+    }
+  });
+
+  const response = await client.send(command);
+
+  const usage = response.usage;
+  console.log("Token Usage:", {
+    inputTokens: usage?.inputTokens || 0,
+    outputTokens: usage?.outputTokens || 0,
+    totalTokens: (usage?.inputTokens || 0) + (usage?.outputTokens || 0)
+  });
+
+  const toolUse = response.output?.message?.content?.[0]?.toolUse;
+  if (!toolUse) {
+    throw new Error("No analysis generated");
+  }
+
+  return toolUse.input as unknown as BedrockAnalysis;
+};
+
+const determineApprovalStatus = (analysis: BedrockAnalysis) => {
+  const shouldBeRejected = analysis.isProhibited;
+  const shouldBeReviewed = !shouldBeRejected && analysis.weightKg > 1;
+
+  if (shouldBeRejected) {
+    return {
+      result: "rejected" as const,
+      note: analysis.prohibitedReason || "Prohibited content detected",
+      shouldBeRejected: true,
+      shouldBeReviewed: false
+    };
+  }
+
+  if (shouldBeReviewed) {
+    return {
+      result: "underReview" as const,
+      note: `Weight detected over 1kg: ${analysis.weightKg}kg`,
+      shouldBeRejected: false,
+      shouldBeReviewed: true
+    };
+  }
+
+  return {
+    result: "approved" as const,
+    note: "Product approved",
+    shouldBeRejected: false,
+    shouldBeReviewed: false
+  };
+};
+
+const analyzeImage = async (imageUrl: string): Promise<AnalysisResponse> => {
+  const client = new BedrockRuntimeClient({ region: "us-east-1" });
+
+  const { imageBytes, format } = await downloadImage(imageUrl);
+  const analysis = await callBedrockAnalysis(client, imageBytes, format);
+  const status = determineApprovalStatus(analysis);
+
+  return {
+    result: status.result,
+    note: status.note,
+    imgResult: {
+      shouldBeReviewed: status.shouldBeReviewed,
+      shouldBeRejected: status.shouldBeRejected,
+      weight: analysis.weightKg,
+      hasDimensions: analysis.hasDimensions,
+      description: analysis.description
+    }
+  };
+};
+
 export const handler = async (event: any, _context: unknown): Promise<any> => {
   try {
     console.log("Event =>>>", event);
 
-    if (!event.url) {
+    const { imageUrl } = event;
+
+    if (!imageUrl) {
       return httpResponse({
         statusCode: 400,
-        body: { error: "url is required" }
+        body: {
+          error: "imageUrl is required"
+        }
       });
     }
 
-    const client = new BedrockRuntimeClient({ region: "us-east-1" });
-
-    const toolConfig = {
-      tools: [
-        {
-          toolSpec: {
-            name: "generate_story_analysis",
-            description: "Genera análisis estructurado de historia",
-            inputSchema: {
-              json: {
-                type: "object",
-                properties: {
-                  historia: {
-                    type: "string",
-                    description: "Descripción de la historia"
-                  },
-                  categoria: {
-                    type: "string",
-                    description: "Categoría o género de la historia"
-                  },
-                  personajes: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Lista de personajes principales"
-                  }
-                },
-                required: ["historia", "categoria", "personajes"]
-              }
-            }
-          }
-        }
-      ],
-      toolChoice: { tool: { name: "generate_story_analysis" } }
-    };
-
-    const imageResponse = await axios.get(event.url, {
-      responseType: "arraybuffer"
-    });
-    const imageBytes = new Uint8Array(imageResponse.data);
-
-    // Detect image format from content-type header
-    const contentType = imageResponse.headers["content-type"] || "";
-    let imageFormat: "jpeg" | "png" | "gif" | "webp" = "jpeg";
-
-    if (contentType.includes("png")) {
-      imageFormat = "png";
-    } else if (contentType.includes("gif")) {
-      imageFormat = "gif";
-    } else if (contentType.includes("webp")) {
-      imageFormat = "webp";
-    }
-
-    const command = new ConverseCommand({
-      modelId: "amazon.nova-lite-v1:0",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              text: "Analiza esta imagen y crea una historia creativa basada en lo que ves, debe ser minimo 100 palabras"
-            },
-            {
-              image: {
-                format: imageFormat,
-                source: { bytes: imageBytes }
-              }
-            }
-          ]
-        }
-      ],
-      toolConfig,
-      inferenceConfig: {
-        maxTokens: 1000,
-        temperature: 0.7
-      }
-    });
-
-    const response = await client.send(command);
-    const toolUse = response.output?.message?.content?.[0]?.toolUse;
-
-    if (!toolUse) {
-      return httpResponse({
-        statusCode: 500,
-        body: { error: "No tool use in response" }
-      });
-    }
-
-    const structuredResponse = toolUse.input;
-
-    console.log("Structured Response:", structuredResponse);
+    const result = await analyzeImage(imageUrl);
 
     return httpResponse({
       statusCode: 200,
-      body: structuredResponse
+      body: result
     });
   } catch (error: any) {
     console.error("Error:", error);
