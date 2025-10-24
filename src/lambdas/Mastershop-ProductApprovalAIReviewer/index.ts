@@ -6,28 +6,12 @@ import axios from "axios";
 import { fileTypeFromBuffer } from "file-type";
 
 import httpResponse from "../../shared/responses/http";
-
-interface ImageAnalysisResult {
-  shouldBeReviewed: boolean;
-  shouldBeRejected: boolean;
-  weight: number;
-  hasDimensions: boolean;
-  description: string;
-}
-
-interface AnalysisResponse {
-  result: "approved" | "rejected" | "underReview";
-  note: string;
-  imgResult: ImageAnalysisResult;
-}
-
-interface BedrockAnalysis {
-  description: string;
-  isProhibited: boolean;
-  prohibitedReason?: string;
-  weightKg: number;
-  hasDimensions: boolean;
-}
+import {
+  AnalysisResponse,
+  BedrockAnalysis,
+  ImageAnalysis,
+  ImageAnalysisResponse
+} from "./types";
 
 const downloadImage = async (imageUrl: string) => {
   const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
@@ -160,7 +144,7 @@ const callBedrockAnalysis = async (
   return toolUse.input as unknown as BedrockAnalysis;
 };
 
-const determineApprovalStatus = (analysis: BedrockAnalysis) => {
+const determineImgApprovalStatus = (analysis: BedrockAnalysis) => {
   const shouldBeRejected = analysis.isProhibited;
   const shouldBeReviewed =
     !shouldBeRejected && (analysis.weightKg > 1 || analysis.hasDimensions);
@@ -197,18 +181,19 @@ const determineApprovalStatus = (analysis: BedrockAnalysis) => {
   };
 };
 
-const analyzeImage = async (imageUrl: string): Promise<AnalysisResponse> => {
+const analyzeImage = async (
+  imageUrl: string
+): Promise<ImageAnalysisResponse> => {
   const client = new BedrockRuntimeClient({ region: "us-east-1" });
 
   const { imageBytes, format } = await downloadImage(imageUrl);
   const analysis = await callBedrockAnalysis(client, imageBytes, format);
-  const status = determineApprovalStatus(analysis);
+  const status = determineImgApprovalStatus(analysis);
 
   return {
     result: status.result,
     note: status.note,
     imgResult: {
-      shouldBeReviewed: status.shouldBeReviewed,
       shouldBeRejected: status.shouldBeRejected,
       weight: analysis.weightKg,
       hasDimensions: analysis.hasDimensions,
@@ -216,6 +201,10 @@ const analyzeImage = async (imageUrl: string): Promise<AnalysisResponse> => {
     }
   };
 };
+
+interface result extends AnalysisResponse {
+  imgResult: ImageAnalysis;
+}
 
 export const handler = async (event: any, _context: unknown): Promise<any> => {
   try {
@@ -232,11 +221,22 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
       });
     }
 
-    const result = await analyzeImage(imageUrl);
+    const _result: result = {
+      result: "approved",
+      note: "Default response",
+      imgResult: {
+        shouldBeRejected: false,
+        weight: 0,
+        hasDimensions: false,
+        description: "Default description"
+      }
+    };
+
+    const resultImg = await analyzeImage(imageUrl);
 
     return httpResponse({
       statusCode: 200,
-      body: result
+      body: resultImg
     });
   } catch (error: any) {
     console.error("Error:", error);

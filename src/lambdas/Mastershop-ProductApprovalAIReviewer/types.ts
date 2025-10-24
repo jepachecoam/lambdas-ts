@@ -1,0 +1,42 @@
+export interface ImageAnalysis {
+  shouldBeRejected: boolean;
+  weight: number;
+  hasDimensions: boolean;
+  description: string;
+}
+
+export interface INameResult {
+  semanticRelevance: number;
+  shouldBeRejected: boolean;
+  hasDimensions: boolean;
+  weight: number;
+}
+
+export interface IDescriptionResult {
+  semanticRelevance: number;
+  shouldBeRejected: boolean;
+  hasDimensions: boolean;
+  weight: number;
+}
+
+export interface ICategoryResult {
+  semanticRelevance: number;
+  suggestedCategory: string;
+}
+
+export interface AnalysisResponse {
+  result: "approved" | "rejected" | "underReview";
+  note: string;
+}
+
+export interface ImageAnalysisResponse extends AnalysisResponse {
+  imgResult: ImageAnalysis;
+}
+
+export interface BedrockAnalysis {
+  description: string;
+  isProhibited: boolean;
+  prohibitedReason?: string;
+  weightKg: number;
+  hasDimensions: boolean;
+}
