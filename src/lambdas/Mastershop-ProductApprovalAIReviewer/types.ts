@@ -21,15 +21,24 @@ export interface IDescriptionResult {
 
 export interface ICategoryResult {
   semanticRelevance: number;
-  suggestedCategory: string;
+  suggestedCategory: {
+    idProdFormat: number;
+    prodFormatName: string;
+  };
 }
 
 export interface AnalysisResponse {
   result: "approved" | "rejected" | "underReview";
   note: string;
+  imgResult: ImageAnalysis;
+  nameResult: INameResult;
+  categoryResult: ICategoryResult;
+  descriptionResult: IDescriptionResult;
 }
 
-export interface ImageAnalysisResponse extends AnalysisResponse {
+export interface ImageAnalysisResponse {
+  result: "approved" | "rejected" | "underReview";
+  note: string;
   imgResult: ImageAnalysis;
 }
 
@@ -39,4 +48,10 @@ export interface BedrockAnalysis {
   prohibitedReason?: string;
   weightKg: number;
   hasDimensions: boolean;
+}
+
+export interface TextAnalysisResult {
+  nameResult: INameResult;
+  categoryResult: ICategoryResult;
+  descriptionResult: IDescriptionResult;
 }
