@@ -3,6 +3,7 @@ import {
   ConverseCommand
 } from "@aws-sdk/client-bedrock-runtime";
 import axios from "axios";
+import { fileTypeFromBuffer } from "file-type";
 
 import httpResponse from "../../shared/responses/http";
 
@@ -28,20 +29,19 @@ interface BedrockAnalysis {
   hasDimensions: boolean;
 }
 
-const getImageFormat = (
-  contentType: string
-): "jpeg" | "png" | "gif" | "webp" => {
-  if (contentType.includes("png")) return "png";
-  if (contentType.includes("gif")) return "gif";
-  if (contentType.includes("webp")) return "webp";
-  return "jpeg";
-};
-
 const downloadImage = async (imageUrl: string) => {
   const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
   const imageBytes = new Uint8Array(response.data);
-  const contentType = response.headers["content-type"] || "";
-  const format = getImageFormat(contentType);
+
+  const fileType = await fileTypeFromBuffer(imageBytes);
+  const format =
+    fileType?.ext === "jpg"
+      ? "jpeg"
+      : (fileType?.ext as "jpeg" | "png" | "gif" | "webp") || "jpeg";
+
+  console.log(`Image URL: ${imageUrl}`);
+  console.log(`Detected format: ${format}`);
+
   return { imageBytes, format };
 };
 
@@ -63,7 +63,11 @@ const createBedrockToolConfig = () => ({
                 description:
                   "Weight in kg from visible labels, 0 if no weight visible"
               },
-              hasDimensions: { type: "boolean" }
+              hasDimensions: {
+                type: "boolean",
+                description:
+                  "True if any spatial dimensions are visible in the image (length, width, height, diameter, etc. in any unit like meters, cm, inches, feet)"
+              }
             },
             required: [
               "description",
@@ -97,8 +101,17 @@ PROHIBITED CATEGORIES:
 TASKS:
 1. Provide detailed description of the product in the image
 2. Check if it belongs to prohibited categories (distinguish toys from real items)
-3. Extract weight from visible labels (kg, g, lb - convert to kg). If NO weight is visible in the image, use 0
-4. Check if dimensions are visible in the image
+3. WEIGHT EXTRACTION: Look carefully for any weight information on labels, packaging, or text in the image. Extract numbers with units like:
+   - kg, g, gramos, kilogramos
+   - lb, lbs, pounds, libras
+   - oz, ounces, onzas
+   Convert everything to kg (1 lb = 0.453592 kg, 1 oz = 0.0283495 kg). If NO weight is visible anywhere in the image, use 0.
+4. DIMENSIONS DETECTION: Look for any spatial measurements visible in the image such as:
+   - Length, width, height (1.90m, 90cm, 5 feet, 12 inches)
+   - Diameter, radius (30cm diameter)
+   - Any measurement that indicates physical size or space
+   - Text showing dimensions like "1m x 50cm" or "24 inches"
+   Set hasDimensions to true if ANY spatial measurement is visible, false if none.
 
 Use the tool to provide structured analysis.`;
 
@@ -149,7 +162,8 @@ const callBedrockAnalysis = async (
 
 const determineApprovalStatus = (analysis: BedrockAnalysis) => {
   const shouldBeRejected = analysis.isProhibited;
-  const shouldBeReviewed = !shouldBeRejected && analysis.weightKg > 1;
+  const shouldBeReviewed =
+    !shouldBeRejected && (analysis.weightKg > 1 || analysis.hasDimensions);
 
   if (shouldBeRejected) {
     return {
@@ -161,9 +175,15 @@ const determineApprovalStatus = (analysis: BedrockAnalysis) => {
   }
 
   if (shouldBeReviewed) {
+    const reasons = [];
+    if (analysis.weightKg > 1) {
+      reasons.push(`Weight over 1kg: ${analysis.weightKg}kg`);
+    }
+    if (analysis.hasDimensions) reasons.push("Dimensions detected");
+
     return {
       result: "underReview" as const,
-      note: `Weight detected over 1kg: ${analysis.weightKg}kg`,
+      note: reasons.join(", "),
       shouldBeRejected: false,
       shouldBeReviewed: true
     };
