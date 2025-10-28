@@ -1,10 +1,20 @@
 import Database from "../../shared/databases/sequelize";
+import S3 from "../../shared/services/S3";
 
 class Dao {
+  private S3 = new S3("us-east-2");
   private db: Database;
 
   constructor(environment: string) {
     this.db = new Database(environment);
+  }
+
+  async getStream(bucket: string, key: string) {
+    return this.S3.getStream(bucket, key, true);
+  }
+
+  async putObject(bucket: string, key: string, body: any) {
+    return this.S3.putObject(bucket, key, body);
   }
 
   async getInvoice({
