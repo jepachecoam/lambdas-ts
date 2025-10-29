@@ -3,6 +3,7 @@ import {
   ICustomPaymentReconciliation,
   IOrderData,
   OrderSourceEnum,
+  PaymentMethodEnum,
   StatusCodeEnum
 } from "./types";
 class ChargesFormula {
@@ -224,8 +225,11 @@ class ChargesFormula {
 
     const result = baseDifference - expectedProfit;
 
-    const fourPerThousand = 0.004 * order.totalSeller;
-    const adjustedResult = baseDifference - (expectedProfit + fourPerThousand);
+    const gmf =
+      order.paymentMethod === PaymentMethodEnum.COD
+        ? 0.004 * order.totalSeller
+        : 0;
+    const adjustedResult = baseDifference - (expectedProfit + gmf);
 
     const tolerance = 5;
 
