@@ -64,7 +64,7 @@ class Prompts {
     * 75-85: Buena relación (imagen: "silla cómoda", nombre: "silla ergonómica")
     * 90-100: Excelente relación (imagen: "silla de oficina negra", nombre: "silla oficina negra cómoda")
   - shouldBeRejected: Verifica si el nombre contiene contenido prohibido (distingue juguetes de artículos reales)
-  - hasDimensions: Verifica si el nombre contiene medidas espaciales (1.90m, 90cm, 5 pies, 12 pulgadas, diámetro, etc.)
+  - hasDimensions: Verifica si la descripción contiene medidas espaciales (1.90m, 90cm, 5 pies, 12 pulgadas, diámetro, 3x3, o alguna unidad que represente dimensiones de medida de cualquier tipo.) y false si no hay ninguna.
   - weight: Extrae el peso del nombre y conviértelo a kg (1 lb = 0.453592 kg, 1 oz = 0.0283495 kg). Usa 0 si no se encuentra peso
 
   Usa la herramienta para proporcionar respuesta estructurada segun el schema
@@ -140,7 +140,7 @@ class Prompts {
     * 75-85: Buena relación (imagen: "silla cómoda", descripción: "silla ergonómica para oficina")
     * 90-100: Excelente relación (imagen: "silla negra de oficina", descripción: "silla ejecutiva negra con respaldo alto y ruedas")
   - shouldBeRejected: Verifica si la descripción contiene contenido prohibido (distingue juguetes de artículos reales)
-  - hasDimensions: Verifica si la descripción contiene medidas espaciales (1.90m, 90cm, 5 pies, 12 pulgadas, diámetro, etc.)
+  - hasDimensions: Verifica si la descripción contiene medidas espaciales (1.90m, 90cm, 5 pies, 12 pulgadas, diámetro, 3x3, o alguna unidad que represente dimensiones de medida de cualquier tipo.) y false si no hay ninguna.
   - weight: Extrae el peso de la descripción y conviértelo a kg (1 lb = 0.453592 kg, 1 oz = 0.0283495 kg). Usa 0 si no se encuentra peso
 
   Usa la herramienta para proporcionar respuesta estructurada segun el schema
