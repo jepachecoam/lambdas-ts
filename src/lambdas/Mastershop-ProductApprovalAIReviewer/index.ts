@@ -1,4 +1,5 @@
 import httpResponse from "../../shared/responses/http";
+import Dto from "./dto";
 import Model from "./model";
 
 export const handler = async (event: any, _context: unknown): Promise<any> => {
@@ -7,11 +8,18 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
 
     const { imageUrl, name, category, description } = event;
 
-    if (!imageUrl || !name || !category || !description) {
+    // Validate all parameters in one place
+    const validation = Dto.validateAllParameters({
+      imageUrl,
+      name,
+      category,
+      description
+    });
+    if (!validation.isValid) {
       return httpResponse({
         statusCode: 400,
         body: {
-          error: "imageUrl, name, category, and description are required"
+          error: validation.error
         }
       });
     }

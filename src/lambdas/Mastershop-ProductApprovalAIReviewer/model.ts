@@ -247,7 +247,7 @@ class Model {
                 hasDimensions: {
                   type: "boolean",
                   description:
-                    "Verdadero si se pueden ver medidas espaciales en la imagen como largo, ancho, alto, diámetro en cualquier unidad (metros, cm, pulgadas, pies)"
+                    "Verdadero SOLO si se ven dimensiones ≥25cm que indiquen producto mediano/grande. Ejemplos SÍ: 90cm, 1.5m, 30 pulgadas. Ejemplos NO: 5cm, 44mm, 15cm. Ignora códigos de modelo."
                 }
               },
               required: [
@@ -287,7 +287,7 @@ class Model {
                 hasDimensions: {
                   type: "boolean",
                   description:
-                    "Verdadero si el nombre incluye medidas espaciales como metros, centímetros, pulgadas, diámetro, etc."
+                    "Verdadero SOLO si el nombre incluye dimensiones ≥25cm que indiquen producto mediano/grande. Ejemplos SÍ: 90cm, 1.5m, 30 pulgadas. Ejemplos NO: 5cm, 44mm, 15cm."
                 },
                 weight: {
                   type: "number",
@@ -375,7 +375,7 @@ class Model {
                 hasDimensions: {
                   type: "boolean",
                   description:
-                    "Verdadero si la descripción incluye medidas espaciales como metros, centímetros, pulgadas, diámetro, etc."
+                    "Verdadero SOLO si la descripción incluye dimensiones ≥25cm que indiquen producto mediano/grande. Ejemplos SÍ: 90cm, 1.5m, 30 pulgadas. Ejemplos NO: 5cm, 44mm, 15cm."
                 },
                 weight: {
                   type: "number",

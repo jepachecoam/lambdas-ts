@@ -22,12 +22,12 @@ class Prompts {
     - lb, lbs, pounds, libras
     - oz, ounces, onzas
     Convierte todo a kg (1 lb = 0.453592 kg, 1 oz = 0.0283495 kg). Si NO hay peso visible en ningún lugar de la imagen, usa 0.
-  4. DETECCIÓN DE DIMENSIONES: Busca cualquier medida espacial visible en la imagen como:
-    - Largo, ancho, alto (1.90m, 90cm, 5 pies, 12 pulgadas)
-    - Diámetro, radio (30cm de diámetro)
-    - Cualquier medida que indique tamaño físico o espacio
-    - Texto que muestre dimensiones como "1m x 50cm" o "24 pulgadas"
-    Establece hasDimensions como true si CUALQUIER medida espacial es visible, false si no hay ninguna.
+  4. DETECCIÓN DE DIMENSIONES: Busca medidas espaciales que indiquen productos de tamaño MEDIANO o GRANDE:
+    - Solo activa hasDimensions si las dimensiones son ≥25cm (o equivalente: ≥10 pulgadas, ≥0.25m)
+    - Ejemplos que SÍ activan: 90cm, 1.5m, 30 pulgadas, 50x40cm
+    - Ejemplos que NO activan: 5cm, 44mm, 2 pulgadas, 15cm
+    - IGNORA códigos de modelo como "OE248", "XL-500"
+    Establece hasDimensions como true SOLO si hay dimensiones ≥25cm que indiquen producto mediano/grande.
 
   Usa la herramienta para proporcionar respuesta estructurada segun el schema
 
@@ -64,7 +64,7 @@ class Prompts {
     * 75-85: Buena relación (imagen: "silla cómoda", nombre: "silla ergonómica")
     * 90-100: Excelente relación (imagen: "silla de oficina negra", nombre: "silla oficina negra cómoda")
   - shouldBeRejected: Verifica si el nombre contiene contenido prohibido (distingue juguetes de artículos reales)
-  - hasDimensions: Verifica si la descripción contiene medidas espaciales (1.90m, 90cm, 5 pies, 12 pulgadas, diámetro, 3x3, o alguna unidad que represente dimensiones de medida de cualquier tipo.) y false si no hay ninguna.
+  - hasDimensions: Verifica si el nombre contiene dimensiones que indiquen producto MEDIANO/GRANDE (≥25cm o equivalente). Ejemplos SÍ: 90cm, 1.5m, 30 pulgadas. Ejemplos NO: 5cm, 44mm, 2 pulgadas. IGNORA códigos de modelo. Solo true para productos de tamaño considerable.
   - weight: Extrae el peso del nombre y conviértelo a kg (1 lb = 0.453592 kg, 1 oz = 0.0283495 kg). Usa 0 si no se encuentra peso
 
   Usa la herramienta para proporcionar respuesta estructurada segun el schema
@@ -140,7 +140,7 @@ class Prompts {
     * 75-85: Buena relación (imagen: "silla cómoda", descripción: "silla ergonómica para oficina")
     * 90-100: Excelente relación (imagen: "silla negra de oficina", descripción: "silla ejecutiva negra con respaldo alto y ruedas")
   - shouldBeRejected: Verifica si la descripción contiene contenido prohibido (distingue juguetes de artículos reales)
-  - hasDimensions: Verifica si la descripción contiene medidas espaciales (1.90m, 90cm, 5 pies, 12 pulgadas, diámetro, 3x3, o alguna unidad que represente dimensiones de medida de cualquier tipo.) y false si no hay ninguna.
+  - hasDimensions: Verifica si la descripción contiene dimensiones que indiquen producto MEDIANO/GRANDE (≥25cm o equivalente). Ejemplos SÍ: 90cm, 1.5m, 30 pulgadas. Ejemplos NO: 5cm, 44mm, 2 pulgadas. IGNORA códigos de modelo. Solo true para productos de tamaño considerable.
   - weight: Extrae el peso de la descripción y conviértelo a kg (1 lb = 0.453592 kg, 1 oz = 0.0283495 kg). Usa 0 si no se encuentra peso
 
   Usa la herramienta para proporcionar respuesta estructurada segun el schema
