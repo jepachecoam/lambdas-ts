@@ -1,25 +1,45 @@
-export interface ImageAnalysis {
+/* eslint-disable unused-imports/no-unused-vars */
+export enum ApprovalStatus {
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  UNDER_REVIEW = "underReview"
+}
+
+export const APPROVAL_THRESHOLDS = {
+  SEMANTIC_RELEVANCE_MIN: 30,
+  SEMANTIC_RELEVANCE_LOW: 60,
+  WEIGHT_LIMIT_KG: 1
+} as const;
+
+export interface ProductApprovalRequest {
+  imageUrl: string;
+  name: string;
+  category: string;
+  description: string;
+}
+
+export interface ImageAnalysisResult {
   shouldBeRejected: boolean;
   weight: number;
   hasDimensions: boolean;
   description: string;
 }
 
-export interface INameResult {
+export interface NameAnalysisResult {
   semanticRelevance: number;
   shouldBeRejected: boolean;
   hasDimensions: boolean;
   weight: number;
 }
 
-export interface IDescriptionResult {
+export interface DescriptionAnalysisResult {
   semanticRelevance: number;
   shouldBeRejected: boolean;
   hasDimensions: boolean;
   weight: number;
 }
 
-export interface ICategoryResult {
+export interface CategoryAnalysisResult {
   semanticRelevance: number;
   suggestedCategory: {
     idProdFormat: number;
@@ -27,22 +47,22 @@ export interface ICategoryResult {
   };
 }
 
-export interface AnalysisResponse {
-  result: "approved" | "rejected" | "underReview";
+export interface ProductApprovalResponse {
+  result: ApprovalStatus;
   note: string;
-  imgResult: ImageAnalysis;
-  nameResult: INameResult;
-  categoryResult: ICategoryResult;
-  descriptionResult: IDescriptionResult;
+  imageResult: ImageAnalysisResult;
+  nameResult: NameAnalysisResult;
+  categoryResult: CategoryAnalysisResult;
+  descriptionResult: DescriptionAnalysisResult;
 }
 
-export interface ImageAnalysisResponse {
-  result: "approved" | "rejected" | "underReview";
+export interface ImageApprovalResponse {
+  result: ApprovalStatus;
   note: string;
-  imgResult: ImageAnalysis;
+  imageResult: ImageAnalysisResult;
 }
 
-export interface BedrockAnalysis {
+export interface BedrockImageAnalysis {
   description: string;
   isProhibited: boolean;
   prohibitedReason?: string;
@@ -51,7 +71,7 @@ export interface BedrockAnalysis {
 }
 
 export interface TextAnalysisResult {
-  nameResult: INameResult;
-  categoryResult: ICategoryResult;
-  descriptionResult: IDescriptionResult;
+  nameResult: NameAnalysisResult;
+  categoryResult: CategoryAnalysisResult;
+  descriptionResult: DescriptionAnalysisResult;
 }
