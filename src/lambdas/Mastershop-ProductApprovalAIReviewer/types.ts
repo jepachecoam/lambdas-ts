@@ -1,16 +1,3 @@
-/* eslint-disable unused-imports/no-unused-vars */
-export enum ApprovalStatus {
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  UNDER_REVIEW = "underReview"
-}
-
-export const APPROVAL_THRESHOLDS = {
-  SEMANTIC_RELEVANCE_MIN: 30,
-  SEMANTIC_RELEVANCE_LOW: 60,
-  WEIGHT_LIMIT_KG: 1
-} as const;
-
 export interface ProductApprovalRequest {
   imageUrl: string;
   name: string;
@@ -19,22 +6,22 @@ export interface ProductApprovalRequest {
 }
 
 export interface ImageAnalysisResult {
-  shouldBeRejected: boolean;
-  weight: number;
-  hasDimensions: boolean;
   description: string;
+  isBlacklisted: boolean;
+  weightKg: number;
+  hasDimensions: boolean;
 }
 
 export interface NameAnalysisResult {
   semanticRelevance: number;
-  shouldBeRejected: boolean;
+  isBlacklisted: boolean;
   hasDimensions: boolean;
   weight: number;
 }
 
 export interface DescriptionAnalysisResult {
   semanticRelevance: number;
-  shouldBeRejected: boolean;
+  isBlacklisted: boolean;
   hasDimensions: boolean;
   weight: number;
 }
@@ -47,31 +34,40 @@ export interface CategoryAnalysisResult {
   };
 }
 
+/* eslint-disable unused-imports/no-unused-vars */
+export enum ValidationFailure {
+  IS_BLACKLISTED = "isBlacklisted",
+  HAS_DIMENSIONS = "hasDimensions",
+  SEMANTIC_RELEVANCE = "semanticRelevance",
+  EXCEEDS_LIMIT = "exceedsLimit"
+}
+
+export enum ValidationType {
+  REJECTED = "rejected",
+  UNDER_REVIEWED = "underReviewed"
+}
+
+export interface Validation {
+  key: ValidationFailure;
+  type: ValidationType;
+}
+
+export interface BasicFieldsValidation {
+  name: Validation[];
+  description: Validation[];
+  urlImageProduct: Validation[];
+  category: Validation[];
+}
+
+export interface BasicFieldsSuggestions {
+  name: any[];
+  description: any[];
+  urlImageProduct: any[];
+  category: any[];
+}
+
 export interface ProductApprovalResponse {
-  result: ApprovalStatus;
-  note: string;
-  imageResult: ImageAnalysisResult;
-  nameResult: NameAnalysisResult;
-  categoryResult: CategoryAnalysisResult;
-  descriptionResult: DescriptionAnalysisResult;
+  validations: BasicFieldsValidation;
+  suggestions: BasicFieldsSuggestions;
 }
-
-export interface ImageApprovalResponse {
-  result: ApprovalStatus;
-  note: string;
-  imageResult: ImageAnalysisResult;
-}
-
-export interface BedrockImageAnalysis {
-  description: string;
-  isProhibited: boolean;
-  prohibitedReason?: string;
-  weightKg: number;
-  hasDimensions: boolean;
-}
-
-export interface TextAnalysisResult {
-  nameResult: NameAnalysisResult;
-  categoryResult: CategoryAnalysisResult;
-  descriptionResult: DescriptionAnalysisResult;
-}
+/* eslint-enable unused-imports/no-unused-vars */

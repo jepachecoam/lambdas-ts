@@ -8,7 +8,6 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
 
     const { imageUrl, name, category, description } = event;
 
-    // Validate all parameters in one place
     const validation = Dto.validateAllParameters({
       imageUrl,
       name,
