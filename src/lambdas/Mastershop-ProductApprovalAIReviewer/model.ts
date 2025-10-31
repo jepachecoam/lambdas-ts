@@ -37,6 +37,7 @@ class Model {
 
     // Step 1: Image Analysis
     const imageAnalysisResult = await this.dao.performImageAnalysis(imageUrl);
+    console.log("imageAnalysisResult >>>", imageAnalysisResult);
     response.validations.urlImageProduct =
       this.applyImageValidationRules(imageAnalysisResult);
 
@@ -49,6 +50,8 @@ class Model {
       imageAnalysisResult.description,
       name
     );
+    console.log("nameAnalysisResult >>>", nameAnalysisResult);
+
     response.validations.name =
       this.applyNameValidationRules(nameAnalysisResult);
 
@@ -61,6 +64,8 @@ class Model {
       imageAnalysisResult.description,
       description
     );
+    console.log("descriptionAnalysisResult >>>", descriptionAnalysisResult);
+
     response.validations.description = this.applyDescriptionValidationRules(
       descriptionAnalysisResult
     );
@@ -74,6 +79,8 @@ class Model {
       imageAnalysisResult.description,
       category
     );
+    console.log("categoryAnalysisResult >>>", categoryAnalysisResult);
+
     response.suggestions.category = this.applyCategorySuggestionRules(
       categoryAnalysisResult
     );
@@ -122,7 +129,7 @@ class Model {
       });
     }
 
-    if (result.semanticRelevance < 60) {
+    if (result.semanticRelevance < 50) {
       validations.push({
         key: ValidationFailure.SEMANTIC_RELEVANCE,
         type: ValidationType.REJECTED
@@ -158,7 +165,7 @@ class Model {
       });
     }
 
-    if (result.semanticRelevance < 60) {
+    if (result.semanticRelevance < 50) {
       validations.push({
         key: ValidationFailure.SEMANTIC_RELEVANCE,
         type: ValidationType.REJECTED
@@ -187,7 +194,7 @@ class Model {
   ): any[] => {
     const suggestions: any[] = [];
 
-    if (result.semanticRelevance < 60) {
+    if (result.semanticRelevance < 50) {
       suggestions.push({
         id: result.suggestedCategory.idProdFormat,
         label: result.suggestedCategory.prodFormatName
