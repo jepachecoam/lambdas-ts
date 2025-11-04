@@ -38,7 +38,7 @@ class Dao {
     const { imageBytes, format } = await this.downloadProductImage(imageUrl);
 
     const command = new ConverseCommand({
-      modelId: "amazon.nova-lite-v1:0",
+      modelId: "amazon.nova-pro-v1:0",
       messages: [
         {
           role: "user",
@@ -72,7 +72,7 @@ class Dao {
                     isBlacklisted: {
                       type: "boolean",
                       description:
-                        "Verdadero si el producto pertenece a categorías prohibidas o contiene contenido no permitido"
+                        "Verdadero si el producto pertenece a categorías prohibidas o contiene contenido no permitido, o no es producto fisico o no se lo ve claramente"
                     },
                     weightKg: {
                       type: "number",
@@ -82,7 +82,7 @@ class Dao {
                     hasDimensions: {
                       type: "boolean",
                       description:
-                        "Verdadero SOLO si se ven dimensiones ≥25cm que indiquen producto mediano/grande. Ejemplos SÍ: 90cm, 1.5m, 30 pulgadas. Ejemplos NO: 5cm, 44mm, 15cm. Ignora códigos de modelo."
+                        "Verdadero SOLO si se ven dimensiones ≥25cm que indiquen producto mediano/grande o Si hace parte de las categorias agro indicadas"
                     }
                   },
                   required: [
@@ -99,7 +99,7 @@ class Dao {
         toolChoice: { tool: { name: "image_analysis" } }
       },
       inferenceConfig: {
-        maxTokens: 2000,
+        maxTokens: 3500,
         temperature: 0.1
       }
     });
