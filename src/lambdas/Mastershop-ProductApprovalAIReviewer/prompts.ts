@@ -210,7 +210,6 @@ class Prompts {
   - Productos de categoría Agro (Fumigadora, esparcidora de semillas, rollo de alambre, pico, pala, etc) que por su naturaleza son grandes
   - Productos de Ferretería, Herramientas
   - Productos de Mobiliarios de casa u oficina
-  - Productos en Combo, Pack, Paca
   - Productos de Camping, Neveras, Camas
   - Productos de Gimnasio
   - Productos Electrodomésticos (Cabinas de sonido, computadores completos (escritorio), monitores de 24, etc)
@@ -364,10 +363,9 @@ class Prompts {
   - Productos de categoría Agro (Fumigadora, esparcidora de semillas, rollo de alambre, pico, pala, etc) que por su naturaleza son grandes
   - Productos de Ferretería, Herramientas
   - Productos de Mobiliarios de casa u oficina
-  - Productos en Combo, Pack, Paca
   - Productos de Camping, Neveras, Camas
   - Productos de Gimnasio
-  - Productos Electrodomésticos (Cabinas de sonido, computadores completos (escritorio), monitores de 24´´, etc)
+  - Productos Electrodomésticos (Cabinas de sonido, computadores completos (escritorio), monitores de 24, etc)
 
   REGLAS IMPORTANTES:
   - IGNORA códigos de modelo que parezcan medidas: "OE248", "XL-500", "M-350"
@@ -530,10 +528,9 @@ class Prompts {
   - Productos de categoría Agro (Fumigadora, esparcidora de semillas, rollo de alambre, pico, pala, etc) que por su naturaleza son grandes
   - Productos de Ferretería, Herramientas
   - Productos de Mobiliarios de casa u oficina
-  - Productos en Combo, Pack, Paca
   - Productos de Camping, Neveras, Camas
   - Productos de Gimnasio
-  - Productos Electrodomésticos (Cabinas de sonido, computadores completos (escritorio), monitores de 24´´, etc)
+  - Productos Electrodomésticos (Cabinas de sonido, computadores completos (escritorio), monitores de 24, etc)
 
   REGLAS IMPORTANTES:
   - IGNORA códigos de modelo que parezcan medidas: "OE248", "XL-500", "M-350"

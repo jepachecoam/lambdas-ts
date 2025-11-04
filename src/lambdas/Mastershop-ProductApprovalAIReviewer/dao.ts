@@ -179,7 +179,7 @@ class Dao {
         toolChoice: { tool: { name: "name_analysis" } }
       },
       inferenceConfig: {
-        maxTokens: 1000,
+        maxTokens: 3500,
         temperature: 0.1
       }
     });
@@ -253,7 +253,7 @@ class Dao {
         toolChoice: { tool: { name: "category_analysis" } }
       },
       inferenceConfig: {
-        maxTokens: 1000,
+        maxTokens: 3500,
         temperature: 0.1
       }
     });
@@ -331,7 +331,7 @@ class Dao {
         toolChoice: { tool: { name: "description_analysis" } }
       },
       inferenceConfig: {
-        maxTokens: 1000,
+        maxTokens: 3500,
         temperature: 0.1
       }
     });
