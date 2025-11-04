@@ -8,13 +8,16 @@ async function verifyToken(
   token: string,
   cognitoUserPoolId: string,
   cognitoClientId: string,
-  typeTokenUse: "access" | "id"
+  cognitoClientIdMobile: string,
+  typeTokenUse: "access" | "id",
+  isMobile: boolean
 ) {
   try {
+    // Use isMobile to validate the clientId from mobile or web
     const verifier = CognitoJwtVerifier.create({
       userPoolId: cognitoUserPoolId,
       tokenUse: typeTokenUse,
-      clientId: cognitoClientId
+      clientId: isMobile ? cognitoClientIdMobile : cognitoClientId
     });
 
     const payload = await verifier.verify(token);
