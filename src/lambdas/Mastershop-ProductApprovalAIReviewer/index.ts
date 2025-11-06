@@ -1,4 +1,3 @@
-import httpResponse from "../../shared/responses/http";
 import Dto from "./dto";
 import Model from "./model";
 
@@ -6,7 +5,9 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
   try {
     console.log("Event =>>>", event);
 
-    const { imageUrl, name, category, description } = event;
+    const { urlImageProduct: imageUrl, name, description } = event;
+
+    const category = event.basicValidationResult?.category;
 
     const validation = Dto.validateAllParameters({
       imageUrl,
@@ -15,12 +16,10 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
       description
     });
     if (!validation.isValid) {
-      return httpResponse({
+      return {
         statusCode: 400,
-        body: {
-          error: validation.error
-        }
-      });
+        error: validation.error
+      };
     }
 
     const model = new Model();
@@ -32,15 +31,16 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
       description
     });
 
-    return httpResponse({
+    return {
+      ...approvalResponse,
       statusCode: 200,
-      body: approvalResponse
-    });
+      origin: "ai"
+    };
   } catch (error: any) {
     console.error("Error:", error);
-    return httpResponse({
+    return {
       statusCode: 500,
-      body: { message: "Internal server Error" }
-    });
+      error: error.message || "Internal Server Error"
+    };
   }
 };

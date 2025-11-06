@@ -1,20 +1,21 @@
 class Dto {
   static validateAllParameters = (params: {
-    imageUrl?: string;
-    name?: string;
-    category?: string;
-    description?: string;
+    imageUrl: string;
+    name: string;
+    category: string;
+    description: string;
   }) => {
-    // Check required fields
-    if (
-      !params.imageUrl ||
-      !params.name ||
-      !params.category ||
-      !params.description
-    ) {
+    const missingFields: string[] = [];
+
+    if (!params.imageUrl) missingFields.push("imageUrl");
+    if (!params.name) missingFields.push("name");
+    if (!params.category) missingFields.push("category");
+    if (!params.description) missingFields.push("description");
+
+    if (missingFields.length > 0) {
       return {
         isValid: false,
-        error: "imageUrl, name, category, and description are required"
+        missingFields
       };
     }
 
