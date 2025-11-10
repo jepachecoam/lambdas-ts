@@ -3,7 +3,7 @@ import Model from "./model";
 
 export const handler = async (event: any, _context: unknown): Promise<any> => {
   try {
-    console.log("Event =>>>", event);
+    console.log("Event =>>>", JSON.stringify(event));
 
     const { urlImageProduct: imageUrl, name, description } = event;
 
@@ -31,11 +31,13 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
       description
     });
 
-    return {
+    const result = {
       ...approvalResponse,
       statusCode: 200,
       origin: "ai"
     };
+    console.log("result >>>", result);
+    return result;
   } catch (error: any) {
     console.error("Error:", error);
     return {
