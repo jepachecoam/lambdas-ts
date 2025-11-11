@@ -10,6 +10,7 @@ import { handler as customerDeduplicationProcess } from "../lambdas/Mastershop-C
 import { handler as generateInvoiceStatementGMF } from "../lambdas/Mastershop-GenerateInvoiceStatementGMF";
 import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/index";
 import { handler as ordersMonitor } from "../lambdas/MasterShop-OrdersMonitor/index";
+import { handler as bedrockIntegration } from "../lambdas/Mastershop-ProductApprovalAIReviewer/index";
 import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
 import { handler as updateOrders } from "../lambdas/Mastershop-UpdateOrders/index";
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
@@ -25,6 +26,10 @@ router.post(
   serverResponse({ handler: example, responseType: "http" })
 );
 
+router.post(
+  "/bedrock",
+  serverResponse({ handler: bedrockIntegration, responseType: "http" })
+);
 router.post(
   "/generate-invoice-statement-gmf",
   serverResponse({ handler: generateInvoiceStatementGMF, responseType: "pdf" })
