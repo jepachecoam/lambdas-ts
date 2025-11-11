@@ -44,7 +44,7 @@ export enum ValidationFailure {
 
 export enum ValidationType {
   REJECTED = "rejected",
-  UNDER_REVIEWED = "underReviewed"
+  UNDER_REVIEW = "underReview"
 }
 
 export interface Validation {
