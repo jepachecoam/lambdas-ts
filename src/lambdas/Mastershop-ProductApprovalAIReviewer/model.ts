@@ -41,7 +41,7 @@ class Model {
     response.validations.urlImageProduct =
       this.applyImageValidationRules(imageAnalysisResult);
 
-    if (this.hasRejectedOrUnderReviewed(response.validations.urlImageProduct)) {
+    if (this.hasRejectedOrUnderReview(response.validations.urlImageProduct)) {
       return response;
     }
 
@@ -55,7 +55,7 @@ class Model {
     response.validations.name =
       this.applyNameValidationRules(nameAnalysisResult);
 
-    if (this.hasRejectedOrUnderReviewed(response.validations.name)) {
+    if (this.hasRejectedOrUnderReview(response.validations.name)) {
       return response;
     }
 
@@ -70,7 +70,7 @@ class Model {
       descriptionAnalysisResult
     );
 
-    if (this.hasRejectedOrUnderReviewed(response.validations.description)) {
+    if (this.hasRejectedOrUnderReview(response.validations.description)) {
       return response;
     }
 
@@ -103,14 +103,14 @@ class Model {
     if (result.weightKg > 1) {
       validations.push({
         key: ValidationFailure.EXCEEDS_LIMIT,
-        type: ValidationType.UNDER_REVIEWED
+        type: ValidationType.UNDER_REVIEW
       });
     }
 
     if (result.hasDimensions) {
       validations.push({
         key: ValidationFailure.HAS_DIMENSIONS,
-        type: ValidationType.UNDER_REVIEWED
+        type: ValidationType.UNDER_REVIEW
       });
     }
 
@@ -139,14 +139,14 @@ class Model {
     if (result.weight > 1) {
       validations.push({
         key: ValidationFailure.EXCEEDS_LIMIT,
-        type: ValidationType.UNDER_REVIEWED
+        type: ValidationType.UNDER_REVIEW
       });
     }
 
     if (result.hasDimensions) {
       validations.push({
         key: ValidationFailure.HAS_DIMENSIONS,
-        type: ValidationType.UNDER_REVIEWED
+        type: ValidationType.UNDER_REVIEW
       });
     }
 
@@ -175,14 +175,14 @@ class Model {
     if (result.weight > 1) {
       validations.push({
         key: ValidationFailure.EXCEEDS_LIMIT,
-        type: ValidationType.UNDER_REVIEWED
+        type: ValidationType.UNDER_REVIEW
       });
     }
 
     if (result.hasDimensions) {
       validations.push({
         key: ValidationFailure.HAS_DIMENSIONS,
-        type: ValidationType.UNDER_REVIEWED
+        type: ValidationType.UNDER_REVIEW
       });
     }
 
@@ -204,7 +204,7 @@ class Model {
     return suggestions;
   };
 
-  private hasRejectedOrUnderReviewed = (validations: Validation[]): boolean => {
+  private hasRejectedOrUnderReview = (validations: Validation[]): boolean => {
     return validations.length > 0;
   };
 }
