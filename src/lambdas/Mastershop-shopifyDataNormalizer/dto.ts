@@ -125,7 +125,8 @@ const createPaymentMethod = (paymentMethod: any) => {
       "pago al recibir",
       "pago en destino",
       "collect on delivery",
-      "cash on delivery (cod)"
+      "cash on delivery (cod)",
+      "pago contra entrega (aplica solo para colombia)"
     ];
 
     const fuse = new Fuse(codOptions, {
