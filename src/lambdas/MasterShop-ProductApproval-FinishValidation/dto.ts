@@ -55,13 +55,22 @@ const aIEventParser = (event: any): ProcessedEventData => {
 };
 
 const humanEventParser = (event: any): ProcessedEventData => {
+  let result: ValidationStatus;
+  if (event.result === 0) {
+    result = ValidationStatus.REJECTED;
+  } else if (event.result === 1) {
+    result = ValidationStatus.APPROVED;
+  } else {
+    throw new Error("Invalid result");
+  }
+
   return {
     statusCode: 200,
     origin: Validator.HUMAN,
     idTicket: event.idTicket,
     idUser: event.idUser,
     idProduct: event.idProduct,
-    result: event.result,
+    result,
     note: event.note,
     validations: {},
     suggestions: {}

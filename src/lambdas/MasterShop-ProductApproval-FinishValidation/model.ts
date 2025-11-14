@@ -63,7 +63,7 @@ class Model {
     } = data;
 
     if (origin === Validator.HUMAN) {
-      this.dao.updateProductValidationProcess(idTicket, {
+      return await this.dao.updateProductValidationProcess(idTicket, {
         lastValidator: origin,
         status: result,
         humanComments: note
