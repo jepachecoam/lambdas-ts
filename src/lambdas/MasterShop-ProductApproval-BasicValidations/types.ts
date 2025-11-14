@@ -8,7 +8,8 @@ enum ValidationFailure {
   EXCEEDS_LIMIT = "exceedsLimit",
   HAS_DIMENSIONS = "hasDimensions",
   SEMANTIC_RELEVANCE = "semanticRelevance",
-  HAS_ERROR = "hasError"
+  HAS_ERROR = "hasError",
+  IS_BLACK_LISTED = "isBlacklisted"
 }
 
 interface Validation {

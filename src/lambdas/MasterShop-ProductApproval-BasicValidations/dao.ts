@@ -48,6 +48,11 @@ class Dao {
           }
         }
       );
+
+      if (result.status !== 200 || result.data.codeResponse !== 200) {
+        throw new Error(JSON.stringify(result.data || {}));
+      }
+
       return result;
     } catch (error) {
       console.error("Error in updateTicket dao =>>>", error);
@@ -87,21 +92,15 @@ class Dao {
     return this.db.fetchOne(query, { replacements: { idProdFormat } });
   }
 
-  async getOpenValidationProcess({
-    idProduct,
-    idTicket
-  }: {
-    idProduct: number;
-    idTicket: number;
-  }) {
+  async getOpenValidationProcess({ idTicket }: { idTicket: number }) {
     const query = `
       SELECT *
       FROM productValidationProcess
-      WHERE (idProduct = :idProduct OR idTicket = :idTicket)
+      WHERE idTicket = :idTicket
       AND status IN ('processing', 'underReview')
       LIMIT 1
     `;
-    return this.db.fetchOne(query, { replacements: { idProduct, idTicket } });
+    return this.db.fetchOne(query, { replacements: { idTicket } });
   }
 
   async createProductValidationProcess(

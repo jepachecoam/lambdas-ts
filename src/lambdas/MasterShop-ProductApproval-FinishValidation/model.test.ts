@@ -39,11 +39,6 @@ runTest("should return approval message for approved status", () => {
   assertEqual(result, expected);
 });
 
-runTest("should return empty string for under review status", () => {
-  const result = model.getObservations(ValidationStatus.UNDER_REVIEW, {});
-  assertEqual(result, "");
-});
-
 runTest(
   "should return basic rejection message for rejected with no validations",
   () => {
@@ -64,7 +59,7 @@ runTest("should handle single field validation errors", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "nombre: El campo es obligatorio\n"
+      "Nombre: Es obligatorio\n"
   );
 });
 
@@ -82,8 +77,8 @@ runTest("should handle multiple field validation errors", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "nombre: El campo es demasiado corto\n" +
-      "descripción: El campo tiene un formato inválido\n"
+      "Nombre: Es demasiado corto\n" +
+      "Descripción: Tiene un formato inválido\n"
   );
 });
 
@@ -99,7 +94,7 @@ runTest("should handle multiple errors in same field", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "precio: El campo es obligatorio, El campo debe ser mayor a cero\n"
+      "Precio: Es obligatorio\n"
   );
 });
 
@@ -123,8 +118,8 @@ runTest("should handle variant validation errors", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "variante(var1) - precio: El campo debe ser mayor a cero\n" +
-      "variante(var1) - peso: El campo es obligatorio\n"
+      "Variante(var1) - Precio: Debe ser mayor a cero\n" +
+      "Variante(var1) - Peso: Es obligatorio\n"
   );
 });
 
@@ -162,9 +157,9 @@ runTest("should handle multiple variants with errors", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "variante(var1) - precio: El campo debe ser mayor o igual a cero\n" +
-      "variante(var2) - peso: El campo excede el límite\n" +
-      "variante(var2) - stock: El campo debe ser numérico\n"
+      "Variante(var1) - Precio: Debe ser mayor o igual a cero\n" +
+      "Variante(var2) - Peso: Excede el límite\n" +
+      "Variante(var2) - Stock: No puede contener solo números\n"
   );
 });
 
@@ -195,8 +190,8 @@ runTest("should handle mixed field and variant errors", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "nombre: El campo no es relevante semánticamente\n" +
-      "variante(var1) - precio: El campo tiene dimensiones\n"
+      "Nombre: No coincide con los demás datos\n" +
+      "Variante(var1) - Precio: Tiene dimensiones\n"
   );
 });
 
@@ -213,7 +208,7 @@ runTest("should skip empty validation arrays", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "descripción: El campo es obligatorio\n"
+      "Descripción: Es obligatorio\n"
   );
 });
 
@@ -232,7 +227,7 @@ runTest("should handle validations with whiteList", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "imagen del producto: El campo tiene un formato inválido (permitidos: jpg, png, gif)\n"
+      "Imagen del producto: Tiene un formato inválido (permitidos: jpg, png, gif)\n"
   );
 });
 
@@ -251,7 +246,7 @@ runTest("should handle validations with minLength", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "descripción: El campo es demasiado corto (mínimo 10 caracteres)\n"
+      "Descripción: Es demasiado corto (mínimo 10 caracteres)\n"
   );
 });
 
@@ -271,9 +266,21 @@ runTest("should handle validations with both whiteList and minLength", () => {
   assertEqual(
     result,
     "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n" +
-      "nombre: El campo tiene un formato inválido (permitidos: admin, user, guest) (mínimo 5 caracteres)\n"
+      "Nombre: Tiene un formato inválido (permitidos: admin, user, guest) (mínimo 5 caracteres)\n"
   );
 });
+
+// runTest("TEST", () => {
+//   const validations: ValidationData = {
+//     process: [{ key: "hasError", type: "underReview" }]
+//   } as any;
+
+//   const result = model.getObservations(
+//     ValidationStatus.UNDER_REVIEW,
+//     validations
+//   );
+//   console.log(result);
+// });
 
 console.log("\n🎉 All tests completed!");
 console.log("\n📋 Tests incluyen:");

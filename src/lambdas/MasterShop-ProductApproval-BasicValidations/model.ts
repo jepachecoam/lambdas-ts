@@ -55,15 +55,9 @@ class Model {
     }
   };
 
-  getOpenValidationProcess = async ({
-    idProduct,
-    idTicket
-  }: {
-    idProduct: number;
-    idTicket: number;
-  }) => {
+  getOpenValidationProcess = async ({ idTicket }: { idTicket: number }) => {
     try {
-      return await this.dao.getOpenValidationProcess({ idProduct, idTicket });
+      return await this.dao.getOpenValidationProcess({ idTicket });
     } catch (error) {
       console.error("Error in getOpenValidationProcess model =>>>", error);
       throw error;

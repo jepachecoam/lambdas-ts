@@ -8,7 +8,8 @@ enum ValidationFailure {
   EXCEEDS_LIMIT = "exceedsLimit",
   HAS_DIMENSIONS = "hasDimensions",
   SEMANTIC_RELEVANCE = "semanticRelevance",
-  HAS_ERROR = "hasError"
+  HAS_ERROR = "hasError",
+  IS_BLACK_LISTED = "isBlacklisted"
 }
 
 interface Validation {
@@ -64,7 +65,8 @@ interface ValidationData {
 interface SuggestionData {
   category?: {
     id: number;
-  };
+    label: string;
+  }[];
 }
 
 interface InputEvent {
@@ -89,6 +91,12 @@ interface ProcessedEventData {
   error?: string;
 }
 
+interface UniqueIdOptions {
+  prefix?: string;
+  variableLength?: number;
+  characters?: string;
+}
+
 export {
   InputEvent,
   ProcessedEventData,
@@ -101,5 +109,6 @@ export {
   ValidationStatus,
   ValidationType,
   Validator,
-  VariantValidation
+  VariantValidation,
+  UniqueIdOptions
 };

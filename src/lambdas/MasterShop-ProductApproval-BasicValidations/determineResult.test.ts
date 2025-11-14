@@ -352,6 +352,16 @@ runTest("Complete product with affiliation issues - REJECTED", () => {
   assertEqual(determineResult(validations), ValidationStatus.REJECTED);
 });
 
+runTest("Image has dimensions issue - UNDER_REVIEW", () => {
+  const validations = {
+    name: [],
+    category: [],
+    description: [],
+    urlImageProduct: [{ key: "hasDimensions", type: "underReview" }]
+  };
+  assertEqual(determineResult(validations), ValidationStatus.UNDER_REVIEW);
+});
+
 runTest("Product with only weight concerns - UNDER_REVIEW", () => {
   const validations = {
     name: [],

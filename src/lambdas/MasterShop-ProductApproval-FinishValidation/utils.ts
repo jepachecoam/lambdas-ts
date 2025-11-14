@@ -1,3 +1,5 @@
+import { UniqueIdOptions } from "./types";
+
 const response = ({
   statusCode,
   message
@@ -13,6 +15,23 @@ const response = ({
   };
 };
 
+const generateId = (options: UniqueIdOptions): string => {
+  const {
+    prefix = "MSKD89S",
+    variableLength = 4,
+    characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  } = options;
+
+  const generateRandomString = (length: number): string => {
+    return Array.from({ length }, () =>
+      characters!.charAt(Math.floor(Math.random() * characters.length))
+    ).join("");
+  };
+
+  return `${prefix}${generateRandomString(variableLength!)}`;
+};
+
 export default {
-  response
+  response,
+  generateId
 };

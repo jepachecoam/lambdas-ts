@@ -24,7 +24,7 @@ export const handler = async (event: InputEvent) => {
       affiliationsActive
     } = dto.validateRequiredFields(event);
     if (failures.length > 0) {
-      throw new Error(failures[0]);
+      throw new Error(failures.join(", "));
     }
 
     const model = new Model(environment);
@@ -36,13 +36,12 @@ export const handler = async (event: InputEvent) => {
     });
 
     const existingProcess = await model.getOpenValidationProcess({
-      idProduct,
       idTicket
     });
     if (existingProcess) {
       return {
         statusCode: 409,
-        error: "Product or ticket already has an open validation process"
+        error: "Ticket already has an open validation process"
       };
     }
 
@@ -58,13 +57,16 @@ export const handler = async (event: InputEvent) => {
     let result = dto.determineResult(validations);
     if (result === "rejected") return createResponse(validations, null);
 
-    const [variants, productFormat] = await Promise.all([
+    let [variants, productFormat] = await Promise.all([
       model.getProductVariants({ idProduct }),
       model.getProductFormat({ idProdFormat: event.idProdFormat })
     ]);
     if (!productFormat) throw new Error("Product format not found");
     if (!variants || variants.length === 0) {
       throw new Error("Product variants not found");
+    }
+    if (variants.length > 1) {
+      variants = variants.filter((variant) => variant.name !== "Default Title");
     }
 
     if (affiliationsActive) {

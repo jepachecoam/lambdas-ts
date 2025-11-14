@@ -162,26 +162,3 @@ For questions or issues:
 ## License
 
 [Add your license information here]
-
-CREATE TABLE productValidationProcess (
-idProductValidationProcess INT PRIMARY KEY AUTO_INCREMENT,
-idProduct INT NOT NULL,
-idTicket INT NOT NULL,
-lastValidator ENUM('code', 'ai', 'human') NOT NULL,
-status ENUM('processing', 'underReview', 'approved', 'rejected') NOT NULL DEFAULT 'processing',
-validations JSON,
-suggestions JSON,
-humanComments TEXT NULL,
-createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-INDEX idx_idProduct (idProduct),
-INDEX idx_idTicket (idTicket),
-INDEX idx_status (status),
-INDEX idx_lastValidator (lastValidator)
-);
-
-falta copy de review,
-falta slack,
-falta secrets manager,
-falta payload administrativa,
-actualizacion de sugerencias

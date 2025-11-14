@@ -68,12 +68,6 @@ class Model {
         status: result,
         humanComments: note
       });
-
-      return await this.dao.updateTicket({
-        idTicket,
-        status: TicketStatus.ON_HOLD,
-        observations: note || "Sin observación"
-      });
     }
 
     if (origin !== Validator.CODE && origin !== Validator.AI) {
@@ -87,10 +81,15 @@ class Model {
       suggestions
     });
 
-    if (result === ValidationStatus.APPROVED && suggestions?.category?.id) {
+    if (
+      result === ValidationStatus.APPROVED &&
+      suggestions?.category?.length &&
+      suggestions.category.length > 0 &&
+      suggestions.category[0].id
+    ) {
       await this.dao.updateProductCategory({
         idProduct,
-        idProdFormat: suggestions.category.id
+        idProdFormat: suggestions.category[0].id
       });
     }
 
@@ -98,15 +97,22 @@ class Model {
     if (
       [ValidationStatus.APPROVED, ValidationStatus.REJECTED].includes(result)
     ) {
-      await this.dao.updateProductStatus({
+      const responseUpdateProductStatus = await this.dao.updateProductStatus({
         idProduct,
         idUser,
         status: result,
         adminObservations: observations
       });
+
+      await this.dao.changesModules({
+        idProduct,
+        idUser,
+        status: result,
+        observations,
+        outputResponse: responseUpdateProductStatus
+      });
     }
 
-    // TODO: crear mensaje con motivo de remision
     const ticketStatus =
       result === ValidationStatus.UNDER_REVIEW
         ? TicketStatus.ON_HOLD
@@ -123,6 +129,16 @@ class Model {
     result: ValidationStatus,
     validations: ValidationData
   ): string {
+    if (
+      ![
+        ValidationStatus.UNDER_REVIEW,
+        ValidationStatus.APPROVED,
+        ValidationStatus.REJECTED
+      ].includes(result)
+    ) {
+      return "";
+    }
+
     if (result === ValidationStatus.APPROVED) {
       return `¡Enhorabuena! Tu producto ha sido aprobado con éxito. 
       Estamos aquí para apoyarte en cada paso del camino. Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos. 
@@ -130,12 +146,26 @@ class Model {
       ¡Adelante y mucho éxito en tus ventas!`;
     }
 
-    if (result !== ValidationStatus.REJECTED) {
-      return "";
+    if (result === ValidationStatus.REJECTED) {
+      return this.buildValidationObservations(
+        "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n",
+        validations
+      );
     }
 
-    let observations =
-      "Lamentamos informarte que, tras la revisión, tu producto no ha sido aprobado en esta ocasión por las siguientes razones:\n";
+    return this.buildValidationObservations(
+      "El producto requiere revisión. A continuación, se detallan las validaciones encontradas:\n",
+      validations,
+      false
+    );
+  }
+
+  private buildValidationObservations(
+    header: string,
+    validations: ValidationData,
+    onlyRejected: boolean = true
+  ): string {
+    let observations = header;
 
     for (const [field, issues] of Object.entries(validations)) {
       if (!Array.isArray(issues) || issues.length === 0) continue;
@@ -146,27 +176,38 @@ class Model {
             const propIssues = variant[
               prop as keyof VariantValidation
             ] as Validation[];
-            const rejectedPropIssues = propIssues.filter(
-              (issue) => issue.type === ValidationType.REJECTED
-            );
-            if (rejectedPropIssues.length > 0) {
-              const messages = rejectedPropIssues
-                .map((issue) => this.validationToLabel(issue))
-                .join(", ");
+            const filteredIssues = onlyRejected
+              ? propIssues.filter(
+                  (issue) => issue.type === ValidationType.REJECTED
+                )
+              : propIssues;
+            if (filteredIssues.length > 0) {
+              const firstIssue = filteredIssues[0];
+              const message = this.validationToLabel(firstIssue);
+              const capitalizedMessage =
+                message.charAt(0).toUpperCase() + message.slice(1);
               const fieldLabel = this.fieldToLabel(prop) || prop;
-              observations += `variante(${variant.idVariant}) - ${fieldLabel}: ${messages}\n`;
+              const capitalizedFieldLabel =
+                fieldLabel.charAt(0).toUpperCase() + fieldLabel.slice(1);
+              observations += `Variante(${variant.idVariant}) - ${capitalizedFieldLabel}: ${capitalizedMessage}\n`;
             }
           });
         });
       } else {
-        const rejectedIssues = (issues as Validation[]).filter(
-          (issue) => issue.type === ValidationType.REJECTED
-        );
-        if (rejectedIssues.length > 0) {
-          const messages = rejectedIssues
-            .map((issue) => this.validationToLabel(issue))
-            .join(", ");
-          observations += `${this.fieldToLabel(field) || field}: ${messages}\n`;
+        const filteredIssues = onlyRejected
+          ? (issues as Validation[]).filter(
+              (issue) => issue.type === ValidationType.REJECTED
+            )
+          : (issues as Validation[]);
+        if (filteredIssues.length > 0) {
+          const firstIssue = filteredIssues[0];
+          const message = this.validationToLabel(firstIssue);
+          const capitalizedMessage =
+            message.charAt(0).toUpperCase() + message.slice(1);
+          const fieldLabel = this.fieldToLabel(field) || field;
+          const capitalizedFieldLabel =
+            fieldLabel.charAt(0).toUpperCase() + fieldLabel.slice(1);
+          observations += `${capitalizedFieldLabel}: ${capitalizedMessage}\n`;
         }
       }
     }
@@ -189,34 +230,37 @@ class Model {
     let message = "";
     switch (validation.key) {
       case ValidationFailure.IS_NULL:
-        message = "El campo es obligatorio";
+        message = "es obligatorio";
         break;
       case ValidationFailure.IS_JUST_NUMERIC:
-        message = "El campo debe ser numérico";
+        message = "no puede contener solo números";
         break;
       case ValidationFailure.IS_TOO_SHORT:
-        message = "El campo es demasiado corto";
+        message = "es demasiado corto";
         break;
       case ValidationFailure.INVALID_FORMAT:
-        message = "El campo tiene un formato inválido";
+        message = "tiene un formato inválido";
         break;
       case ValidationFailure.NOT_POSITIVE:
-        message = "El campo debe ser mayor a cero";
+        message = "debe ser mayor a cero";
         break;
       case ValidationFailure.IS_NEGATIVE:
-        message = "El campo debe ser mayor o igual a cero";
+        message = "debe ser mayor o igual a cero";
         break;
       case ValidationFailure.EXCEEDS_LIMIT:
-        message = "El campo excede el límite";
+        message = "excede el límite";
         break;
       case ValidationFailure.HAS_DIMENSIONS:
-        message = "El campo tiene dimensiones";
+        message = "tiene dimensiones";
         break;
       case ValidationFailure.SEMANTIC_RELEVANCE:
-        message = "El campo no es relevante semánticamente";
+        message = "no coincide con los demás datos";
         break;
       case ValidationFailure.HAS_ERROR:
-        message = "El campo generó error";
+        message = "no completado";
+        break;
+      case ValidationFailure.IS_BLACK_LISTED:
+        message = "contiene información prohibida.";
         break;
     }
 
@@ -273,7 +317,7 @@ class Model {
         return "stock";
 
       case "process":
-        return "stock";
+        return "validación";
     }
   }
 }

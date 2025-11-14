@@ -9,14 +9,11 @@ import {
 } from "./types";
 
 const eventParser = (event: any): ProcessedEventData => {
-  const origin =
-    event.aiValidationResult?.origin || event.basicValidationResult?.origin; // TODO: || human
-
-  if (origin === Validator.CODE) {
-    return codeEventParser(event);
-  } else if (origin === Validator.AI) {
+  if (event.aiValidationResult) {
     return aIEventParser(event);
-  } else if (origin === Validator.HUMAN) {
+  } else if (event.basicValidationResult) {
+    return codeEventParser(event);
+  } else if (event.origin === Validator.HUMAN) {
     return humanEventParser(event);
   }
 
@@ -28,7 +25,9 @@ const codeEventParser = (event: any): ProcessedEventData => {
   return {
     statusCode: data.statusCode,
     origin: Validator.CODE,
-    result: determineResult(data.validations),
+    result: data.validations
+      ? determineResult(data.validations)
+      : ValidationStatus.UNDER_REVIEW,
     idTicket: event.idTicket,
     idUser: event.idUser,
     idProduct: event.idProduct,
@@ -43,19 +42,21 @@ const aIEventParser = (event: any): ProcessedEventData => {
   return {
     statusCode: data.statusCode,
     origin: Validator.AI,
-    result: determineResult(data.validations),
+    result: data.validations
+      ? determineResult(data.validations)
+      : ValidationStatus.UNDER_REVIEW,
     idTicket: event.idTicket,
     idUser: event.idUser,
     idProduct: event.idProduct,
     validations: data.validations,
-    suggestions: data.suggestions, // TODO: ajustar formato
+    suggestions: data.suggestions,
     error: data.error
   };
 };
 
 const humanEventParser = (event: any): ProcessedEventData => {
   return {
-    statusCode: event.statusCode,
+    statusCode: 200,
     origin: Validator.HUMAN,
     idTicket: event.idTicket,
     idUser: event.idUser,

@@ -21,7 +21,7 @@ export const handler = async (event: InputEvent, context: any) => {
 
       return utils.response({
         statusCode: 200,
-        message: "Validation incompleted"
+        message: "Incomplete validation"
       });
     }
 
