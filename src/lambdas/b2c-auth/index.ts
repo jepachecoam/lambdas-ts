@@ -23,18 +23,25 @@ export const handler = async (event: any) => {
     // Sanitize methodArn if needed
     methodArn = dto.sanitizeMethodArn(methodArn, event.pathParameters);
 
+    // New header request-origin to validate if the request is from mobile
+    const isMobile = event.headers["request-origin"] === "mobile";
+
     const accessTokenResponse = await model.verifyToken(
       authorizationToken,
       event.stageVariables.cognitoUserPoolId,
       event.stageVariables.cognitoClientId,
-      "access"
+      event.stageVariables.cognitoClientIdMobile,
+      "access",
+      isMobile
     );
 
     const idTokenResponse = await model.verifyToken(
       idToken,
       event.stageVariables.cognitoUserPoolId,
       event.stageVariables.cognitoClientId,
-      "id"
+      event.stageVariables.cognitoClientIdMobile,
+      "id",
+      isMobile
     );
 
     if (
