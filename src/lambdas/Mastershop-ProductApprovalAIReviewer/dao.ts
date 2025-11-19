@@ -17,16 +17,27 @@ class Dao {
   private bedrock = new BedrockRuntimeClient({ region: "us-east-1" });
 
   downloadProductImage = async (imageUrl: string) => {
-    const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
+    // Transform URL: change domain and add query params
+    const url = new URL(imageUrl);
+
+    const formatToGet = "jpeg";
+
+    const transformedUrl = `https://img.master.la${url.pathname}?format=${formatToGet}&height=700&width=700`;
+
+    const response = await axios.get(transformedUrl, {
+      responseType: "arraybuffer"
+    });
     const imageBytes = new Uint8Array(response.data);
 
     const fileType = await fileTypeFromBuffer(imageBytes);
     const format =
       fileType?.ext === "jpg"
-        ? "jpeg"
+        ? formatToGet
         : (fileType?.ext as "jpeg" | "png" | "gif" | "webp") || "jpeg";
 
-    console.log(`Image URL: ${imageUrl}`);
+    console.log(`Original URL: ${imageUrl}`);
+    console.log(`Transformed URL: ${transformedUrl}`);
+    console.log(`Format to get: ${formatToGet}`);
     console.log(`Detected format: ${format}`);
 
     return { imageBytes, format };
