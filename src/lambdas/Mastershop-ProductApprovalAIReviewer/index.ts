@@ -16,6 +16,7 @@ export const handler = async (event: any, _context: unknown): Promise<any> => {
       description
     });
     if (!validation.isValid) {
+      console.error("Validation error:", validation.error);
       return {
         statusCode: 400,
         error: validation.error
