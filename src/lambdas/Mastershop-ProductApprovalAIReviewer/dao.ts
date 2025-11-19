@@ -3,7 +3,7 @@ import {
   ConverseCommand
 } from "@aws-sdk/client-bedrock-runtime";
 import axios from "axios";
-import sharp from "sharp";
+import { fileTypeFromBuffer } from "file-type";
 
 import Prompts from "./prompts";
 import {
@@ -18,29 +18,18 @@ class Dao {
 
   downloadProductImage = async (imageUrl: string) => {
     const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
-    let imageBytes = new Uint8Array(response.data);
+    const imageBytes = new Uint8Array(response.data);
+
+    const fileType = await fileTypeFromBuffer(imageBytes);
+    const format =
+      fileType?.ext === "jpg"
+        ? "jpeg"
+        : (fileType?.ext as "jpeg" | "png" | "gif" | "webp") || "jpeg";
 
     console.log(`Image URL: ${imageUrl}`);
+    console.log(`Detected format: ${format}`);
 
-    const isJpeg =
-      imageUrl.toLowerCase().includes(".jpg") ||
-      imageUrl.toLowerCase().includes(".jpeg");
-
-    if (!isJpeg) {
-      console.log("Converting image to JPEG format");
-      const jpegBuffer = await sharp(Buffer.from(imageBytes), {
-        failOnError: false,
-        unlimited: true,
-        sequentialRead: true
-      })
-        .flatten({ background: { r: 255, g: 255, b: 255 } })
-        .jpeg({ quality: 90, mozjpeg: true })
-        .toBuffer();
-      imageBytes = new Uint8Array(jpegBuffer);
-      console.log("Image conversion to JPEG completed");
-    }
-
-    return { imageBytes, format: "jpeg" as const };
+    return { imageBytes, format };
   };
 
   performImageAnalysis = async (
