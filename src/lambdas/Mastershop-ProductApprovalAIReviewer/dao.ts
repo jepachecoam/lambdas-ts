@@ -3,7 +3,6 @@ import {
   ConverseCommand
 } from "@aws-sdk/client-bedrock-runtime";
 import axios from "axios";
-import { fileTypeFromBuffer } from "file-type";
 
 import Prompts from "./prompts";
 import {
@@ -17,30 +16,18 @@ class Dao {
   private bedrock = new BedrockRuntimeClient({ region: "us-east-1" });
 
   downloadProductImage = async (imageUrl: string) => {
-    // Transform URL: change domain and add query params
     const url = new URL(imageUrl);
-
-    const formatToGet = "jpeg";
-
-    const transformedUrl = `https://img.master.la${url.pathname}?format=${formatToGet}&height=700&width=700`;
+    const transformedUrl = `https://img.master.la${url.pathname}?format=jpeg&height=700&width=700`;
 
     const response = await axios.get(transformedUrl, {
       responseType: "arraybuffer"
     });
     const imageBytes = new Uint8Array(response.data);
 
-    const fileType = await fileTypeFromBuffer(imageBytes);
-    const format =
-      fileType?.ext === "jpg"
-        ? formatToGet
-        : (fileType?.ext as "jpeg" | "png" | "gif" | "webp") || "jpeg";
-
     console.log(`Original URL: ${imageUrl}`);
     console.log(`Transformed URL: ${transformedUrl}`);
-    console.log(`Format to get: ${formatToGet}`);
-    console.log(`Detected format: ${format}`);
 
-    return { imageBytes, format };
+    return { imageBytes, format: "jpeg" as const };
   };
 
   performImageAnalysis = async (
@@ -110,7 +97,7 @@ class Dao {
         toolChoice: { tool: { name: "image_analysis" } }
       },
       inferenceConfig: {
-        maxTokens: 3500,
+        maxTokens: 4000,
         temperature: 0.1
       }
     });
