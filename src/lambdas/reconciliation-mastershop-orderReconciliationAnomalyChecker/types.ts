@@ -58,3 +58,7 @@ export interface IOrderData {
   order: any;
   orderSource: OrderSourceEnum;
 }
+
+export enum PaymentMethodEnum {
+  COD = "cod"
+}

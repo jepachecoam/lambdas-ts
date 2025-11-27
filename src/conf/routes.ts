@@ -12,6 +12,7 @@ import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/M
 import { handler as ordersMonitor } from "../lambdas/MasterShop-OrdersMonitor/index";
 import { handler as productApprovalBasicValidations } from "../lambdas/MasterShop-ProductApproval-BasicValidations/index";
 import { handler as productApprovalFinishValidation } from "../lambdas/MasterShop-ProductApproval-FinishValidation";
+import { handler as bedrockIntegration } from "../lambdas/Mastershop-ProductApprovalAIReviewer/index";
 import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
 import { handler as updateOrders } from "../lambdas/Mastershop-UpdateOrders/index";
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
@@ -27,6 +28,10 @@ router.post(
   serverResponse({ handler: example, responseType: "http" })
 );
 
+router.post(
+  "/bedrock",
+  serverResponse({ handler: bedrockIntegration, responseType: "http" })
+);
 router.post(
   "/generate-invoice-statement-gmf",
   serverResponse({ handler: generateInvoiceStatementGMF, responseType: "pdf" })
