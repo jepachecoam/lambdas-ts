@@ -41,12 +41,14 @@ src/lambdas/
 ## Installation
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd lambdas-ts
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
