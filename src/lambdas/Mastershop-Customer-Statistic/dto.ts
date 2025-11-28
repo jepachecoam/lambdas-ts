@@ -1,8 +1,15 @@
 function getParams(event: any) {
-  console.log("event :>>>", JSON.stringify(event));
+  const missingFields = [];
 
-  const environment = "prod";
-  const phone = "3024507261";
+  const environment = event.detail?.stage;
+  const phone = event.detail?.customer?.phone;
+
+  if (!environment) missingFields.push("environment");
+  if (!phone) missingFields.push("phone");
+
+  if (missingFields.length > 0) {
+    throw new Error(`Missing fields: ${missingFields.join(", ")}`);
+  }
 
   return {
     environment: environment,

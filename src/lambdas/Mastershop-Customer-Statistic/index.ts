@@ -1,6 +1,6 @@
 import httpResponse from "../../shared/responses/http";
 import { b2bRequestEnvs } from "../../shared/types/b2b-request";
-import { dbEnv } from "../../shared/types/database";
+import { redisEnv } from "../../shared/types/redis";
 import { checkEnv } from "../../shared/validation/envChecker";
 import dto from "./dto";
 import Model from "./model";
@@ -11,7 +11,7 @@ export const handler = async (event: any) => {
 
     checkEnv({
       ...b2bRequestEnvs,
-      ...dbEnv
+      ...redisEnv
     });
 
     const { environment, phone } = dto.getParams(event);

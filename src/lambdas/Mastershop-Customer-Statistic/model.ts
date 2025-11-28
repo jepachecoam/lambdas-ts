@@ -11,6 +11,10 @@ class Model {
     const customerStatistics = await this.dao.getCustomerStatistics(phone);
     console.log("customerStatistics :>>", customerStatistics);
 
+    if (!customerStatistics) {
+      throw new Error("Customer statistics not found");
+    }
+
     const SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7;
 
     await this.dao.setKeyInCache({
@@ -22,3 +26,7 @@ class Model {
 }
 
 export default Model;
+
+function sanitizePhone(phone: string): string {
+  return phone.replace(/\D+/g, "");
+}
