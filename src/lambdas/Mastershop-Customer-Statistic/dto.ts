@@ -1,8 +1,16 @@
 function getParams(event: any) {
   const missingFields = [];
 
-  const environment = event.detail?.stage;
-  const phone = event.detail?.customer?.phone;
+  let environment = null;
+  let phone = null;
+
+  if (event["detail-type"] === "CREATED-ORDER") {
+    environment = event?.detail?.parameters?.stage;
+    phone = event.detail?.customer?.phone;
+  } else {
+    environment = event.detail?.stage;
+    phone = event.detail?.customer?.phone;
+  }
 
   if (!environment) missingFields.push("environment");
   if (!phone) missingFields.push("phone");
@@ -17,4 +25,8 @@ function getParams(event: any) {
   };
 }
 
-export default { getParams };
+function sanitizePhone(phone: string): string {
+  return phone.replace(/\D+/g, "");
+}
+
+export default { getParams, sanitizePhone };

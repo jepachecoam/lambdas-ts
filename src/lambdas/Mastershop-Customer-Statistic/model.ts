@@ -1,4 +1,5 @@
 import Dao from "./dao";
+import Dto from "./dto";
 
 class Model {
   private dao: Dao;
@@ -8,7 +9,8 @@ class Model {
   }
 
   async preloadCache(phone: string) {
-    const customerStatistics = await this.dao.getCustomerStatistics(phone);
+    const cleanPhone = Dto.sanitizePhone(phone);
+    const customerStatistics = await this.dao.getCustomerStatistics(cleanPhone);
     console.log("customerStatistics :>>", customerStatistics);
 
     if (!customerStatistics) {
@@ -18,7 +20,7 @@ class Model {
     const SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7;
 
     await this.dao.setKeyInCache({
-      key: phone,
+      key: cleanPhone,
       value: customerStatistics,
       timeToLive: SEVEN_DAYS_IN_SECONDS
     });
@@ -26,7 +28,3 @@ class Model {
 }
 
 export default Model;
-
-function sanitizePhone(phone: string): string {
-  return phone.replace(/\D+/g, "");
-}
