@@ -25,7 +25,7 @@ const FIRST_PAGE_MAX_ROWS = 10;
 const OTHER_PAGES_MAX_ROWS = 20;
 
 const formatCurrency = (value: number): string => {
-  return `$${value.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  return `$${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 };
 
 const formatDate = (date: Date): string => {

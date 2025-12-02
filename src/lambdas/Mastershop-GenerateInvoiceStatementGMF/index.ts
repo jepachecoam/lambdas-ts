@@ -10,6 +10,8 @@ export const handler = async (event: any) => {
     console.log("event :>>>", JSON.stringify(event));
 
     checkEnv({
+      URL_S3: "URL_S3",
+      BUCKET_NAME: "BUCKET_NAME",
       ...dbEnv
     });
 

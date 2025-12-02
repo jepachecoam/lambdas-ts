@@ -41,7 +41,7 @@ router.post(
 
 router.post(
   "/generate-invoice-statement-gmf",
-  serverResponse({ handler: generateInvoiceStatementGMF, responseType: "pdf" })
+  serverResponse({ handler: generateInvoiceStatementGMF, responseType: "http" })
 );
 
 router.post(
