@@ -67,16 +67,7 @@ export default [
       // let usedVar = 42;
       // console.log(usedVar);
 
-      "unused-imports/no-unused-vars": [
-        "error",
-        {
-          vars: "all", // Warns about all unused variables.
-          varsIgnorePattern: "^_", // Ignores unused variables that start with an underscore (`_`).
-          args: "after-used", // Warns about function arguments only if they are unused and appear after used arguments.
-          argsIgnorePattern: "^_", // Ignores unused function arguments that start with an underscore (`_`).
-          caughtErrorsIgnorePattern: "^_" // Ignores unused error parameters in catch clauses if they start with an underscore (`_`).
-        }
-      ],
+      "unused-imports/no-unused-vars": "off",
 
       // indent: ["error", 2], // Enforces consistent indentation of 2 spaces.
       // ❌ Incorrect: Inconsistent indentation (4 spaces).

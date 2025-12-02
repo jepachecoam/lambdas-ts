@@ -5,6 +5,7 @@ import { handler as b2cAuth } from "../lambdas/b2c-auth/index";
 import { handler as blacklistMonitorWallet } from "../lambdas/blacklist-monitor-wallet/index";
 import { handler as example } from "../lambdas/example/index";
 import { handler as intelifleteStatistics } from "../lambdas/inteliflete-statistics/index";
+import { handler as customerStatistics } from "../lambdas/Mastershop-Customer-Statistic/index";
 import { handler as customerDeduplicationJob } from "../lambdas/Mastershop-CustomerDeduplicationJob/index";
 import { handler as customerDeduplicationProcess } from "../lambdas/Mastershop-CustomerDeduplicationProcess/index";
 import { handler as generateInvoiceStatementGMF } from "../lambdas/Mastershop-GenerateInvoiceStatementGMF";
@@ -32,6 +33,12 @@ router.post(
   "/bedrock",
   serverResponse({ handler: bedrockIntegration, responseType: "http" })
 );
+
+router.post(
+  "/customer-statistics",
+  serverResponse({ handler: customerStatistics, responseType: "http" })
+);
+
 router.post(
   "/generate-invoice-statement-gmf",
   serverResponse({ handler: generateInvoiceStatementGMF, responseType: "pdf" })
