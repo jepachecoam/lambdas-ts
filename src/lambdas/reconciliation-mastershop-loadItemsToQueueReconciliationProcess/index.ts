@@ -1,5 +1,7 @@
-import { dbEnv } from "../../shared/types/database";
+import dbSm from "../../shared/databases/db-sm/db";
+import { dbEnvSm } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
+import Dao from "./dao";
 import dto from "./dto";
 import Model from "./model";
 import { Envs } from "./types";
@@ -8,11 +10,15 @@ export const handler = async (event: any, _context: any) => {
   try {
     console.log("event =>>>", JSON.stringify(event, null, 2));
 
-    checkEnv({ ...dbEnv, ...Envs });
+    checkEnv({ ...Envs, ...dbEnvSm });
 
     const { operationType, environment } = dto.parseEvent({ event });
 
-    const model = new Model(environment);
+    const db = await dbSm(environment);
+
+    const dao = new Dao(environment, db);
+
+    const model = new Model(environment, dao);
 
     await model.loadItemsToQueue(operationType);
 

@@ -1,14 +1,12 @@
-import { EnvironmentTypes } from "../../shared/types/database";
 import Dao from "./dao";
 import { config } from "./types";
 
 class Model {
   private dao: Dao;
 
-  constructor(environment: EnvironmentTypes) {
-    this.dao = new Dao(environment);
+  constructor(_environment: string, dao: Dao) {
+    this.dao = dao;
   }
-
   async loadItemsToQueue(operationType: string) {
     const batchSize = config.batchSize;
 
