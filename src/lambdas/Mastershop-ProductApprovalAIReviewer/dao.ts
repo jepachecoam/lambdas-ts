@@ -3,7 +3,6 @@ import {
   ConverseCommand
 } from "@aws-sdk/client-bedrock-runtime";
 import axios from "axios";
-import sharp from "sharp";
 
 import Prompts from "./prompts";
 import {
@@ -17,28 +16,16 @@ class Dao {
   private bedrock = new BedrockRuntimeClient({ region: "us-east-1" });
 
   downloadProductImage = async (imageUrl: string) => {
-    const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
-    let imageBytes = new Uint8Array(response.data);
+    const url = new URL(imageUrl);
+    const transformedUrl = `https://img.master.la${url.pathname}?format=jpeg&height=700&width=700`;
 
-    console.log(`Image URL: ${imageUrl}`);
+    const response = await axios.get(transformedUrl, {
+      responseType: "arraybuffer"
+    });
+    const imageBytes = new Uint8Array(response.data);
 
-    const isJpeg =
-      imageUrl.toLowerCase().includes(".jpg") ||
-      imageUrl.toLowerCase().includes(".jpeg");
-
-    if (!isJpeg) {
-      console.log("Converting image to JPEG format");
-      const jpegBuffer = await sharp(Buffer.from(imageBytes), {
-        failOnError: false,
-        unlimited: true,
-        sequentialRead: true
-      })
-        .flatten({ background: { r: 255, g: 255, b: 255 } })
-        .jpeg({ quality: 90, mozjpeg: true })
-        .toBuffer();
-      imageBytes = new Uint8Array(jpegBuffer);
-      console.log("Image conversion to JPEG completed");
-    }
+    console.log(`Original URL: ${imageUrl}`);
+    console.log(`Transformed URL: ${transformedUrl}`);
 
     return { imageBytes, format: "jpeg" as const };
   };
@@ -110,7 +97,7 @@ class Dao {
         toolChoice: { tool: { name: "image_analysis" } }
       },
       inferenceConfig: {
-        maxTokens: 3500,
+        maxTokens: 4000,
         temperature: 0.1
       }
     });

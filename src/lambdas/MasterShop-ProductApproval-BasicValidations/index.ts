@@ -57,6 +57,7 @@ export const handler = async (event: InputEvent) => {
     let result = dto.determineResult(validations);
     if (result === "rejected") return createResponse(validations, null);
 
+    // eslint-disable-next-line prefer-const
     let [variants, productFormat] = await Promise.all([
       model.getProductVariants({ idProduct }),
       model.getProductFormat({ idProdFormat: event.idProdFormat })

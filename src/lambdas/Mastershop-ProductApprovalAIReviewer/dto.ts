@@ -28,6 +28,12 @@ class Dto {
           error: "imageUrl must be a valid HTTP or HTTPS URL"
         };
       }
+      if (url.hostname !== "cdn.bemaster.com") {
+        return {
+          isValid: false,
+          error: "imageUrl must be from cdn.bemaster.com domain"
+        };
+      }
     } catch {
       return { isValid: false, error: "imageUrl must be a valid URL" };
     }

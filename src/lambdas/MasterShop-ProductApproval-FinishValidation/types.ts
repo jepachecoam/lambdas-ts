@@ -102,6 +102,7 @@ export {
   ProcessedEventData,
   SuggestionData,
   TicketStatus,
+  UniqueIdOptions,
   UpdateProductValidationProcessParams,
   Validation,
   ValidationData,
@@ -109,6 +110,5 @@ export {
   ValidationStatus,
   ValidationType,
   Validator,
-  VariantValidation,
-  UniqueIdOptions
+  VariantValidation
 };
