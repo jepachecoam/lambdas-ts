@@ -1,14 +1,13 @@
 import axios from "axios";
 
-import Database from "../../shared/databases/sequelize";
-import { EnvironmentTypes } from "../../shared/types/database";
+import Database from "../../shared/databases/db-sm/sequelize-sm";
 import { config } from "./types";
 
 class Dao {
   private db: Database;
-  private environment: EnvironmentTypes;
-  constructor(environment: EnvironmentTypes) {
-    this.db = new Database(environment);
+  private environment: string;
+  constructor(environment: string, db: Database) {
+    this.db = db;
     this.environment = environment;
   }
 
