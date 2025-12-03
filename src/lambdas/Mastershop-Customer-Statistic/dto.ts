@@ -1,16 +1,8 @@
 function getParams(event: any) {
   const missingFields = [];
 
-  let environment = null;
-  let phone = null;
-
-  if (event["detail-type"] === "CREATED-ORDER") {
-    environment = event?.detail?.parameters?.stage;
-    phone = event.detail?.customer?.phone;
-  } else {
-    environment = event.detail?.stage;
-    phone = event.detail?.customer?.phone;
-  }
+  const environment = event?.detail?.parameters?.stage;
+  const phone = event.detail?.customer?.phone;
 
   if (!environment) missingFields.push("environment");
   if (!phone) missingFields.push("phone");
