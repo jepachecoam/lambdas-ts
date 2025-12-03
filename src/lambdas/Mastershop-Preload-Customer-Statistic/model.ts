@@ -36,8 +36,14 @@ class Model {
     try {
       console.log(`Attempting to get customer statistics (attempt ${attempt})`);
       return await this.dao.getCustomerStatistics(cleanPhone);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Attempt ${attempt} failed:`, error);
+
+      // Don't retry if it's a 404 error
+      if (error?.response?.status === 404) {
+        console.log("404 error detected, not retrying");
+        throw error;
+      }
 
       if (attempt >= 8) {
         console.error("All retry attempts failed");
