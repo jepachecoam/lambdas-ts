@@ -10,7 +10,8 @@ class Model {
 
   async preloadCache(phone: string) {
     const cleanPhone = Dto.sanitizePhone(phone);
-    const customerStatistics = await this.dao.getCustomerStatistics(cleanPhone);
+    const customerStatistics =
+      await this.retryGetCustomerStatistics(cleanPhone);
     console.log("customerStatistics :>>", customerStatistics);
 
     if (!customerStatistics) {
@@ -24,6 +25,31 @@ class Model {
       value: customerStatistics,
       timeToLive: SEVEN_DAYS_IN_SECONDS
     });
+  }
+
+  private async retryGetCustomerStatistics(
+    cleanPhone: string,
+    attempt: number = 1
+  ): Promise<any> {
+    const delays = [5000, 15000, 45000]; // 5s, 15s, 45s
+
+    try {
+      console.log(`Attempting to get customer statistics (attempt ${attempt})`);
+      return await this.dao.getCustomerStatistics(cleanPhone);
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error);
+
+      if (attempt >= 3) {
+        console.error("All retry attempts failed");
+        throw error;
+      }
+
+      const delay = delays[attempt - 1];
+      console.log(`Retrying in ${delay / 1000} seconds...`);
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return this.retryGetCustomerStatistics(cleanPhone, attempt + 1);
+    }
   }
 }
 
