@@ -31,7 +31,7 @@ class Model {
     cleanPhone: string,
     attempt: number = 1
   ): Promise<any> {
-    const delays = [5000, 15000, 45000]; // 5s, 15s, 45s
+    const delays = [2000, 5000, 10000, 20000, 30000, 60000, 120000, 240000]; // 2s, 5s, 10s, 20s, 30s, 1min, 2min, 4min
 
     try {
       console.log(`Attempting to get customer statistics (attempt ${attempt})`);
@@ -39,7 +39,7 @@ class Model {
     } catch (error) {
       console.error(`Attempt ${attempt} failed:`, error);
 
-      if (attempt >= 3) {
+      if (attempt >= 8) {
         console.error("All retry attempts failed");
         throw error;
       }
