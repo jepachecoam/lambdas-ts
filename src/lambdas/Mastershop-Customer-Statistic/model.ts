@@ -20,8 +20,8 @@ class Model {
     const SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7;
 
     await this.dao.setKeyInCache({
-      key: cleanPhone,
-      value: `customerStatistics-${customerStatistics}`,
+      key: `customerStatistics-${cleanPhone}`,
+      value: customerStatistics,
       timeToLive: SEVEN_DAYS_IN_SECONDS
     });
   }
