@@ -21,7 +21,7 @@ class Model {
 
     await this.dao.setKeyInCache({
       key: cleanPhone,
-      value: customerStatistics,
+      value: `customerStatistics-${customerStatistics}`,
       timeToLive: SEVEN_DAYS_IN_SECONDS
     });
   }
