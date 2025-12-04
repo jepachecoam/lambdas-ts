@@ -1,6 +1,5 @@
 import httpResponse from "../../shared/responses/http";
 import { b2bRequestEnvs } from "../../shared/types/b2b-request";
-import { redisEnv } from "../../shared/types/redis";
 import { checkEnv } from "../../shared/validation/envChecker";
 import dto from "./dto";
 import Model from "./model";
@@ -10,14 +9,15 @@ export const handler = async (event: any) => {
     console.log("event :>>>", JSON.stringify(event));
 
     checkEnv({
-      ...b2bRequestEnvs,
-      ...redisEnv
+      ...b2bRequestEnvs
     });
 
     const { environment, phone } = dto.getParams(event);
 
     const model = new Model(environment);
     await model.preloadCache(phone);
+
+    console.log("Success process");
 
     return httpResponse({
       statusCode: 200,

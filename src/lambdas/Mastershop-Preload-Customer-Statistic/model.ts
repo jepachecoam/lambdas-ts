@@ -9,33 +9,19 @@ class Model {
   }
 
   async preloadCache(phone: string) {
-    const cleanPhone = Dto.sanitizePhone(phone);
-    const customerStatistics =
-      await this.retryGetCustomerStatistics(cleanPhone);
+    const customerStatistics = await this.retryGetCustomerStatistics(phone);
     console.log("customerStatistics :>>", customerStatistics);
-
-    if (!customerStatistics) {
-      throw new Error("Customer statistics not found");
-    }
-
-    const SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7;
-
-    await this.dao.setKeyInCache({
-      key: `customerStatistics-${cleanPhone}`,
-      value: customerStatistics,
-      timeToLive: SEVEN_DAYS_IN_SECONDS
-    });
   }
 
   private async retryGetCustomerStatistics(
-    cleanPhone: string,
+    phone: string,
     attempt: number = 1
   ): Promise<any> {
     const delays = [2000, 5000, 10000, 20000, 30000, 60000, 120000, 240000]; // 2s, 5s, 10s, 20s, 30s, 1min, 2min, 4min
 
     try {
       console.log(`Attempting to get customer statistics (attempt ${attempt})`);
-      return await this.dao.getCustomerStatistics(cleanPhone);
+      return await this.dao.getCustomerStatistics(phone);
     } catch (error: any) {
       console.error(`Attempt ${attempt} failed:`, error);
 
@@ -54,7 +40,7 @@ class Model {
       console.log(`Retrying in ${delay / 1000} seconds...`);
 
       await new Promise((resolve) => setTimeout(resolve, delay));
-      return this.retryGetCustomerStatistics(cleanPhone, attempt + 1);
+      return this.retryGetCustomerStatistics(phone, attempt + 1);
     }
   }
 }

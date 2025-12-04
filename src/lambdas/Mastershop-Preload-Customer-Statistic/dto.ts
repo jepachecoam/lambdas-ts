@@ -17,8 +17,4 @@ function getParams(event: any) {
   };
 }
 
-function sanitizePhone(phone: string): string {
-  return phone.replace(/\D+/g, "");
-}
-
-export default { getParams, sanitizePhone };
+export default { getParams };

@@ -1,64 +1,64 @@
-# Mastershop Customer Statistics Lambda
+# Mastershop Customer Statistics Preloader
 
 ## Overview
 
-This Lambda function maintains real-time customer metrics by listening to order creation and status change events. It ensures that customer statistics are always up-to-date in the cache for instant display when users hover over the quick metrics modal in the application.
+This Lambda function triggers the preloading of customer statistics by calling a dedicated API endpoint. The endpoint handles all cache management and metric calculations, while this Lambda serves as a simple trigger mechanism for the preloading process.
 
 ## Purpose
 
-The function automatically recalculates and refreshes customer metrics whenever:
-- A new order is created
-- An existing order changes to status 8, 9, or 10
-
-This proactive approach ensures that customer statistics are immediately available when needed, providing a seamless user experience in the application.
+The function initiates customer statistics preloading by:
+- Receiving a customer phone number as input
+- Calling the customer metrics API endpoint with cache bypass
+- Allowing the endpoint to handle cache preloading automatically
 
 ## Functionality
 
-### Event Listening
-- **Order Creation**: Triggers metric recalculation for the customer
-- **Status Changes**: Monitors orders transitioning to states 8, 9, and 10
-- **Real-time Processing**: Processes events as they occur across the application
+### API Integration
+- **Endpoint Call**: Makes HTTP request to `/api/b2b/orderLogistics/customer/metrics/byPhone/{phone}?withoutCache=1`
+- **Cache Bypass**: Uses `withoutCache=1` parameter to force fresh data calculation
+- **Automatic Preloading**: The endpoint handles cache population during the request
 
-### Metric Management
-- **Cache Refresh**: Updates cached customer metrics immediately
-- **Performance Optimization**: Pre-calculates metrics to avoid delays during UI interactions
-- **Data Consistency**: Ensures all customer statistics reflect the latest order information
-
-### Integration Points
-- **Order Management System**: Receives order events and status updates
-- **Cache Layer**: Updates customer metrics in cache storage
-- **Frontend Application**: Provides fresh data for quick metrics modal
+### Retry Logic
+- **Resilient Processing**: Implements exponential backoff retry mechanism
+- **Error Handling**: Handles temporary failures with progressive delays (2s to 4min)
+- **404 Handling**: Stops retrying on customer not found errors
+- **Maximum Attempts**: Up to 8 retry attempts for transient failures
 
 ## Business Logic
 
-1. **Event Reception**: Receives order creation or status change events
-2. **Customer Identification**: Extracts customer information from the order data
-3. **Metric Calculation**: Triggers recalculation of all customer statistics
-4. **Cache Update**: Stores updated metrics in cache for instant retrieval
-5. **Cross-Application Sync**: Ensures consistency across all application modules
+1. **Input Processing**: Receives and sanitizes customer phone number
+2. **API Request**: Calls customer metrics endpoint with cache bypass
+3. **Retry Management**: Handles failures with exponential backoff
+4. **Response Validation**: Ensures successful data retrieval
+5. **Cache Population**: Endpoint automatically updates cache during processing
 
 ## Key Benefits
 
-- **Instant Response**: Metrics are pre-calculated and cached
-- **Real-time Updates**: Statistics reflect the most current order information
-- **Improved UX**: No loading delays when displaying customer metrics
-- **System Efficiency**: Reduces database queries during UI interactions
-- **Data Accuracy**: Maintains synchronized metrics across the entire platform
+- **Simple Architecture**: Delegates complex logic to specialized endpoint
+- **Reliable Execution**: Robust retry mechanism for transient failures
+- **Cache Optimization**: Triggers cache preloading without direct cache management
+- **Separation of Concerns**: Lambda handles triggering, endpoint handles caching
+- **Scalable Design**: Can be easily invoked from multiple sources
 
 ## Technical Implementation
 
-The Lambda follows the standard architecture pattern with:
-- **Event Processing**: Handles incoming order events
-- **Business Logic**: Orchestrates metric recalculation workflows
-- **Data Access**: Interfaces with order and customer databases
-- **Cache Management**: Updates and maintains metric cache storage
+The Lambda follows standard architecture with:
+- **Event Processing**: Extracts phone number from input event
+- **HTTP Client**: Uses shared B2B request service for API calls
+- **Retry Logic**: Implements progressive delay retry pattern
+- **Error Handling**: Proper error propagation and logging
+
+## Input Parameters
+
+- **phone**: Customer phone number to preload statistics for
+- **environment**: Target environment for API endpoint
 
 ## Monitoring
 
 The function tracks:
-- Event processing success rates
-- Metric calculation performance
-- Cache update operations
-- Error rates and failure scenarios
+- API call success/failure rates
+- Retry attempt patterns
+- Response times and performance
+- Error types and frequencies
 
-This ensures reliable operation and quick identification of any issues affecting customer metric accuracy.
+This ensures reliable triggering of cache preloading operations.

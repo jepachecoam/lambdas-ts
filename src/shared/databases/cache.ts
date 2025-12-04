@@ -23,8 +23,8 @@ export class CacheDB {
     if (!this.client) {
       this.client = new Redis({
         host: config.redis.HOST,
-        port: Number(config.redis.PORT)
-        // tls: {} // comentar en desarrollo local
+        port: Number(config.redis.PORT),
+        tls: {} // comentar en desarrollo local
       });
 
       this.client.on("connect", () => {
