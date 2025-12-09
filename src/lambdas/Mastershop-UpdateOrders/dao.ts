@@ -4,7 +4,7 @@ import { IRecordData } from "./types";
 import utils from "./utils";
 
 class Dao {
-  private db: Database;
+  public db: Database;
   private environment: string;
   constructor(environment: string) {
     this.db = new Database(environment);
@@ -277,7 +277,8 @@ class Dao {
     carrierData,
     idShipmentUpdate,
     updateSource,
-    idOrderLeg
+    idOrderLeg,
+    transaction
   }: any) => {
     const query = `
                 INSERT INTO orderShipmentUpdateHistory
@@ -310,7 +311,8 @@ class Dao {
         status,
         updateSource,
         idOrderLeg
-      }
+      },
+      transaction
     });
   };
 
@@ -321,7 +323,8 @@ class Dao {
     idShipmentUpdate,
     updateSource,
     status,
-    idOrderReturnLeg
+    idOrderReturnLeg,
+    transaction
   }: any) => {
     const query = `
             INSERT INTO orderReturnShipmentUpdateHistory
@@ -362,7 +365,8 @@ class Dao {
         status,
         updateSource,
         idOrderReturnLeg
-      }
+      },
+      transaction
     });
   };
 
@@ -372,7 +376,8 @@ class Dao {
     originAddress,
     shippingRate,
     returnTrackingNumber,
-    carrierTracking
+    carrierTracking,
+    transaction
   }: any) => {
     const query = `
                 INSERT INTO orderReturn (idOrder, idStatus, orderReturnDate, originAddress, shippingAddress, shippingRate,
@@ -401,24 +406,31 @@ class Dao {
         shippingRate,
         returnTrackingNumber,
         carrierTracking
-      }
+      },
+      transaction
     });
   };
 
-  updateStatusOrderReturn = async ({ idStatus, idOrderReturn }: any) => {
+  updateStatusOrderReturn = async ({
+    idStatus,
+    idOrderReturn,
+    transaction
+  }: any) => {
     const query = `
             UPDATE orderReturn
             SET idStatus = :idStatus, updatedAt = now()
             WHERE idOrderReturn = :idOrderReturn;
         `;
     return this.db.update(query, {
-      replacements: { idStatus, idOrderReturn }
+      replacements: { idStatus, idOrderReturn },
+      transaction
     });
   };
 
   createOrderReturnStatusLogIfNotExists = async ({
     idOrderReturn,
-    idStatus
+    idStatus,
+    transaction
   }: any) => {
     const query = `
             INSERT INTO orderReturnStatusLog (idOrderReturn, idStatus, createdAt, updatedAt)
@@ -437,7 +449,8 @@ class Dao {
         `;
 
     return this.db.insert(query, {
-      replacements: { idOrderReturn, idStatus }
+      replacements: { idOrderReturn, idStatus },
+      transaction
     });
   };
 
@@ -451,7 +464,8 @@ class Dao {
     notes,
     shippingRate,
     idAlert,
-    parentLegId
+    parentLegId,
+    transaction
   }: any) => {
     const query = `
         INSERT INTO orderLeg 
@@ -477,7 +491,8 @@ class Dao {
         shippingRate,
         idAlert,
         parentLegId
-      }
+      },
+      transaction
     });
   };
 
@@ -491,7 +506,8 @@ class Dao {
     notes,
     shippingRate,
     idAlert,
-    parentLegId
+    parentLegId,
+    transaction
   }: any) => {
     const query = `
         INSERT INTO orderReturnLeg 
@@ -517,7 +533,8 @@ class Dao {
         shippingRate,
         idAlert,
         parentLegId
-      }
+      },
+      transaction
     });
   };
 }

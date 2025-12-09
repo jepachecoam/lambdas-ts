@@ -301,98 +301,112 @@ class Model {
     orderData,
     returnCodes
   }: any) => {
-    const data = { ...newStatusOrderParsed, ...orderData };
-    const {
-      idOrder,
-      idStatus,
-      idUser,
-      trackingNumber,
-      idCarrierStatusUpdate,
-      carrierData,
-      idShipmentUpdate,
-      updateSource,
-      carrierName,
-      returnProcess,
-      isLinkedShipmentCode,
-      status,
-      source,
-      statusName,
-      requiresAdditionalSteps,
-      linkedShipment
-    } = data;
+    const transaction = await this.dao.db.getInstance().transaction();
 
-    const latestOrderLeg = await this.validateOrderLeg({
-      source,
-      idOrder,
-      trackingNumber
-    });
-    if (source === OrderSources.OrderLeg && !latestOrderLeg) {
-      return null;
-    }
-
-    const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
-    const shipmentUpdateResult =
-      await this.dao.createOrderShipmentUpdateHistoryIfNotExists({
+    try {
+      const data = { ...newStatusOrderParsed, ...orderData };
+      const {
+        idOrder,
+        idStatus,
+        idUser,
+        trackingNumber,
         idCarrierStatusUpdate,
-        carrierData: sanitizedCarrierData,
-        idOrder,
+        carrierData,
         idShipmentUpdate,
-        updateSource: updateSource || null,
-        status: idShipmentUpdate ? "PENDING" : null,
-        idOrderLeg: latestOrderLeg?.idOrderLeg || null
-      });
-
-    if (!shipmentUpdateResult) {
-      console.log(
-        `shipmentUpdateHistory not created for guide ${trackingNumber}`
-      );
-      return null;
-    }
-
-    await this.updateOrder({ idOrder, idStatus, idUser, statusName });
-
-    const requireReturnProcess = dto.requiresReturnProcess({
-      statusCode: status.statusCode,
-      returnCodes
-    });
-    if (requireReturnProcess) {
-      const createOrderReturnResult = await this.createOrderReturn({
+        updateSource,
         carrierName,
-        idOrder,
-        returnTrackingNumber:
-          returnProcess.returnTrackingNumber || trackingNumber
-      });
+        returnProcess,
+        isLinkedShipmentCode,
+        status,
+        source,
+        statusName,
+        requiresAdditionalSteps,
+        linkedShipment
+      } = data;
 
-      if (!createOrderReturnResult) {
-        console.log(`Order return not created for guide ${trackingNumber}`);
-      } else {
-        console.log(`idOrder ${idOrder} created in orderReturn table`);
+      const latestOrderLeg = await this.validateOrderLeg({
+        source,
+        idOrder,
+        trackingNumber
+      });
+      if (source === OrderSources.OrderLeg && !latestOrderLeg) {
+        await transaction.rollback();
+        return null;
       }
-    }
 
-    if (
-      isLinkedShipmentCode &&
-      linkedShipment &&
-      linkedShipment?.linkedCarrierTrackingCode
-    ) {
-      const orderLegResult = await this.dao.createOrderLeg({
-        idOrder,
-        source: OrderLegSource.PROCESS,
-        notes: null,
-        idAlert: null,
-        carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
-        shippingRate: linkedShipment.shippingRate || null,
-        originAddress: linkedShipment.originAddress || null,
-        shippingAddress: linkedShipment.shippingAddress || null,
-        legReason: linkedShipment.legReason || null,
-        parentLegId:
-          source === OrderSources.OrderLeg ? latestOrderLeg.idOrderLeg : null
+      const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
+      const shipmentUpdateResult =
+        await this.dao.createOrderShipmentUpdateHistoryIfNotExists({
+          idCarrierStatusUpdate,
+          carrierData: sanitizedCarrierData,
+          idOrder,
+          idShipmentUpdate,
+          updateSource: updateSource || null,
+          status: idShipmentUpdate ? "PENDING" : null,
+          idOrderLeg: latestOrderLeg?.idOrderLeg || null,
+          transaction
+        });
+
+      if (!shipmentUpdateResult) {
+        console.log(
+          `shipmentUpdateHistory not created for guide ${trackingNumber}`
+        );
+        await transaction.rollback();
+        return null;
+      }
+
+      await this.updateOrder({ idOrder, idStatus, idUser, statusName });
+
+      const requireReturnProcess = dto.requiresReturnProcess({
+        statusCode: status.statusCode,
+        returnCodes
       });
-      console.log(`orderLegResult insert ${orderLegResult}`);
-    }
+      if (requireReturnProcess) {
+        const createOrderReturnResult = await this.createOrderReturn({
+          carrierName,
+          idOrder,
+          returnTrackingNumber:
+            returnProcess.returnTrackingNumber || trackingNumber,
+          transaction
+        });
 
-    if (requiresAdditionalSteps) {
-      await this.sendEventToProcessAdditionalSteps({ mergedData: data });
+        if (!createOrderReturnResult) {
+          console.log(`Order return not created for guide ${trackingNumber}`);
+        } else {
+          console.log(`idOrder ${idOrder} created in orderReturn table`);
+        }
+      }
+
+      if (
+        isLinkedShipmentCode &&
+        linkedShipment &&
+        linkedShipment?.linkedCarrierTrackingCode
+      ) {
+        const orderLegResult = await this.dao.createOrderLeg({
+          idOrder,
+          source: OrderLegSource.PROCESS,
+          notes: null,
+          idAlert: null,
+          carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
+          shippingRate: linkedShipment.shippingRate || null,
+          originAddress: linkedShipment.originAddress || null,
+          shippingAddress: linkedShipment.shippingAddress || null,
+          legReason: linkedShipment.legReason || null,
+          parentLegId:
+            source === OrderSources.OrderLeg ? latestOrderLeg.idOrderLeg : null,
+          transaction
+        });
+        console.log(`orderLegResult insert ${orderLegResult}`);
+      }
+
+      if (requiresAdditionalSteps) {
+        await this.sendEventToProcessAdditionalSteps({ mergedData: data });
+      }
+
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
   };
 
@@ -401,95 +415,111 @@ class Model {
     orderData,
     returnCodes
   }: any) => {
-    const data = { ...newStatusOrderParsed, ...orderData };
-    const {
-      idOrderReturn,
-      idStatus,
-      trackingNumber,
-      linkedShipment,
-      idCarrierStatusUpdate,
-      isLinkedShipmentCode,
-      status,
-      source,
-      carrierData,
-      idShipmentUpdate,
-      updateSource,
-      requiresAdditionalSteps
-    } = data;
+    const transaction = await this.dao.db.getInstance().transaction();
 
-    const latestOrderReturnLeg = await this.validateOrderReturnLeg({
-      source,
-      idOrderReturn,
-      trackingNumber
-    });
-    if (source === OrderSources.OrderReturnLeg && !latestOrderReturnLeg) {
-      return null;
-    }
-
-    const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
-    const shipmentUpdateResult =
-      await this.dao.createOrderReturnShipmentUpdateHistoryIfNotExists({
+    try {
+      const data = { ...newStatusOrderParsed, ...orderData };
+      const {
+        idOrderReturn,
+        idStatus,
+        trackingNumber,
+        linkedShipment,
         idCarrierStatusUpdate,
-        carrierData: sanitizedCarrierData,
-        idOrderReturn,
+        isLinkedShipmentCode,
+        status,
+        source,
+        carrierData,
         idShipmentUpdate,
-        updateSource: updateSource || null,
-        status: idShipmentUpdate ? "PENDING" : null,
-        idOrderReturnLeg: latestOrderReturnLeg?.idOrderReturnLeg || null
-      });
+        updateSource,
+        requiresAdditionalSteps
+      } = data;
 
-    if (!shipmentUpdateResult) {
-      console.log(
-        `shipmentUpdateHistory not created for guide ${trackingNumber}`
-      );
-      return null;
-    } else {
-      console.log(`shipmentUpdateHistory created for guide ${trackingNumber} `);
-    }
-
-    await this.updateOrderReturn({ idOrderReturn, idStatus });
-
-    const requiresReturnProcess = dto.requiresReturnProcess({
-      statusCode: status.statusCode,
-      returnCodes
-    });
-    if (requiresReturnProcess) {
-      console.log(
-        "OrderReturn not created because already exists in these tables"
-      );
-    }
-    if (
-      isLinkedShipmentCode &&
-      linkedShipment &&
-      linkedShipment?.linkedCarrierTrackingCode
-    ) {
-      const orderReturnLegResult = await this.dao.createOrderReturnLeg({
+      const latestOrderReturnLeg = await this.validateOrderReturnLeg({
+        source,
         idOrderReturn,
-        source: OrderLegSource.PROCESS,
-        notes: null,
-        idAlert: null,
-        carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
-        shippingRate: linkedShipment.shippingRate || null,
-        originAddress: linkedShipment.originAddress || null,
-        shippingAddress: linkedShipment.shippingAddress || null,
-        legReason: linkedShipment.legReason || null,
-        parentLegId:
-          source === OrderSources.OrderReturnLeg
-            ? latestOrderReturnLeg.idOrderReturnLeg
-            : null
+        trackingNumber
       });
-      console.log(`OrderReturnLegResult insert ${orderReturnLegResult}`);
-    }
+      if (source === OrderSources.OrderReturnLeg && !latestOrderReturnLeg) {
+        await transaction.rollback();
+        return null;
+      }
 
-    if (requiresAdditionalSteps) {
-      await this.sendEventToProcessAdditionalSteps({ mergedData: data });
+      const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
+      const shipmentUpdateResult =
+        await this.dao.createOrderReturnShipmentUpdateHistoryIfNotExists({
+          idCarrierStatusUpdate,
+          carrierData: sanitizedCarrierData,
+          idOrderReturn,
+          idShipmentUpdate,
+          updateSource: updateSource || null,
+          status: idShipmentUpdate ? "PENDING" : null,
+          idOrderReturnLeg: latestOrderReturnLeg?.idOrderReturnLeg || null,
+          transaction
+        });
+
+      if (!shipmentUpdateResult) {
+        console.log(
+          `shipmentUpdateHistory not created for guide ${trackingNumber}`
+        );
+        await transaction.rollback();
+        return null;
+      } else {
+        console.log(
+          `shipmentUpdateHistory created for guide ${trackingNumber} `
+        );
+      }
+
+      await this.updateOrderReturn({ idOrderReturn, idStatus, transaction });
+
+      const requiresReturnProcess = dto.requiresReturnProcess({
+        statusCode: status.statusCode,
+        returnCodes
+      });
+      if (requiresReturnProcess) {
+        console.log(
+          "OrderReturn not created because already exists in these tables"
+        );
+      }
+      if (
+        isLinkedShipmentCode &&
+        linkedShipment &&
+        linkedShipment?.linkedCarrierTrackingCode
+      ) {
+        const orderReturnLegResult = await this.dao.createOrderReturnLeg({
+          idOrderReturn,
+          source: OrderLegSource.PROCESS,
+          notes: null,
+          idAlert: null,
+          carrierTrackingCode: linkedShipment.linkedCarrierTrackingCode,
+          shippingRate: linkedShipment.shippingRate || null,
+          originAddress: linkedShipment.originAddress || null,
+          shippingAddress: linkedShipment.shippingAddress || null,
+          legReason: linkedShipment.legReason || null,
+          parentLegId:
+            source === OrderSources.OrderReturnLeg
+              ? latestOrderReturnLeg.idOrderReturnLeg
+              : null,
+          transaction
+        });
+        console.log(`OrderReturnLegResult insert ${orderReturnLegResult}`);
+      }
+
+      if (requiresAdditionalSteps) {
+        await this.sendEventToProcessAdditionalSteps({ mergedData: data });
+      }
+
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
   };
 
-  updateOrderReturn = async ({ idOrderReturn, idStatus }: any) => {
+  updateOrderReturn = async ({ idOrderReturn, idStatus, transaction }: any) => {
     const resultInsert = await this.dao.createOrderReturnStatusLogIfNotExists({
       idOrderReturn,
-      idStatus
+      idStatus,
+      transaction
     });
     if (!resultInsert) {
       console.log(
@@ -499,7 +529,8 @@ class Model {
     }
     await this.dao.updateStatusOrderReturn({
       idOrderReturn: idOrderReturn,
-      idStatus
+      idStatus,
+      transaction
     });
     console.log(
       `Order ${idOrderReturn} update in table orderReturn with status ${idStatus}`
@@ -548,7 +579,8 @@ class Model {
   createOrderReturn = async ({
     idOrder,
     carrierName,
-    returnTrackingNumber
+    returnTrackingNumber,
+    transaction
   }: any) => {
     const orderData: any = await this.dao.getOrderData({
       idOrder
@@ -579,7 +611,8 @@ class Model {
       originAddress: sanitizedOriginAddress,
       shippingAddress: sanitizedShippingAddress,
       carrierTracking: sanitizedCarrierTracking,
-      shippingRate: updatedShippingRate
+      shippingRate: updatedShippingRate,
+      transaction
     });
   };
 
