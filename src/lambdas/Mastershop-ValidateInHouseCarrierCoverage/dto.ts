@@ -1,38 +1,32 @@
+import { PayloadSchema } from "./types";
 const parseEvent = ({ event }: any) => {
   try {
     const body =
-      typeof event.detail.body === "object"
-        ? event.detail.body
-        : JSON.parse(event.detail.body);
+      typeof event.body === "object" ? event.body : JSON.parse(event.body);
 
-    const errors: string[] = [];
+    const result = PayloadSchema.safeParse(body);
 
-    if (typeof body.idBusiness !== "number") errors.push("idBusiness");
-    if (!body.origin?.department) errors.push("origin.department");
-    if (!body.origin?.city) errors.push("origin.city");
-    if (!body.destination?.department) errors.push("destination.department");
-    if (!body.destination?.city) errors.push("destination.city");
-    if (!body.idUserCarrierPreference) errors.push("idUserCarrierPreference");
-
-    if (errors.length > 0) {
+    if (!result.success) {
+      const errors = result.error.issues.map(
+        (err) => `${err.path.join(".")}: ${err.message}`
+      );
       return {
-        error: true,
-        message: `Missing or invalid fields: ${errors.join(", ")}`
+        message: `Validation errors: ${errors.join(", ")}`,
+        data: null
       };
     }
 
-    const environment = event.detail.environment || "dev";
+    const environment = event?.requestContext?.stage || "dev";
 
     return {
-      idBusiness: body.idBusiness,
-      origin: body.origin,
-      destination: body.destination,
-      idUserCarrierPreference: body.idUserCarrierPreference,
-      environment: environment,
-      error: false
+      message: "",
+      data: {
+        ...result.data,
+        environment
+      }
     };
   } catch {
-    return { error: true, message: "Invalid JSON format in event.detail.body" };
+    return { data: null, message: "Invalid JSON format in event.body" };
   }
 };
 

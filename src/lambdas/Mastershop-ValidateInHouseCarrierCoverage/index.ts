@@ -12,15 +12,21 @@ export const handler = async (event: any, _context: any) => {
 
     checkEnv({ ...dbEnvSm });
 
+    const parseResult = dto.parseEvent({ event });
+    if (!parseResult.data) {
+      return httpResponse({
+        statusCode: 400,
+        body: { success: false, message: parseResult.message }
+      });
+    }
+
     const {
       origin,
       destination,
       idBusiness,
       environment,
       idUserCarrierPreference
-    } = dto.parseEvent({
-      event
-    });
+    } = parseResult.data;
 
     const dbIntance = await dbSm(environment);
 
@@ -49,6 +55,7 @@ export const handler = async (event: any, _context: any) => {
       body: result
     });
   } catch (err: any) {
+    console.error("Error: ", err);
     return httpResponse({
       statusCode: 500,
       body: err
