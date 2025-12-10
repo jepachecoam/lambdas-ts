@@ -11,6 +11,6 @@ export interface IPayload {
 }
 
 export interface IValidateCoverageResponse {
-  sucess: boolean;
+  success: boolean;
   message: string;
 }

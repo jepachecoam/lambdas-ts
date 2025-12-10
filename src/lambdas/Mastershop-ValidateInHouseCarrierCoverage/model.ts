@@ -10,7 +10,7 @@ class Model {
     payload: IPayload
   ): Promise<IValidateCoverageResponse> {
     const result = {
-      sucess: true,
+      success: true,
       message: "Coverage validated successfully"
     };
 
@@ -20,7 +20,7 @@ class Model {
     );
 
     if (!origin) {
-      result.sucess = false;
+      result.success = false;
       result.message = "Origin location not found";
       return result;
     }
@@ -31,13 +31,13 @@ class Model {
     );
 
     if (!destination) {
-      result.sucess = false;
+      result.success = false;
       result.message = "Destination location not found";
       return result;
     }
 
     if (payload.origin.countryState !== payload.destination.countryState) {
-      result.sucess = false;
+      result.success = false;
       result.message = "Origin and destination must be in the same state";
       return result;
     }
@@ -49,7 +49,7 @@ class Model {
     );
 
     if (!originCoverage) {
-      result.sucess = false;
+      result.success = false;
       result.message = "Origin city coverage not found";
       return result;
     }
@@ -61,7 +61,7 @@ class Model {
     );
 
     if (!destinationCoverage) {
-      result.sucess = false;
+      result.success = false;
       result.message = "Destination city coverage not found";
       return result;
     }
@@ -71,13 +71,13 @@ class Model {
     }
 
     if (!origin.idOperationalArea || !destination.idOperationalArea) {
-      result.sucess = false;
+      result.success = false;
       result.message = "Cities must have operational area assigned";
       return result;
     }
 
     if (origin.idOperationalArea !== destination.idOperationalArea) {
-      result.sucess = false;
+      result.success = false;
       result.message = "Cities must belong to the same operational area";
       return result;
     }
@@ -87,7 +87,7 @@ class Model {
     );
 
     if (!businessArea) {
-      result.sucess = false;
+      result.success = false;
       result.message = "Business does not have operational area active";
       return result;
     }
@@ -97,7 +97,7 @@ class Model {
     );
 
     if (!hasActiveArea) {
-      result.sucess = false;
+      result.success = false;
       result.message = "Business does not have this operational area active";
       return result;
     }

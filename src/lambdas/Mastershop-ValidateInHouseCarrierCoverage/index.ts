@@ -35,7 +35,9 @@ export const handler = async (event: any, _context: any) => {
       destination
     });
 
-    if (!result.sucess) {
+    console.log("result :>>>", JSON.stringify(result));
+
+    if (!result.success) {
       return httpResponse({
         statusCode: 400,
         body: result
