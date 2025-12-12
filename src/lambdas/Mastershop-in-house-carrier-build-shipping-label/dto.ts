@@ -1,10 +1,13 @@
-import { EventSchema } from "./types";
+import { ShippingLabelDataSchema } from "./types";
+
 const parseEvent = ({ event }: any) => {
   try {
-    // const body =
-    //   typeof event.body === "object" ? event.body : JSON.parse(event.body);
+    const body =
+      typeof event.body === "object"
+        ? event.body
+        : JSON.parse(event.body || "{}");
 
-    const result = EventSchema.safeParse(event);
+    const result = ShippingLabelDataSchema.safeParse(body);
 
     if (!result.success) {
       const errors = result.error.issues.map(
@@ -20,12 +23,11 @@ const parseEvent = ({ event }: any) => {
 
     return {
       message: "",
-      data: {
-        ...result.data,
-        environment
-      }
+      data: { ...result },
+      environment
     };
-  } catch {
+  } catch (error) {
+    console.error("Error parsing event:", error);
     return { data: null, message: "Invalid JSON format in event.body" };
   }
 };

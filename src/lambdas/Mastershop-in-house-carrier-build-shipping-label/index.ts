@@ -1,16 +1,14 @@
-import dbSm from "../../shared/databases/db-sm/db";
 import httpResponse from "../../shared/responses/http";
-import { dbEnvSm } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
-import Dao from "./dao";
 import dto from "./dto";
 import Model from "./model";
+import { Envs } from "./types";
 
 export const handler = async (event: any, _context: any) => {
   try {
     console.log("event =>>>", JSON.stringify(event, null, 2));
 
-    checkEnv({ ...dbEnvSm });
+    checkEnv({ ...Envs });
 
     const parseResult = dto.parseEvent({ event });
     if (!parseResult.data) {
@@ -20,17 +18,11 @@ export const handler = async (event: any, _context: any) => {
       });
     }
 
-    const { data, environment } = parseResult.data;
+    const { data } = parseResult.data;
 
-    const dbIntance = await dbSm(environment);
+    const model = new Model();
 
-    const dao = new Dao(dbIntance);
-
-    const model = new Model(dao);
-
-    const result = await model.buildShippingLabel({ data });
-
-    console.log("result :>>>", JSON.stringify(result));
+    const result = await model.buildShippingLabel(data);
 
     if (!result.success) {
       return httpResponse({

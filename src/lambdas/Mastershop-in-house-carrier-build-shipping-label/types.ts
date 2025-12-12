@@ -1,7 +1,24 @@
 import { z } from "zod";
 
-export const EventSchema = z.object({
-  data: z.any()
+const SenderRecipientSchema = z.object({
+  fullName: z.string(),
+  phone: z.string().nullable(),
+  city: z.string(),
+  address: z.string()
 });
 
-export type IPayload = z.infer<typeof EventSchema>;
+export const ShippingLabelDataSchema = z.object({
+  format: z.enum(["standar", "sticker"]),
+  carrierTrackingCode: z.string(),
+  date: z.string(),
+  from: SenderRecipientSchema,
+  to: SenderRecipientSchema,
+  description: z.string(),
+  amount: z.number()
+});
+
+export type ShippingLabelData = z.infer<typeof ShippingLabelDataSchema>;
+
+export enum Envs {
+  URL_CDN = "URL_CDN"
+}

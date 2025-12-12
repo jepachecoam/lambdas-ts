@@ -9,6 +9,7 @@ import { handler as customerDeduplicationJob } from "../lambdas/Mastershop-Custo
 import { handler as customerDeduplicationProcess } from "../lambdas/Mastershop-CustomerDeduplicationProcess/index";
 import { handler as generateInvoiceStatementGMF } from "../lambdas/Mastershop-GenerateInvoiceStatementGMF";
 import { handler as handleShipmentStatusUpdatesCoordinadora } from "../lambdas/MasterShop-handleShipmentStatusUpdatesCoordinadora/index";
+import { handler as inHouseCarrierBuildShippingLabel } from "../lambdas/Mastershop-in-house-carrier-build-shipping-label/index";
 import { handler as ordersMonitor } from "../lambdas/MasterShop-OrdersMonitor/index";
 import { handler as customerStatistics } from "../lambdas/Mastershop-Preload-Customer-Statistic/index";
 import { handler as productApprovalBasicValidations } from "../lambdas/MasterShop-ProductApproval-BasicValidations/index";
@@ -153,6 +154,14 @@ router.post(
   "/product-approval-finish-validation",
   serverResponse({
     handler: productApprovalFinishValidation,
+    responseType: "http"
+  })
+);
+
+router.post(
+  "/build-shipping-label",
+  serverResponse({
+    handler: inHouseCarrierBuildShippingLabel,
     responseType: "http"
   })
 );

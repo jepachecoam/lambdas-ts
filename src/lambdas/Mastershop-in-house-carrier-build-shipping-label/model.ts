@@ -1,52 +1,30 @@
-import Dao from "./dao";
-import { generateGMFCertificationPDF } from "./pdfGenerator";
-import { IPayload } from "./types";
+import { generateStandarShippingLabelPDF } from "./pdf/standar";
+import { generateStickerShippingLabelPDF } from "./pdf/sticker";
+import { ShippingLabelData } from "./types";
 
 class Model {
-  private dao: Dao;
-  constructor(dao: Dao) {
-    this.dao = dao;
-  }
-  async buildShippingLabel(payload: IPayload): Promise<any> {
+  async buildShippingLabel(payload: ShippingLabelData): Promise<any> {
     try {
-      const pdfBuffer = await generateGMFCertificationPDF(mockData);
+      let pdfBuffer = null;
+      if (payload.format === "standar") {
+        pdfBuffer = await generateStandarShippingLabelPDF(payload);
+      } else {
+        pdfBuffer = await generateStickerShippingLabelPDF(payload);
+      }
       const base64 = pdfBuffer.toString("base64");
 
       return {
         success: true,
-        data: {
-          base64,
-          filename: `shipping-label-${mockData.idDocument}.pdf`
-        }
+        data: base64
       };
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      console.error("Error generating shipping label PDF:", error);
       return {
         success: false,
-        message: "Error generating shipping label PDF"
+        data: null
       };
     }
   }
 }
-
-const mockData = {
-  idDocument: "SL-001234",
-  emissionDate: new Date(),
-  clientName: "EMPRESA DE ENVIOS S.A.S",
-  documentNumber: "NIT: 900.123.456-7",
-  invoiceDetails: [
-    {
-      detail: "Envío paquete - Bogotá a Medellín",
-      value: 15000,
-      createdAt: new Date()
-    },
-    {
-      detail: "Seguro de mercancía",
-      value: 5000,
-      createdAt: new Date()
-    }
-  ],
-  total4xMil: 80
-};
 
 export default Model;
