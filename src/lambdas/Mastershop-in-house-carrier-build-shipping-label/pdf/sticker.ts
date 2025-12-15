@@ -1,5 +1,4 @@
-import { createCanvas } from "canvas";
-import JsBarcode from "jsbarcode";
+import bwipjs from "bwip-js";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 import { Envs, ShippingLabelData } from "../types";
@@ -14,15 +13,16 @@ const formatCurrency = (value: number): string => {
 };
 
 const generateBarcode = async (text: string): Promise<Uint8Array> => {
-  const canvas = createCanvas(200, 60);
-  JsBarcode(canvas, text, {
-    format: "CODE128",
-    width: 1.5,
-    height: 40,
-    displayValue: false,
-    margin: 3
+  return bwipjs.toBuffer({
+    bcid: "code128",
+    text: text,
+    scale: 1.5,
+    height: 8,
+    includetext: false,
+    backgroundcolor: "ffffff",
+    paddingwidth: 3,
+    paddingheight: 3
   });
-  return canvas.toBuffer();
 };
 
 export async function generateStickerShippingLabelPDF(
