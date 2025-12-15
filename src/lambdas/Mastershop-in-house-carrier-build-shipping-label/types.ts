@@ -8,7 +8,7 @@ const SenderRecipientSchema = z.object({
 });
 
 export const ShippingLabelDataSchema = z.object({
-  format: z.enum(["standar", "sticker"]),
+  format: z.enum(["standard", "sticker"]),
   carrierTrackingCode: z.string(),
   date: z.string(),
   from: SenderRecipientSchema,

@@ -84,7 +84,7 @@ export async function generateStandarShippingLabelPDF(
   page.drawText(`Guía N°: ${data.carrierTrackingCode}`, {
     x: MARGIN + 220,
     y: topY + 40,
-    size: 14,
+    size: 12,
     font: fontBold,
     color: rgb(0, 0, 0)
   });

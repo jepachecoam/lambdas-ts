@@ -6,7 +6,7 @@ class Model {
   async buildShippingLabel(payload: ShippingLabelData): Promise<any> {
     try {
       let pdfBuffer = null;
-      if (payload.format === "standar") {
+      if (payload.format === "standard") {
         pdfBuffer = await generateStandarShippingLabelPDF(payload);
       } else {
         pdfBuffer = await generateStickerShippingLabelPDF(payload);
