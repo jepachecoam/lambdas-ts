@@ -35,7 +35,6 @@
     "@aws-sdk/client-sfn": "^3.919.0",
     "@aws-sdk/client-sqs": "3.817.0",
     "@aws-sdk/lib-dynamodb": "3.775.0",
-    "@types/jsbarcode": "^3.11.4",
     "ajv": "8.17.1",
     "aws-jwt-verify": "5.0.0",
     "axios": "^1.12.2",
