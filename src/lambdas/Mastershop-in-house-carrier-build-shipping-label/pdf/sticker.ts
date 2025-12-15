@@ -6,7 +6,7 @@ import { Envs, ShippingLabelData } from "../types";
 // 8cm x 10cm converted to points (1 cm = 28.35 points)
 const LABEL_WIDTH = 226.8; // 8cm
 const LABEL_HEIGHT = 283.5; // 10cm
-const MARGIN = 8;
+const MARGIN = 6;
 
 const formatCurrency = (value: number): string => {
   return `$${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} COP`;
@@ -48,7 +48,7 @@ export async function generateStickerShippingLabelPDF(
   let currentY = LABEL_HEIGHT - MARGIN;
 
   // Top section - Company logo and Barcode (side by side)
-  const topSectionHeight = 50;
+  const topSectionHeight = 40;
   currentY -= topSectionHeight;
 
   // Company logo section (left half)
@@ -70,9 +70,9 @@ export async function generateStickerShippingLabelPDF(
 
   page.drawImage(logoImage, {
     x: MARGIN + 2,
-    y: currentY + 8,
-    width: 90,
-    height: 34
+    y: currentY + 6,
+    width: 75,
+    height: 28
   });
 
   // Barcode section (right half)
@@ -90,13 +90,13 @@ export async function generateStickerShippingLabelPDF(
 
   page.drawImage(barcodeImage, {
     x: MARGIN + sectionWidth / 2 + 3,
-    y: currentY + 10,
-    width: 80,
-    height: 30
+    y: currentY + 8,
+    width: 70,
+    height: 24
   });
 
   // Guide number and Date section (side by side)
-  const guideDateHeight = 25;
+  const guideDateHeight = 20;
   currentY -= guideDateHeight;
 
   // Guide number (left half)
@@ -111,8 +111,8 @@ export async function generateStickerShippingLabelPDF(
 
   page.drawText(`Guía N°: ${data.carrierTrackingCode}`, {
     x: MARGIN + 3,
-    y: currentY + 8,
-    size: 6,
+    y: currentY + 6,
+    size: 5.5,
     font: fontBold,
     color: rgb(0, 0, 0)
   });
@@ -127,16 +127,16 @@ export async function generateStickerShippingLabelPDF(
     borderWidth: 0.5
   });
 
-  page.drawText(`Fecha: ${data.date}`, {
+  page.drawText(`Fecha de pedido: ${data.date}`, {
     x: MARGIN + sectionWidth / 2 + 3,
-    y: currentY + 8,
-    size: 6,
+    y: currentY + 6,
+    size: 5.5,
     font,
     color: rgb(0, 0, 0)
   });
 
   // Sender and Recipient sections (side by side)
-  const contactSectionHeight = 80;
+  const contactSectionHeight = 65;
   currentY -= contactSectionHeight;
 
   // Sender section (left half)
@@ -151,43 +151,54 @@ export async function generateStickerShippingLabelPDF(
 
   page.drawText("Remitente:", {
     x: MARGIN + 3,
-    y: currentY + 65,
-    size: 6,
+    y: currentY + 52,
+    size: 5.5,
     font: fontBold,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Nombre: ${data.from.fullName.substring(0, 15)}`, {
+  page.drawText(`Nombre: ${data.from.fullName.substring(0, 18)}`, {
     x: MARGIN + 3,
-    y: currentY + 55,
-    size: 5,
+    y: currentY + 42,
+    size: 4.5,
     font,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Tel: ${data.from.phone}`, {
+  page.drawText(`Tel: ${data.from.phone || "N/A"}`, {
     x: MARGIN + 3,
-    y: currentY + 45,
-    size: 5,
+    y: currentY + 33,
+    size: 4.5,
     font,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Ciudad: ${data.from.city.substring(0, 12)}`, {
+  page.drawText(`Ciudad: ${data.from.city.substring(0, 15)}`, {
     x: MARGIN + 3,
-    y: currentY + 35,
-    size: 5,
+    y: currentY + 24,
+    size: 4.5,
     font,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Dir: ${data.from.address.substring(0, 15)}`, {
+  page.drawText(`Dirección: ${data.from.address.substring(0, 18)}`, {
     x: MARGIN + 3,
-    y: currentY + 25,
-    size: 5,
+    y: currentY + 15,
+    size: 4.5,
     font,
     color: rgb(0, 0, 0)
   });
+
+  page.drawText(
+    `${data.from.address.length > 18 ? data.from.address.substring(18, 36) : ""}`,
+    {
+      x: MARGIN + 3,
+      y: currentY + 6,
+      size: 4.5,
+      font,
+      color: rgb(0, 0, 0)
+    }
+  );
 
   // Recipient section (right half)
   page.drawRectangle({
@@ -201,46 +212,57 @@ export async function generateStickerShippingLabelPDF(
 
   page.drawText("Destinatario:", {
     x: MARGIN + sectionWidth / 2 + 3,
-    y: currentY + 65,
-    size: 6,
+    y: currentY + 52,
+    size: 5.5,
     font: fontBold,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Nombre: ${data.to.fullName.substring(0, 15)}`, {
+  page.drawText(`Nombre: ${data.to.fullName.substring(0, 18)}`, {
     x: MARGIN + sectionWidth / 2 + 3,
-    y: currentY + 55,
-    size: 5,
+    y: currentY + 42,
+    size: 4.5,
     font,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Tel: ${data.to.phone}`, {
+  page.drawText(`Tel: ${data.to.phone || "N/A"}`, {
     x: MARGIN + sectionWidth / 2 + 3,
-    y: currentY + 45,
-    size: 5,
+    y: currentY + 33,
+    size: 4.5,
     font,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Ciudad: ${data.to.city.substring(0, 12)}`, {
+  page.drawText(`Ciudad: ${data.to.city.substring(0, 15)}`, {
     x: MARGIN + sectionWidth / 2 + 3,
-    y: currentY + 35,
-    size: 5,
+    y: currentY + 24,
+    size: 4.5,
     font,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Dir: ${data.to.address.substring(0, 15)}`, {
+  page.drawText(`Dirección: ${data.to.address.substring(0, 18)}`, {
     x: MARGIN + sectionWidth / 2 + 3,
-    y: currentY + 25,
-    size: 5,
+    y: currentY + 15,
+    size: 4.5,
     font,
     color: rgb(0, 0, 0)
   });
+
+  page.drawText(
+    `${data.to.address.length > 18 ? data.to.address.substring(18, 36) : ""}`,
+    {
+      x: MARGIN + sectionWidth / 2 + 3,
+      y: currentY + 6,
+      size: 4.5,
+      font,
+      color: rgb(0, 0, 0)
+    }
+  );
 
   // Products section
-  const productsSectionHeight = 60;
+  const productsSectionHeight = 55;
   currentY -= productsSectionHeight;
 
   page.drawRectangle({
@@ -253,29 +275,41 @@ export async function generateStickerShippingLabelPDF(
   });
 
   page.drawText("Contenido / Productos:", {
-    x: MARGIN + 5,
-    y: currentY + 45,
-    size: 7,
+    x: MARGIN + 3,
+    y: currentY + 32,
+    size: 5.5,
     font: fontBold,
     color: rgb(0, 0, 0)
   });
 
-  const maxChars = 30;
-  const displayText =
-    data.description.length > maxChars
-      ? data.description.substring(0, maxChars) + "..."
-      : data.description;
+  // Split description into multiple lines if needed
+  const maxCharsPerLine = 45;
+  const lines = [];
+  let remainingText = data.description;
 
-  page.drawText(displayText, {
-    x: MARGIN + 5,
-    y: currentY + 25,
-    size: 7,
-    font,
-    color: rgb(0, 0, 0)
+  while (remainingText.length > 0 && lines.length < 3) {
+    if (remainingText.length <= maxCharsPerLine) {
+      lines.push(remainingText);
+      break;
+    }
+    const cutIndex = remainingText.lastIndexOf(" ", maxCharsPerLine);
+    const lineEnd = cutIndex > 0 ? cutIndex : maxCharsPerLine;
+    lines.push(remainingText.substring(0, lineEnd));
+    remainingText = remainingText.substring(lineEnd).trim();
+  }
+
+  lines.forEach((line, index) => {
+    page.drawText(line, {
+      x: MARGIN + 3,
+      y: currentY + 22 - index * 8,
+      size: 5,
+      font,
+      color: rgb(0, 0, 0)
+    });
   });
 
   // Cash on delivery section
-  const cashSectionHeight = 35;
+  const cashSectionHeight = 30;
   currentY -= cashSectionHeight;
 
   page.drawRectangle({
@@ -288,22 +322,22 @@ export async function generateStickerShippingLabelPDF(
   });
 
   page.drawText("Valor a Cobrar:", {
-    x: MARGIN + 5,
-    y: currentY + 20,
-    size: 7,
+    x: MARGIN + 3,
+    y: currentY + 12,
+    size: 5.5,
     font: fontBold,
     color: rgb(0, 0, 0)
   });
 
   page.drawText(formatCurrency(data.amount), {
-    x: MARGIN + sectionWidth - 80,
-    y: currentY + 8,
-    size: 10,
+    x: MARGIN + sectionWidth - 75,
+    y: currentY + 10,
+    size: 8,
     font: fontBold,
     color: rgb(0, 0, 0)
   });
 
-  // Signature section
+  // Signature section - much larger space
   const signatureSectionHeight = currentY - MARGIN;
   currentY = MARGIN;
 
@@ -317,9 +351,9 @@ export async function generateStickerShippingLabelPDF(
   });
 
   page.drawText("Firma Recibido", {
-    x: MARGIN + sectionWidth / 2 - 25,
-    y: currentY + signatureSectionHeight / 2,
-    size: 8,
+    x: MARGIN + sectionWidth / 2 - 20,
+    y: currentY + 8,
+    size: 6,
     font: fontBold,
     color: rgb(0, 0, 0)
   });

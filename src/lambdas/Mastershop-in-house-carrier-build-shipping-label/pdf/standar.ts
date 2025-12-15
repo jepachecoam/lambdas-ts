@@ -16,7 +16,7 @@ const generateBarcode = async (text: string): Promise<Uint8Array> => {
     bcid: "code128",
     text: text,
     scale: 2,
-    height: 10,
+    height: 15,
     includetext: false,
     backgroundcolor: "ffffff",
     paddingwidth: 5,
@@ -276,34 +276,62 @@ export async function generateStandarShippingLabelPDF(
   });
 
   // Cash on delivery and signature section (right)
+  const rightSectionWidth = LABEL_WIDTH - MARGIN - 400 - MARGIN;
+  const halfHeight = bottomRowHeight / 2;
+
+  // Top half - Valor a Cobrar
   page.drawRectangle({
     x: MARGIN + 400,
-    y: bottomY,
-    width: LABEL_WIDTH - MARGIN - 400 - MARGIN,
-    height: bottomRowHeight,
+    y: bottomY + halfHeight,
+    width: rightSectionWidth,
+    height: halfHeight,
     borderColor: rgb(0, 0, 0),
     borderWidth: 1
   });
 
-  page.drawText("Valor a Cobrar:", {
-    x: MARGIN + 410,
-    y: bottomY + bottomRowHeight - 20,
+  // Bottom half - Firma
+  page.drawRectangle({
+    x: MARGIN + 400,
+    y: bottomY,
+    width: rightSectionWidth,
+    height: halfHeight,
+    borderColor: rgb(0, 0, 0),
+    borderWidth: 1
+  });
+
+  // Valor a Cobrar - centrado horizontal y vertical
+  const valorText = "Valor a Cobrar:";
+  const valorWidth = fontBold.widthOfTextAtSize(valorText, 10);
+  const valorX = MARGIN + 400 + (rightSectionWidth - valorWidth) / 2;
+
+  const amountText = formatCurrency(data.amount);
+  const amountWidth = fontBold.widthOfTextAtSize(amountText, 14);
+  const amountX = MARGIN + 400 + (rightSectionWidth - amountWidth) / 2;
+
+  page.drawText(valorText, {
+    x: valorX,
+    y: bottomY + halfHeight + halfHeight / 2 + 10,
     size: 10,
     font: fontBold,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(formatCurrency(data.amount), {
-    x: MARGIN + 410,
-    y: bottomY + bottomRowHeight - 40,
+  page.drawText(amountText, {
+    x: amountX,
+    y: bottomY + halfHeight + halfHeight / 2 - 10,
     size: 14,
     font: fontBold,
     color: rgb(0, 0, 0)
   });
 
-  page.drawText("Firma Recibido", {
-    x: MARGIN + 410,
-    y: bottomY + 20,
+  // Firma - centrado horizontal y vertical
+  const firmaText = "Firma Recibido";
+  const firmaWidth = fontBold.widthOfTextAtSize(firmaText, 10);
+  const firmaX = MARGIN + 400 + (rightSectionWidth - firmaWidth) / 2;
+
+  page.drawText(firmaText, {
+    x: firmaX,
+    y: bottomY + 10,
     size: 10,
     font: fontBold,
     color: rgb(0, 0, 0)
