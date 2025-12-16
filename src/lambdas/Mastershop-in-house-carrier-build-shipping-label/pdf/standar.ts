@@ -1,6 +1,7 @@
 import bwipjs from "bwip-js";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
+import dto from "../dto";
 import { Envs, ShippingLabelData } from "../types";
 
 const LABEL_WIDTH = 612;
@@ -65,10 +66,22 @@ export async function generateStandarShippingLabelPDF(
   const logoImage = await pdfDoc.embedPng(logoBuffer);
 
   page.drawImage(logoImage, {
-    x: MARGIN + 20,
-    y: topY + 16,
-    width: 144,
-    height: 48
+    x: MARGIN + 10,
+    y: topY + 20,
+    width: 40,
+    height: 40
+  });
+
+  // Business name next to logo
+  const businessNameLines = dto.splitString(data.businessName, 20);
+  businessNameLines.forEach((line, index) => {
+    page.drawText(line, {
+      x: MARGIN + 60,
+      y: topY + 37 - index * 12,
+      size: 10,
+      font: fontBold,
+      color: rgb(0, 0, 0)
+    });
   });
 
   // Guide number section (center)
@@ -153,12 +166,15 @@ export async function generateStandarShippingLabelPDF(
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Dirección: ${data.from.address}`, {
-    x: MARGIN + 10,
-    y: middleY + 40,
-    size: 8,
-    font,
-    color: rgb(0, 0, 0)
+  const fromAddressLines = dto.splitString(data.from.address, 35);
+  fromAddressLines.forEach((line, index) => {
+    page.drawText(`${index === 0 ? "Dirección: " : ""}${line}`, {
+      x: MARGIN + 10,
+      y: middleY + 40 - index * 12,
+      size: 8,
+      font,
+      color: rgb(0, 0, 0)
+    });
   });
 
   // Recipient section (center)
@@ -203,12 +219,15 @@ export async function generateStandarShippingLabelPDF(
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Dirección: ${data.to.address}`, {
-    x: MARGIN + 210,
-    y: middleY + 40,
-    size: 8,
-    font,
-    color: rgb(0, 0, 0)
+  const toAddressLines = dto.splitString(data.to.address, 35);
+  toAddressLines.forEach((line, index) => {
+    page.drawText(`${index === 0 ? "Dirección: " : ""}${line}`, {
+      x: MARGIN + 210,
+      y: middleY + 40 - index * 12,
+      size: 8,
+      font,
+      color: rgb(0, 0, 0)
+    });
   });
 
   // Barcode section (right)

@@ -1,6 +1,7 @@
 import bwipjs from "bwip-js";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
+import dto from "../dto";
 import { Envs, ShippingLabelData } from "../types";
 
 // 8cm x 10cm converted to points (1 cm = 28.35 points)
@@ -69,10 +70,22 @@ export async function generateStickerShippingLabelPDF(
   const logoImage = await pdfDoc.embedPng(logoBuffer);
 
   page.drawImage(logoImage, {
-    x: MARGIN + 2,
-    y: currentY + 6,
-    width: 75,
-    height: 28
+    x: MARGIN + 7,
+    y: currentY + 12,
+    width: 20,
+    height: 20
+  });
+
+  // Business name next to logo
+  const businessNameLines = dto.splitString(data.businessName, 15);
+  businessNameLines.forEach((line, index) => {
+    page.drawText(line, {
+      x: MARGIN + 32,
+      y: currentY + 20 - index * 6,
+      size: 5,
+      font: fontBold,
+      color: rgb(0, 0, 0)
+    });
   });
 
   // Barcode section (right half)
@@ -181,24 +194,16 @@ export async function generateStickerShippingLabelPDF(
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Dirección: ${data.from.address.substring(0, 18)}`, {
-    x: MARGIN + 3,
-    y: currentY + 15,
-    size: 4.5,
-    font,
-    color: rgb(0, 0, 0)
-  });
-
-  page.drawText(
-    `${data.from.address.length > 18 ? data.from.address.substring(18, 36) : ""}`,
-    {
+  const fromAddressLines = dto.splitString(data.from.address, 18);
+  fromAddressLines.forEach((line, index) => {
+    page.drawText(`${index === 0 ? "Dirección: " : ""}${line}`, {
       x: MARGIN + 3,
-      y: currentY + 6,
+      y: currentY + 15 - index * 9,
       size: 4.5,
       font,
       color: rgb(0, 0, 0)
-    }
-  );
+    });
+  });
 
   // Recipient section (right half)
   page.drawRectangle({
@@ -242,24 +247,16 @@ export async function generateStickerShippingLabelPDF(
     color: rgb(0, 0, 0)
   });
 
-  page.drawText(`Dirección: ${data.to.address.substring(0, 18)}`, {
-    x: MARGIN + sectionWidth / 2 + 3,
-    y: currentY + 15,
-    size: 4.5,
-    font,
-    color: rgb(0, 0, 0)
-  });
-
-  page.drawText(
-    `${data.to.address.length > 18 ? data.to.address.substring(18, 36) : ""}`,
-    {
+  const toAddressLines = dto.splitString(data.to.address, 18);
+  toAddressLines.forEach((line, index) => {
+    page.drawText(`${index === 0 ? "Dirección: " : ""}${line}`, {
       x: MARGIN + sectionWidth / 2 + 3,
-      y: currentY + 6,
+      y: currentY + 15 - index * 9,
       size: 4.5,
       font,
       color: rgb(0, 0, 0)
-    }
-  );
+    });
+  });
 
   // Products section
   const productsSectionHeight = 55;

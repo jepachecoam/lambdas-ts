@@ -14,7 +14,8 @@ export const ShippingLabelDataSchema = z.object({
   from: SenderRecipientSchema,
   to: SenderRecipientSchema,
   description: z.string(),
-  amount: z.number()
+  amount: z.number(),
+  businessName: z.string()
 });
 
 export type ShippingLabelData = z.infer<typeof ShippingLabelDataSchema>;
