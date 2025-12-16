@@ -59,7 +59,7 @@ export async function generateStandarShippingLabelPDF(
 
   // Company logo from URL
   const logoResponse = await fetch(
-    `${process.env[`${Envs.URL_CDN}`]}/mensajeria_propia_logo.png`
+    `${process.env[`${Envs.URL_CDN}`]}/in_house_carrier.png`
   );
   const logoBuffer = await logoResponse.arrayBuffer();
   const logoImage = await pdfDoc.embedPng(logoBuffer);
