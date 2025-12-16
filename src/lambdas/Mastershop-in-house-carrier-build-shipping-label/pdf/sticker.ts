@@ -194,7 +194,7 @@ export async function generateStickerShippingLabelPDF(
     color: rgb(0, 0, 0)
   });
 
-  const fromAddressLines = dto.splitString(data.from.address, 40);
+  const fromAddressLines = dto.splitString(data.from.address, 35);
   fromAddressLines.forEach((line, index) => {
     page.drawText(`${index === 0 ? "Dirección: " : ""}${line}`, {
       x: MARGIN + 3,
@@ -247,7 +247,7 @@ export async function generateStickerShippingLabelPDF(
     color: rgb(0, 0, 0)
   });
 
-  const toAddressLines = dto.splitString(data.to.address, 40);
+  const toAddressLines = dto.splitString(data.to.address, 35);
   toAddressLines.forEach((line, index) => {
     page.drawText(`${index === 0 ? "Dirección: " : ""}${line}`, {
       x: MARGIN + sectionWidth / 2 + 3,
