@@ -18,7 +18,8 @@ export enum Carriers {
   TCC = "TCC",
   SWAYP = "SWAYP",
   ENVIA = "ENVIA",
-  INTERRAPIDISIMO = "INTERRAPIDISIMO"
+  INTERRAPIDISIMO = "INTERRAPIDISIMO",
+  "IN-HOUSE" = "IN-HOUSE"
 }
 
 export enum OrderSources {
