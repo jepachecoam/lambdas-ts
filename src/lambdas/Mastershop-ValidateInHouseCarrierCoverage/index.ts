@@ -13,6 +13,7 @@ export const handler = async (event: any, _context: any) => {
     checkEnv({ ...dbEnvSm });
 
     const parseResult = dto.parseEvent({ event });
+    console.log("parseResult :>>>", JSON.stringify(parseResult, null, 2));
     if (!parseResult.data) {
       return httpResponse({
         statusCode: 400,
