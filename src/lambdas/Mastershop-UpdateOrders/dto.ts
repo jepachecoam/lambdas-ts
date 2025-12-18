@@ -125,6 +125,9 @@ class Dto {
         case Carriers.INTERRAPIDISIMO:
           return 0;
 
+        case Carriers["IN-HOUSE"]:
+          return 0;
+
         default:
           throw new Error("GetShipping rate not found");
       }
@@ -144,7 +147,8 @@ class Dto {
       COORDINADORA: 6,
       ENVIA: 7,
       SWAYP: 8,
-      INTERRAPIDISIMO: 9
+      INTERRAPIDISIMO: 9,
+      "IN-HOUSE": 11
     };
 
     records.forEach((record: any) => {
