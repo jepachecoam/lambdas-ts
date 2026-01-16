@@ -23,19 +23,19 @@ class Dao {
     status: TicketStatus;
     observations: string;
   }) {
-    const idStatusCatalog = (status: TicketStatus) => {
-      if (status === TicketStatus.IN_PROGRESS) {
-        return 2;
-      } else if (status === TicketStatus.ON_HOLD) {
-        return 3;
-      } else if (status === TicketStatus.COMPLETED) {
-        return 4;
-      }
-
-      throw new Error("Invalid status");
-    };
-
     try {
+      const idStatusCatalog = (status: TicketStatus) => {
+        if (status === TicketStatus.IN_PROGRESS) {
+          return 2;
+        } else if (status === TicketStatus.ON_HOLD) {
+          return 3;
+        } else if (status === TicketStatus.COMPLETED) {
+          return 4;
+        }
+
+        throw new Error("Invalid status");
+      };
+
       const result = await axios.put(
         `${process.env["BASE_URL"]}/${this.environmentName}/api/tickets/${idTicket}/status`,
         {
@@ -54,81 +54,112 @@ class Dao {
       }
 
       return result;
-    } catch (error) {
-      console.error("Error in updateTicket dao =>>>", error);
-      throw error;
+    } catch (error: any) {
+      throw new Error(
+        `Dao.updateTicket(idTicket: ${idTicket}, status: ${status}): ${error.message}`
+      );
     }
   }
 
   async getProductVariants({ idProduct }: { idProduct: number }) {
-    const query = `
-      SELECT v.*, COALESCE(wi.stock, 0) as stock
-      FROM variant v
-      LEFT JOIN warehouseInventory wi ON v.idVariant = wi.idVariant 
-        AND wi.state = 1
-      WHERE v.idProduct = :idProduct 
-      AND v.isEnable = 1 
-      AND v.isDeleted = 0
-    `;
-    return this.db.fetchMany(query, { replacements: { idProduct } });
+    try {
+      const query = `
+        SELECT v.*, COALESCE(wi.stock, 0) as stock
+        FROM variant v
+        LEFT JOIN warehouseInventory wi ON v.idVariant = wi.idVariant 
+          AND wi.state = 1
+        WHERE v.idProduct = :idProduct 
+        AND v.isEnable = 1 
+        AND v.isDeleted = 0
+      `;
+      return this.db.fetchMany(query, { replacements: { idProduct } });
+    } catch (error: any) {
+      throw new Error(
+        `Dao.getProductVariants(idProduct: ${idProduct}): ${error.message}`
+      );
+    }
   }
 
   async getPublicProfileByBusiness({ idBusiness }: { idBusiness: number }) {
-    const query = `
-      SELECT pp.*
-      FROM publicProfile pp
-      INNER JOIN bussiness b ON pp.idPublicProfile = b.idPublicProfile
-      WHERE b.idBussiness = :idBusiness
-    `;
-    return this.db.fetchOne(query, { replacements: { idBusiness } });
+    try {
+      const query = `
+        SELECT pp.*
+        FROM publicProfile pp
+        INNER JOIN bussiness b ON pp.idPublicProfile = b.idPublicProfile
+        WHERE b.idBussiness = :idBusiness
+      `;
+      return this.db.fetchOne(query, { replacements: { idBusiness } });
+    } catch (error: any) {
+      throw new Error(
+        `Dao.getPublicProfileByBusiness(idBusiness: ${idBusiness}): ${error.message}`
+      );
+    }
   }
 
   async getProductFormat({ idProdFormat }: { idProdFormat: number }) {
-    const query = `
-      SELECT *
-      FROM productFormat
-      WHERE idProdFormat = :idProdFormat
-    `;
-    return this.db.fetchOne(query, { replacements: { idProdFormat } });
+    try {
+      const query = `
+        SELECT *
+        FROM productFormat
+        WHERE idProdFormat = :idProdFormat
+      `;
+      return this.db.fetchOne(query, { replacements: { idProdFormat } });
+    } catch (error: any) {
+      throw new Error(
+        `Dao.getProductFormat(idProdFormat: ${idProdFormat}): ${error.message}`
+      );
+    }
   }
 
   async getOpenValidationProcess({ idTicket }: { idTicket: number }) {
-    const query = `
-      SELECT *
-      FROM productValidationProcess
-      WHERE idTicket = :idTicket
-      AND status IN ('processing', 'underReview')
-      LIMIT 1
-    `;
-    return this.db.fetchOne(query, { replacements: { idTicket } });
+    try {
+      const query = `
+        SELECT *
+        FROM productValidationProcess
+        WHERE idTicket = :idTicket
+        AND status IN ('processing', 'underReview')
+        LIMIT 1
+      `;
+      return this.db.fetchOne(query, { replacements: { idTicket } });
+    } catch (error: any) {
+      throw new Error(
+        `Dao.getOpenValidationProcess(idTicket: ${idTicket}): ${error.message}`
+      );
+    }
   }
 
   async createProductValidationProcess(
     params: CreateProductValidationProcessParams
   ) {
-    const {
-      idProduct,
-      idTicket,
-      lastValidator,
-      status,
-      validations,
-      suggestions
-    } = params;
-    const query = `
-      INSERT INTO productValidationProcess 
-      (idProduct, idTicket, lastValidator, status, validations, suggestions)
-      VALUES (:idProduct, :idTicket, :lastValidator, :status, :validations, :suggestions)
-    `;
-    return this.db.insert(query, {
-      replacements: {
+    try {
+      const {
         idProduct,
         idTicket,
         lastValidator,
         status,
-        validations: validations ? JSON.stringify(validations) : null,
-        suggestions: suggestions ? JSON.stringify(suggestions) : null
-      }
-    });
+        validations,
+        suggestions
+      } = params;
+      const query = `
+        INSERT INTO productValidationProcess 
+        (idProduct, idTicket, lastValidator, status, validations, suggestions)
+        VALUES (:idProduct, :idTicket, :lastValidator, :status, :validations, :suggestions)
+      `;
+      return this.db.insert(query, {
+        replacements: {
+          idProduct,
+          idTicket,
+          lastValidator,
+          status,
+          validations: validations ? JSON.stringify(validations) : null,
+          suggestions: suggestions ? JSON.stringify(suggestions) : null
+        }
+      });
+    } catch (error: any) {
+      throw new Error(
+        `Dao.createProductValidationProcess(idProduct: ${params.idProduct}, idTicket: ${params.idTicket}): ${error.message}`
+      );
+    }
   }
 }
 export default Dao;

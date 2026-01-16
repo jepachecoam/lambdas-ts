@@ -21,8 +21,7 @@ class Dao {
 
       await this.sfnClient.send(startCommand);
     } catch (error: any) {
-      console.error("Error in startStepFnExecution dao =>>>", error);
-      throw error;
+      throw new Error(`Dao.startStepFnExecution(): ${error.message}`);
     }
   }
 }

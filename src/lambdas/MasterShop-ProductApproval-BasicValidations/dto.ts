@@ -65,12 +65,12 @@ const validateImage = (urlImageProduct: string): Validation[] => {
 // OPTIONAL
 const validateSuggestedPrice = (suggestedPrice: number): Validation[] => {
   const failures: Validation[] = [];
-  if (suggestedPrice <= 0) {
-    failures.push({
-      key: ValidationFailure.NOT_POSITIVE,
-      type: ValidationType.REJECTED
-    });
-  }
+  // if (suggestedPrice <= 0) {
+  //   failures.push({
+  //     key: ValidationFailure.NOT_POSITIVE,
+  //     type: ValidationType.REJECTED
+  //   });
+  // }
   return failures;
 };
 
