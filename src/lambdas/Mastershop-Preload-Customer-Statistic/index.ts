@@ -1,38 +1,30 @@
-import httpResponse from "../../shared/responses/http";
-import { b2bRequestEnvs } from "../../shared/types/b2b-request";
-import { checkEnv } from "../../shared/validation/envChecker";
-import dto from "./dto";
+import dbSm from "../../shared/databases/db-sm/db";
+import Dao from "./dao";
+import Dto from "./dto";
 import Model from "./model";
-
-export const handler = async (event: any) => {
+export const handler = async (event: any, context: any) => {
   try {
     console.log("event :>>>", JSON.stringify(event));
 
-    checkEnv({
-      ...b2bRequestEnvs
-    });
+    const environment = Dto.getEnvironment(context);
+    console.log("environment :>>>", environment);
 
-    const { environment, phone } = dto.getParams(event);
+    const db = await dbSm(environment);
 
-    const model = new Model(environment);
-    await model.preloadCache(phone);
+    const dao = new Dao(db);
+
+    const model = new Model(dao);
+
+    const { hasNullValues, uniquePhones } = model.getPhones(event);
+
+    if (hasNullValues) {
+      await model.sendNotification();
+    }
+
+    await model.preloadCustomerStatistics(uniquePhones);
 
     console.log("Success process");
-
-    return httpResponse({
-      statusCode: 200,
-      body: {
-        message: "Success process"
-      }
-    });
   } catch (error: any) {
     console.error("ErrorLog :>>>", error);
-    return httpResponse({
-      statusCode: 500,
-      body: {
-        message: "Internal server error",
-        data: null
-      }
-    });
   }
 };
