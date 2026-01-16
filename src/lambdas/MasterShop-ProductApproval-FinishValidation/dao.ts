@@ -41,9 +41,10 @@ class Dao {
       return this.db.update(query, {
         replacements
       });
-    } catch (error) {
-      console.error("Error in updateProductValidationProcess dao =>>>", error);
-      throw error;
+    } catch (error: any) {
+      throw new Error(
+        `Dao.updateProductValidationProcess(idTicket: ${idTicket}): ${error.message}`
+      );
     }
   }
 
@@ -80,9 +81,10 @@ class Dao {
       }
 
       return result.data.data;
-    } catch (error) {
-      console.error("Error in updateProductStatus dao =>>>", error);
-      throw error;
+    } catch (error: any) {
+      throw new Error(
+        `Dao.updateProductStatus(idProduct: ${idProduct}, status: ${status}): ${error.message}`
+      );
     }
   }
 
@@ -114,9 +116,10 @@ class Dao {
       }
 
       return result;
-    } catch (error) {
-      console.error("Error in updateTicket dao =>>>", error);
-      throw error;
+    } catch (error: any) {
+      throw new Error(
+        `Dao.updateTicket(idTicket: ${idTicket}, status: ${status}): ${error.message}`
+      );
     }
   }
 
@@ -172,9 +175,10 @@ class Dao {
       }
 
       return result;
-    } catch (error) {
-      console.error("Error in changesModules dao =>>>", error);
-      throw error;
+    } catch (error: any) {
+      throw new Error(
+        `Dao.changesModules(idProduct: ${idProduct}, status: ${status}): ${error.message}`
+      );
     }
   }
 
@@ -191,9 +195,10 @@ class Dao {
       return this.db.update(query, {
         replacements: { idProduct, idProdFormat }
       });
-    } catch (error) {
-      console.error("Error in updateProductCategory dao =>>>", error);
-      throw error;
+    } catch (error: any) {
+      throw new Error(
+        `Dao.updateProductCategory(idProduct: ${idProduct}, idProdFormat: ${idProdFormat}): ${error.message}`
+      );
     }
   }
 
@@ -218,9 +223,8 @@ class Dao {
 
       const data = await res.json();
       if (!res.ok) throw new Error(JSON.stringify(data));
-    } catch (error) {
-      console.error("Error in sendToSlack dao =>>>", error);
-      throw error;
+    } catch (error: any) {
+      throw new Error(`Dao.sendToSlack(): ${error.message}`);
     }
   }
 

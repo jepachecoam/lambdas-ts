@@ -16,21 +16,11 @@ class Model {
     status: TicketStatus;
     observations: string;
   }) => {
-    try {
-      await this.dao.updateTicket({ idTicket, status, observations });
-    } catch (error) {
-      console.error("Error in updateTicket model =>>>", error);
-      throw error;
-    }
+    await this.dao.updateTicket({ idTicket, status, observations });
   };
 
   getProductVariants = async ({ idProduct }: { idProduct: number }) => {
-    try {
-      return (await this.dao.getProductVariants({ idProduct })) || [];
-    } catch (error) {
-      console.error("Error in getProductVariants model =>>>", error);
-      throw error;
-    }
+    return (await this.dao.getProductVariants({ idProduct })) || [];
   };
 
   getPublicProfileByBusiness = async ({
@@ -38,44 +28,21 @@ class Model {
   }: {
     idBusiness: number;
   }) => {
-    try {
-      return await this.dao.getPublicProfileByBusiness({ idBusiness });
-    } catch (error) {
-      console.error("Error in getPublicProfileByBusiness model =>>>", error);
-      throw error;
-    }
+    return await this.dao.getPublicProfileByBusiness({ idBusiness });
   };
 
   getProductFormat = async ({ idProdFormat }: { idProdFormat: number }) => {
-    try {
-      return await this.dao.getProductFormat({ idProdFormat });
-    } catch (error) {
-      console.error("Error in getProductFormat model =>>>", error);
-      throw error;
-    }
+    return await this.dao.getProductFormat({ idProdFormat });
   };
 
   getOpenValidationProcess = async ({ idTicket }: { idTicket: number }) => {
-    try {
-      return await this.dao.getOpenValidationProcess({ idTicket });
-    } catch (error) {
-      console.error("Error in getOpenValidationProcess model =>>>", error);
-      throw error;
-    }
+    return await this.dao.getOpenValidationProcess({ idTicket });
   };
 
   createProductValidationProcess = async (
     params: CreateProductValidationProcessParams
   ) => {
-    try {
-      return await this.dao.createProductValidationProcess(params);
-    } catch (error) {
-      console.error(
-        "Error in createProductValidationProcess model =>>>",
-        error
-      );
-      throw error;
-    }
+    return await this.dao.createProductValidationProcess(params);
   };
 }
 

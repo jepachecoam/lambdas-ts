@@ -7,12 +7,7 @@ class Model {
   }
 
   startStepFnExecution = async (event: any) => {
-    try {
-      await this.dao.startStepFnExecution(event);
-    } catch (error) {
-      console.error("Error in startStepFnExecution model =>>>", error);
-      throw error;
-    }
+    await this.dao.startStepFnExecution(event);
   };
 }
 
