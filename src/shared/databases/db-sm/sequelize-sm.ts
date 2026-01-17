@@ -1,4 +1,4 @@
-import { QueryTypes, Sequelize, Transaction } from "sequelize";
+import { QueryOptions, QueryTypes, Sequelize } from "sequelize";
 
 interface DatabaseConfig {
   database: string;
@@ -6,11 +6,6 @@ interface DatabaseConfig {
   password: string;
   host: string;
   hostReadOnly?: string;
-}
-
-interface QueryOptions {
-  replacements?: Record<string, any>;
-  transaction?: Transaction;
 }
 
 class Database {
