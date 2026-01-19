@@ -12,8 +12,16 @@ class Model {
     return Dto.getPhones(records);
   }
 
-  async sendNotification() {
+  async sendNotification(recordsWithoutPhone: any, logStreamId: string) {
     console.log("Sending notification to slack channel...");
+
+    const body = {
+      logGroup: logStreamId,
+      resourceType: "lambda",
+      data: JSON.stringify(recordsWithoutPhone)
+    };
+
+    await this.dao.sendNotification(body);
   }
 
   async preloadCustomerStatistics(phones: string[]) {

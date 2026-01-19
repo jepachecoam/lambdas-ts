@@ -1,24 +1,36 @@
 class Dto {
   static getEnvironment(context: any) {
+    const logStreamId = context.logStreamName;
+
     const arn = context.invokedFunctionArn;
     const lastPart = arn.split(":").pop();
-    return lastPart === "qa" || lastPart === "dev" ? lastPart : "prod";
+    const environment =
+      lastPart === "qa" || lastPart === "dev" ? lastPart : "prod";
+
+    return { environment, logStreamId };
   }
   static getRecords(event: any) {
     return event.Records.map((record: any) => JSON.parse(record.body));
   }
 
   static getPhones(records: any) {
-    const mapped = records.map((record: any) => {
+    const phonesData = records.map((record: any) => {
       const phone = record.detail?.customer?.phone;
-      return phone ? Dto.sanitizePhone(phone) : null;
+      return {
+        record,
+        phone: phone ? Dto.sanitizePhone(phone) : null
+      };
     });
 
-    const phones = mapped.filter(Boolean);
-    const hasNullValues = mapped.length !== phones.length;
-    const uniquePhones: any = [...new Set(phones)];
+    const validPhones = phonesData
+      .filter((item: any) => item.phone)
+      .map((item: any) => item.phone);
+    const recordsWithoutPhone = phonesData
+      .filter((item: any) => !item.phone)
+      .map((item: any) => item.record);
+    const uniquePhones: any = [...new Set(validPhones)];
 
-    return { uniquePhones, hasNullValues };
+    return { uniquePhones, recordsWithoutPhone };
   }
 
   static sanitizePhone(phone: string): string {

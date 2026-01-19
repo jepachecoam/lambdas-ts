@@ -6,14 +6,15 @@ import { checkEnv } from "../../shared/validation/envChecker";
 import Dao from "./dao";
 import Dto from "./dto";
 import Model from "./model";
+import { Envs } from "./types";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log("event :>>>", JSON.stringify(event));
 
-    checkEnv({ ...dbEnvSm, ...redisEnv });
+    checkEnv({ ...dbEnvSm, ...redisEnv, ...Envs });
 
-    const environment = Dto.getEnvironment(context);
+    const { environment, logStreamId } = Dto.getEnvironment(context);
     console.log("environment :>>>", environment);
 
     const db = await dbSm(environment);
@@ -24,10 +25,10 @@ export const handler = async (event: any, context: any) => {
 
     const model = new Model(dao);
 
-    const { hasNullValues, uniquePhones } = model.getPhones(event);
+    const { recordsWithoutPhone, uniquePhones } = model.getPhones(event);
 
-    if (hasNullValues) {
-      await model.sendNotification();
+    if (recordsWithoutPhone.length > 0) {
+      await model.sendNotification(recordsWithoutPhone, logStreamId);
     }
 
     await model.preloadCustomerStatistics(uniquePhones);

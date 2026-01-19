@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import CacheDB from "../../shared/databases/cache";
 import Database from "../../shared/databases/db-sm/sequelize-sm";
 
@@ -8,6 +10,10 @@ class Dao {
   constructor(db: Database, cacheDatabase: CacheDB) {
     this.db = db;
     this.cacheDatabase = cacheDatabase;
+  }
+
+  async sendNotification(body: any) {
+    return axios.post(`${process.env["SLACK_NOTIFICATION_URL"]}`, body);
   }
 
   async getCachedItem({ key }: { key: string }) {
