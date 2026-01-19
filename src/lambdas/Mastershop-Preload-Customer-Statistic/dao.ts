@@ -1,9 +1,33 @@
+import CacheDB from "../../shared/databases/cache";
 import Database from "../../shared/databases/db-sm/sequelize-sm";
 
 class Dao {
   private db: Database;
-  constructor(db: Database) {
+  private cacheDatabase: CacheDB;
+
+  constructor(db: Database, cacheDatabase: CacheDB) {
     this.db = db;
+    this.cacheDatabase = cacheDatabase;
+  }
+
+  async getCachedItem({ key }: { key: string }) {
+    return this.cacheDatabase.get({ key });
+  }
+
+  async storeCachedItem({
+    key,
+    value,
+    expireInSeconds
+  }: {
+    key: string;
+    value: string;
+    expireInSeconds: number;
+  }) {
+    return this.cacheDatabase.set({
+      key,
+      value,
+      expireInSeconds
+    });
   }
 
   async getCustomerStatistics(phones: string[]) {

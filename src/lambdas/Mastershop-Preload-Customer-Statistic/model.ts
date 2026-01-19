@@ -17,6 +17,7 @@ class Model {
   }
 
   async preloadCustomerStatistics(phones: string[]) {
+    const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 60 * 60;
     console.log("preloadCustomerStatistics", phones);
     const statistics = await this.dao.getCustomerStatistics(phones);
     if (!statistics) {
@@ -24,7 +25,13 @@ class Model {
       return null;
     }
     for (const statistic of statistics) {
-      console.log("statistic", statistic);
+      const { phone, ...values } = statistic;
+      const key = `customerStatistics-${phone}`;
+      await this.dao.storeCachedItem({
+        key,
+        value: JSON.stringify(values),
+        expireInSeconds: SEVEN_DAYS_IN_SECONDS
+      });
     }
   }
 }
