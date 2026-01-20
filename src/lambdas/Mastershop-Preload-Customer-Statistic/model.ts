@@ -13,15 +13,15 @@ class Model {
   }
 
   async sendNotification(recordsWithoutPhone: any, logStreamId: string) {
-    console.log("Sending notification to slack channel...");
+    console.log("recordsWithoutPhone...", JSON.stringify(recordsWithoutPhone));
 
-    const body = {
-      logGroup: logStreamId,
-      resourceType: "lambda",
-      data: JSON.stringify(recordsWithoutPhone)
-    };
+    //    const body = {
+    //      logGroup: logStreamId,
+    //      resourceType: "lambda",
+    //      data: JSON.stringify(recordsWithoutPhone)
+    //    };
 
-    await this.dao.sendNotification(body);
+    //    await this.dao.sendNotification(body);
   }
 
   async preloadCustomerStatistics(phones: string[]) {
