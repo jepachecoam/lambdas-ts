@@ -46,7 +46,7 @@ router.post(
 
 router.post(
   "/customer-statistics",
-  serverResponse({ handler: customerStatistics, responseType: "http" })
+  serverResponse({ handler: customerStatistics, responseType: "void" })
 );
 
 router.post(

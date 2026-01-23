@@ -1,4 +1,4 @@
-import { QueryTypes, Sequelize, Transaction } from "sequelize";
+import { QueryOptions, QueryTypes, Sequelize } from "sequelize";
 
 import { dbEnv } from "../types/database";
 
@@ -51,11 +51,6 @@ const getDatabaseInstance = (environment: string): Sequelize => {
     logging: environment === "prod" ? false : console.log
   });
 };
-
-interface QueryOptions {
-  replacements?: Record<string, any>;
-  transaction?: Transaction;
-}
 
 class Database {
   private db: Sequelize;

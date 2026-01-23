@@ -2,63 +2,95 @@
 
 ## Overview
 
-This Lambda function triggers the preloading of customer statistics by calling a dedicated API endpoint. The endpoint handles all cache management and metric calculations, while this Lambda serves as a simple trigger mechanism for the preloading process.
+This Lambda function processes SQS messages containing customer data and preloads customer statistics in batches to reduce database load. It extracts customer phone numbers from the messages, queries statistics from the database in bulk, and caches the results in Redis for improved performance.
 
 ## Purpose
 
-The function initiates customer statistics preloading by:
-- Receiving a customer phone number as input
-- Calling the customer metrics API endpoint with cache bypass
-- Allowing the endpoint to handle cache preloading automatically
+The function optimizes customer statistics access by:
+- Processing SQS messages containing customer events
+- Extracting and sanitizing customer phone numbers in batches
+- Querying customer statistics from the database for multiple customers at once
+- Caching the statistics in Redis with 7-day expiration
+- Reducing individual database queries by processing customers in bulk
 
 ## Functionality
 
-### API Integration
-- **Endpoint Call**: Makes HTTP request to `/api/b2b/orderLogistics/customer/metrics/byPhone/{phone}?withoutCache=1`
-- **Cache Bypass**: Uses `withoutCache=1` parameter to force fresh data calculation
-- **Automatic Preloading**: The endpoint handles cache population during the request
+### SQS Message Processing
+- **Batch Processing**: Receives multiple customer records from SQS messages
+- **Phone Extraction**: Extracts phone numbers from customer detail events
+- **Phone Sanitization**: Removes country codes and formats phone numbers
+- **Deduplication**: Processes unique phone numbers to avoid redundant queries
 
-### Retry Logic
-- **Resilient Processing**: Implements exponential backoff retry mechanism
-- **Error Handling**: Handles temporary failures with progressive delays (2s to 4min)
-- **404 Handling**: Stops retrying on customer not found errors
-- **Maximum Attempts**: Up to 8 retry attempts for transient failures
+### Database Operations
+- **Bulk Statistics Query**: Retrieves customer metrics for all phones in a single database query
+- **Multi-table Joins**: Queries customer and order data across multiple tables
+- **Comprehensive Metrics**: Calculates order counts, returns, deliveries, cancellations, and blocked status
+
+### Cache Management
+- **Redis Storage**: Stores statistics in Redis with structured keys (`customerStatistics-{phone}`)
+- **7-Day Expiration**: Sets cache expiration to 7 days for optimal performance
+- **JSON Serialization**: Stores statistics as JSON strings for easy retrieval
 
 ## Business Logic
 
-1. **Input Processing**: Receives and sanitizes customer phone number
-2. **API Request**: Calls customer metrics endpoint with cache bypass
-3. **Retry Management**: Handles failures with exponential backoff
-4. **Response Validation**: Ensures successful data retrieval
-5. **Cache Population**: Endpoint automatically updates cache during processing
+1. **Message Processing**: Parses SQS records and extracts customer data
+2. **Phone Validation**: Sanitizes and validates customer phone numbers
+3. **Batch Query**: Retrieves statistics for all valid phones in one database operation
+4. **Cache Population**: Stores individual customer statistics in Redis
+5. **Error Notification**: Sends Slack notifications for records without phone numbers
 
 ## Key Benefits
 
-- **Simple Architecture**: Delegates complex logic to specialized endpoint
-- **Reliable Execution**: Robust retry mechanism for transient failures
-- **Cache Optimization**: Triggers cache preloading without direct cache management
-- **Separation of Concerns**: Lambda handles triggering, endpoint handles caching
-- **Scalable Design**: Can be easily invoked from multiple sources
+- **Reduced Database Load**: Processes multiple customers in single queries instead of individual requests
+- **Improved Performance**: Pre-caches frequently accessed customer statistics
+- **Batch Efficiency**: Handles multiple SQS messages simultaneously
+- **Error Monitoring**: Tracks and notifies about data quality issues
+- **Scalable Architecture**: Processes varying batch sizes efficiently
 
 ## Technical Implementation
 
 The Lambda follows standard architecture with:
-- **Event Processing**: Extracts phone number from input event
-- **HTTP Client**: Uses shared B2B request service for API calls
-- **Retry Logic**: Implements progressive delay retry pattern
-- **Error Handling**: Proper error propagation and logging
+- **SQS Integration**: Processes messages from SQS queues
+- **Database Layer**: Uses MySQL for customer and order data queries
+- **Cache Layer**: Implements Redis for statistics storage
+- **Notification System**: Integrates with Slack for error reporting
 
-## Input Parameters
+## Customer Statistics Metrics
 
-- **phone**: Customer phone number to preload statistics for
-- **environment**: Target environment for API endpoint
+The function calculates and caches:
+- **cantOrders**: Total number of orders placed by customer
+- **cantReturOrders**: Number of returned orders
+- **delivered**: Number of successfully delivered orders
+- **canceled**: Number of canceled orders
+- **blockedBy**: Number of businesses that have blacklisted the customer
+- **percentageReturn**: Return rate percentage based on eligible orders
+
+## Input Format
+
+Expected SQS message structure:
+```json
+{
+  "Records": [
+    {
+      "body": "{
+        \"detail\": {
+          \"customer\": {
+            \"phone\": \"customer_phone_number\"
+          }
+        }
+      }"
+    }
+  ]
+}
+```
 
 ## Monitoring
 
 The function tracks:
-- API call success/failure rates
-- Retry attempt patterns
-- Response times and performance
-- Error types and frequencies
+- SQS message processing success rates
+- Database query performance
+- Cache storage operations
+- Phone number validation issues
+- Slack notification delivery
 
-This ensures reliable triggering of cache preloading operations.
+This ensures efficient batch processing and optimal database resource utilization.

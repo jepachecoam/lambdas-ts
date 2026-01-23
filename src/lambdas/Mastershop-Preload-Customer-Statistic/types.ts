@@ -1,0 +1,3 @@
+export enum Envs {
+  SLACK_NOTIFICATION_URL = "SLACK_NOTIFICATION_URL"
+}

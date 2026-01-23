@@ -16,7 +16,17 @@ function serverResponse({
   ): Promise<any> {
     try {
       const event = req.body;
-      const context = {};
+      const context = {
+        callbackWaitsForEmptyEventLoop: true,
+        functionVersion: "$LATEST",
+        functionName: "Mastershop-Preload-Customer-Statistic",
+        memoryLimitInMB: "200",
+        logGroupName: "/aws/lambda/Mastershop-Preload-Customer-Statistic",
+        logStreamName: "2026/01/15/[$LATEST]f72e38fe68f740a4accd590b7eae7fc7",
+        invokedFunctionArn:
+          "arn:aws:lambda:us-east-1:045891372648:function:Mastershop-Preload-Customer-Statistic:qa",
+        awsRequestId: "668c5ca9-3d09-5a6d-bc40-3d4a492c420c"
+      };
 
       const result = await handler(event, context);
 
