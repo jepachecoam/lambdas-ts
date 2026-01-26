@@ -29,7 +29,7 @@ export const handler = async (event: any, _context: any) => {
       idUserCarrierPreference
     } = parseResult.data;
 
-    const dbIntance = await dbSm(environment);
+    const dbIntance = await dbSm({ environment: environment });
 
     const dao = new Dao(dbIntance);
 
