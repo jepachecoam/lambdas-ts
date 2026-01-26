@@ -1,23 +1,24 @@
 import dbSm from "../../shared/databases/db-sm/db";
-import { dbEnvSm } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
 import Dao from "./dao";
 import Model from "./model";
-
+import { config, envs } from "./types";
 export const handler = async (event: any, context: any) => {
   try {
     console.log("event :>>>", JSON.stringify(event));
 
-    checkEnv({ ...dbEnvSm });
+    checkEnv({ ...envs });
 
-    const connectoolDB = await dbSm({ customSecret: "" });
-    const MSDB = await dbSm({ customSecret: "" });
+    const connectoolDB = await dbSm({
+      customSecretName: config.CT_DB_SECRET
+    });
+    const MSDB = await dbSm({ customSecretName: config.MS_DB_SECRET });
 
     const dao = new Dao(connectoolDB, MSDB);
 
     const model = new Model(dao);
 
-    await model.example();
+    const r = await model.getDuplicatesWithWinnersAndLosers();
 
     console.log("Success process");
   } catch (error: any) {

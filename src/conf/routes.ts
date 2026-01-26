@@ -17,6 +17,7 @@ import { handler as productApprovalFinishValidation } from "../lambdas/MasterSho
 import { handler as bedrockIntegration } from "../lambdas/Mastershop-ProductApprovalAIReviewer/index";
 import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
 import { handler as updateOrders } from "../lambdas/Mastershop-UpdateOrders/index";
+import { handler as userDeduplicationJob } from "../lambdas/Mastershop-UserDeduplicationJob/index";
 import { handler as validateInHouseCarrierCoverage } from "../lambdas/Mastershop-ValidateInHouseCarrierCoverage/index";
 import { handler as processAdditionalStepsInOrdersUpdate } from "../lambdas/processAdditionalStepsInOrdersUpdate/index";
 import { handler as getReconciliationDocumentAndLoadItems } from "../lambdas/reconciliation-checkReconciliationDocumentAndLoadItemsToDb/index";
@@ -29,6 +30,11 @@ const router = Router();
 router.post(
   "/example",
   serverResponse({ handler: example, responseType: "http" })
+);
+
+router.post(
+  "/userDeduplicationJob",
+  serverResponse({ handler: userDeduplicationJob, responseType: "void" })
 );
 
 router.post(

@@ -4,14 +4,14 @@ import Database from "./sequelize-sm";
 
 interface DbConfig {
   environment?: string;
-  customSecret?: any;
+  customSecretName?: any;
 }
 
 const db = async (config: DbConfig) => {
-  let secretData: any;
+  let secret: any;
 
-  if (config.customSecret) {
-    secretData = config.customSecret;
+  if (config.customSecretName) {
+    secret = config.customSecretName;
   } else {
     if (
       !config.environment ||
@@ -34,10 +34,10 @@ const db = async (config: DbConfig) => {
       default:
         throw new Error(`Invalid environment ${config.environment}`);
     }
-
-    const SM = new SecretManager(process.env[dbEnvSm.DB_SECRET_REGION]!);
-    secretData = await SM.getSecrets(secret);
   }
+
+  const SM = new SecretManager(process.env[dbEnvSm.DB_SECRET_REGION]!);
+  const secretData = await SM.getSecrets(secret);
 
   const requiredProps = ["dbname", "host", "password", "username"];
   for (const prop of requiredProps) {
