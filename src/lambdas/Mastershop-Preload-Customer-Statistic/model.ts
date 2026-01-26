@@ -35,6 +35,9 @@ class Model {
     for (const statistic of statistics) {
       const { phone, ...values } = statistic;
       const key = `customerStatistics-${phone}`;
+      console.log("Saving on redis...");
+      console.log("key...", key);
+      console.log("values...", values);
       await this.dao.storeCachedItem({
         key,
         value: JSON.stringify(values),
