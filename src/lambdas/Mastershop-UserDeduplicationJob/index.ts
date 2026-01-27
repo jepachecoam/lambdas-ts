@@ -3,7 +3,7 @@ import { checkEnv } from "../../shared/validation/envChecker";
 import Dao from "./dao";
 import Model from "./model";
 import { config, envs } from "./types";
-export const handler = async (event: any, context: any) => {
+export const handler = async (event: any) => {
   try {
     console.log("event :>>>", JSON.stringify(event));
 
@@ -18,7 +18,7 @@ export const handler = async (event: any, context: any) => {
 
     const model = new Model(dao);
 
-    const r = await model.getDuplicatesWithWinnersAndLosers();
+    await model.processAndUpdateDuplicateClusters();
 
     console.log("Success process");
   } catch (error: any) {

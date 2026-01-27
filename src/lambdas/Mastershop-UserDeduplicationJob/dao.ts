@@ -30,6 +30,7 @@ class Dao {
     `;
     return this.connectoolDB.fetchMany(query);
   }
+
   async getDuplicatesBussinessConfigNotification(): Promise<any> {
     const query = `
       with baseData as (SELECT distinct ub.idUser,
@@ -59,9 +60,8 @@ class Dao {
                       FROM baseData)
       SELECT cleanWhatsapp                       as id,
             'bussinessConfigNotification-phone' as type,
-            JSON_ARRAYAGG(JSON_OBJECT('idUser', pn.idUser, 'createdAt', u.createdAt)) as users
+            JSON_ARRAYAGG(pn.idUser)            as users
       FROM phones pn
-      INNER JOIN user u ON pn.idUser = u.idUser
       where length(cleanWhatsapp) > 4
       GROUP BY pn.cleanWhatsapp
       HAVING COUNT(pn.idUser) > 1;
@@ -97,11 +97,10 @@ class Dao {
                                       END AS phone,
                                   idUser
                           from phones)
-      SELECT cp.phone                                                                  as id,
-            'userBeneficiary-phone'                                                   as type,
-            JSON_ARRAYAGG(JSON_OBJECT('idUser', cp.idUser, 'createdAt', u.createdAt)) as users
+      SELECT cp.phone                   as id,
+            'userBeneficiary-phone'    as type,
+            JSON_ARRAYAGG(cp.idUser)   as users
       FROM cleanPhones cp
-              INNER JOIN user u ON cp.idUser = u.idUser
       where length(cp.phone) > 4
       GROUP BY cp.phone
       HAVING COUNT(cp.idUser) > 1;
@@ -119,9 +118,8 @@ class Dao {
                                 AND documentNumber != '')
       SELECT cleanDoc                         as id,
             'userBeneficiary-documentNumber' as type,
-            JSON_ARRAYAGG(JSON_OBJECT('idUser', dn.idUser, 'createdAt', u.createdAt)) as users
+            JSON_ARRAYAGG(dn.idUser)         as users
       FROM documentNumbers dn
-      INNER JOIN user u ON dn.idUser = u.idUser
       WHERE cleanDoc != ''
       GROUP BY cleanDoc
       HAVING COUNT(dn.idUser) > 1;
@@ -157,11 +155,10 @@ class Dao {
                                       END AS phone,
                                   idUser
                           from phones)
-      SELECT cp.phone                                                                  as id,
-            'userProfilingResponse-phoneNumber'                                       as type,
-            JSON_ARRAYAGG(JSON_OBJECT('idUser', cp.idUser, 'createdAt', u.createdAt)) as users
+      SELECT cp.phone                            as id,
+            'userProfilingResponse-phoneNumber' as type,
+            JSON_ARRAYAGG(cp.idUser)            as users
       FROM cleanPhones cp
-              INNER JOIN user u ON cp.idUser = u.idUser
       where length(cp.phone) > 4
       GROUP BY cp.phone
       HAVING COUNT(cp.idUser) > 1;
@@ -169,34 +166,64 @@ class Dao {
     return this.MSDB.fetchMany(query);
   }
 
-  async getBusinessOwnersFromBusinessIds(
-    businessIds: number[]
-  ): Promise<{ [key: number]: { idUser: number; createdAt: string }[] }> {
+  async getBusinessOwnersFromBusinessIds(businessIds: number[]): Promise<any> {
     const query = `
-      SELECT ub.idBussiness, ub.idUser, u.createdAt
-      FROM userBussiness ub
-      INNER JOIN user u ON ub.idUser = u.idUser
-      WHERE ub.idBussiness IN (${businessIds.map(() => "?").join(",")}) 
-      AND ub.relation = 'owner'
+      SELECT idBussiness, idUser
+      FROM userBussiness
+      WHERE idBussiness IN (${businessIds.join(",")}) 
+      AND relation = 'owner'
     `;
-    const result = await this.MSDB.fetchMany(query, {
-      replacements: businessIds
-    });
+    const result = await this.MSDB.fetchMany(query);
 
-    const businessToUsers: {
-      [key: number]: { idUser: number; createdAt: string }[];
-    } = {};
+    const businessToUsers: { [key: number]: number[] } = {};
     result?.forEach((row: any) => {
       if (!businessToUsers[row.idBussiness]) {
         businessToUsers[row.idBussiness] = [];
       }
-      businessToUsers[row.idBussiness].push({
-        idUser: row.idUser,
-        createdAt: row.createdAt
-      });
+      businessToUsers[row.idBussiness].push(row.idUser);
     });
 
     return businessToUsers;
+  }
+  async getUserClusters(userIds: number[]): Promise<any> {
+    const query = `
+      SELECT idUser, idUserCluster
+      FROM userClusterMember
+      WHERE idUser IN (${userIds.join(",")})
+    `;
+    const result = await this.MSDB.fetchMany(query);
+
+    const userToClusters: { [key: number]: number | null } = {};
+    userIds.forEach((userId) => {
+      userToClusters[userId] = null;
+    });
+
+    result?.forEach((row: any) => {
+      userToClusters[row.idUser] = row.idUserCluster;
+    });
+
+    return userToClusters;
+  }
+
+  async updateUserClusterMembers(
+    userIds: number[],
+    targetClusterId: number
+  ): Promise<any> {
+    if (userIds.length === 0) return;
+
+    const query = `
+      UPDATE userClusterMember
+      SET idUserCluster = :targetClusterId,
+          origin        = 'algorithm',
+          updateAt      = now()
+      WHERE idUser IN (${userIds.join(",")})
+        and isLock = false;
+    `;
+
+    return this.MSDB.fetchMany(query, {
+      replacements: { targetClusterId },
+      logging: console.log
+    });
   }
 }
 

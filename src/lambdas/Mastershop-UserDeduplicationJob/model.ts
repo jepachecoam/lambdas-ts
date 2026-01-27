@@ -1,4 +1,6 @@
+import concurrency from "../../shared/services/concurrency";
 import Dao from "./dao";
+
 class Model {
   constructor(private dao: Dao) {
     this.dao = dao;
@@ -21,10 +23,7 @@ class Model {
         (businessId: any) => businessToUsersMap[businessId] || []
       );
 
-      const uniqueUsers = allUsers.filter(
-        (user: any, index: number, self: any[]) =>
-          index === self.findIndex((u: any) => u.idUser === user.idUser)
-      );
+      const uniqueUsers = [...new Set(allUsers)];
 
       if (uniqueUsers.length >= 2) {
         credentialDuplicatesResult.push({
@@ -45,15 +44,14 @@ class Model {
       let merged = false;
 
       for (const group of mergedGroups) {
-        const hasSharedUser = duplicate.users.some((user: any) =>
-          group.users.some((groupUser: any) => groupUser.idUser === user.idUser)
+        const hasSharedUser = duplicate.users.some((userId: number) =>
+          group.users.includes(userId)
         );
 
         if (hasSharedUser) {
-          const uniqueUsers = [...group.users, ...duplicate.users].filter(
-            (user: any, index: number, self: any[]) =>
-              index === self.findIndex((u: any) => u.idUser === user.idUser)
-          );
+          const uniqueUsers = [
+            ...new Set([...group.users, ...duplicate.users])
+          ];
           group.users = uniqueUsers;
           merged = true;
           break;
@@ -70,11 +68,15 @@ class Model {
 
   async getAllDuplicatesWithMergedGroups() {
     const credentialDuplicates = await this.getCredentialDuplicates();
+
     const notificationDuplicates =
       await this.dao.getDuplicatesBussinessConfigNotification();
+
     const documentDuplicates =
       await this.dao.getDuplicatesUserBeneficiaryDocumentNumber();
+
     const phoneDuplicates = await this.dao.getDuplicatesUserBeneficiaryPhone();
+
     const profilingDuplicates =
       await this.dao.getDuplicatesUserProfilingResponse();
 
@@ -86,52 +88,76 @@ class Model {
       ...profilingDuplicates
     ];
 
-    return this.mergeGroupsBySharedUsers(allDuplicates);
-  }
+    const mergedGroups = this.mergeGroupsBySharedUsers(allDuplicates);
 
-  private isValidDate(dateValue: any): boolean {
-    if (!dateValue) return false;
+    const allUserIds = mergedGroups.flatMap((group) => group.users);
+    const userClustersMap = await this.dao.getUserClusters(allUserIds);
 
-    const date = new Date(dateValue);
-    return !isNaN(date.getTime());
+    const groupsWithClusters = mergedGroups.map((group) => ({
+      id: group.id,
+      type: group.type,
+      users: group.users.map((userId: number) => ({
+        idUser: userId,
+        idCluster: userClustersMap[userId]
+      }))
+    }));
+
+    return groupsWithClusters;
   }
 
   async getDuplicatesWithWinnersAndLosers() {
     const mergedGroups = await this.getAllDuplicatesWithMergedGroups();
 
-    const validGroups = [];
-
-    for (const group of mergedGroups) {
-      const usersWithValidDates = group.users.filter((user: any) =>
-        this.isValidDate(user.createdAt)
-      );
-      const usersWithInvalidDates = group.users.filter(
-        (user: any) => !this.isValidDate(user.createdAt)
+    return mergedGroups.map((group) => {
+      const sortedUsers = group.users.sort(
+        (a: any, b: any) => a.idUser - b.idUser
       );
 
-      if (usersWithValidDates.length === 0) {
-        continue;
-      }
+      const winner = sortedUsers[0];
+      const losers = sortedUsers.slice(1);
 
-      const sortedValidUsers = usersWithValidDates.sort(
-        (a: any, b: any) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-
-      const winner = sortedValidUsers[0];
-      const losers = [...sortedValidUsers.slice(1), ...usersWithInvalidDates];
-
-      validGroups.push({
+      return {
         id: group.id,
         type: group.type,
         users: {
           winner,
           losers
         }
-      });
-    }
+      };
+    });
+  }
 
-    return validGroups;
+  private filterLosersWithDifferentCluster(winner: any, losers: any[]) {
+    return losers.filter((loser) => loser.idCluster !== winner.idCluster);
+  }
+
+  private async updateGroupCluster(group: any) {
+    const { winner, losers } = group.users;
+
+    const losersToUpdate = this.filterLosersWithDifferentCluster(
+      winner,
+      losers
+    );
+
+    if (losersToUpdate.length === 0) return;
+
+    const userIdsToUpdate = losersToUpdate.map((loser) => loser.idUser);
+    await this.dao.updateUserClusterMembers(userIdsToUpdate, winner.idCluster);
+  }
+
+  async processAndUpdateDuplicateClusters() {
+    const duplicateGroups = await this.getDuplicatesWithWinnersAndLosers();
+
+    const updateTasks = duplicateGroups.map(
+      (group) => () => this.updateGroupCluster(group)
+    );
+
+    await concurrency.executeWithLimit({
+      tasks: updateTasks,
+      concurrencyLimit: 10
+    });
+
+    return duplicateGroups;
   }
 }
 
