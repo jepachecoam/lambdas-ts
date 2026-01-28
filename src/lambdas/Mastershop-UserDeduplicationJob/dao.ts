@@ -14,10 +14,10 @@ class Dao {
       WITH rawData AS (SELECT u.idExternal,
                               trim(REGEXP_REPLACE(ct.credentials ->> '$.urlApi', '^(https?://)', '')) as cleanUrlApi
                       FROM configurationTool ct
-                                INNER JOIN user u ON ct.idUser = u.idUser
+                                INNER JOIN user u ON ct.idUser = u.idUser and u.originPlatform = 'mastershop'
                       WHERE ct.credentials ->> '$.urlApi' IS NOT NULL
                         AND ct.credentials ->> '$.urlApi' != ''
-                        and idTool in (20, 24, 26)),
+                        and idTool in (1,42,20,24,54,63,67,70)),
           uniquePairs AS (SELECT DISTINCT cleanUrlApi,
                                           idExternal
                           FROM rawData)
