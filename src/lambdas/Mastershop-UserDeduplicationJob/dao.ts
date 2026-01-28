@@ -220,7 +220,7 @@ class Dao {
         and isLock = false;
     `;
 
-    return this.MSDB.fetchMany(query, {
+    return this.MSDB.update(query, {
       replacements: { targetClusterId },
       logging: console.log
     });

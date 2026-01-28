@@ -38,29 +38,44 @@ class Model {
   }
 
   private mergeGroupsBySharedUsers(duplicates: any[]) {
-    const mergedGroups: any[] = [];
+    let mergedGroups: any[] = [];
+    let hasChanges = true;
 
+    // Inicializar con todos los grupos
     for (const duplicate of duplicates) {
-      let merged = false;
+      mergedGroups.push({ ...duplicate });
+    }
+
+    // Repetir hasta que no haya más fusiones
+    while (hasChanges) {
+      hasChanges = false;
+      const newMergedGroups: any[] = [];
 
       for (const group of mergedGroups) {
-        const hasSharedUser = duplicate.users.some((userId: number) =>
-          group.users.includes(userId)
-        );
+        let merged = false;
 
-        if (hasSharedUser) {
-          const uniqueUsers = [
-            ...new Set([...group.users, ...duplicate.users])
-          ];
-          group.users = uniqueUsers;
-          merged = true;
-          break;
+        for (const existingGroup of newMergedGroups) {
+          const hasSharedUser = group.users.some((userId: number) =>
+            existingGroup.users.includes(userId)
+          );
+
+          if (hasSharedUser) {
+            const uniqueUsers = [
+              ...new Set([...existingGroup.users, ...group.users])
+            ];
+            existingGroup.users = uniqueUsers;
+            merged = true;
+            hasChanges = true;
+            break;
+          }
+        }
+
+        if (!merged) {
+          newMergedGroups.push({ ...group });
         }
       }
 
-      if (!merged) {
-        mergedGroups.push({ ...duplicate });
-      }
+      mergedGroups = newMergedGroups;
     }
 
     return mergedGroups;
