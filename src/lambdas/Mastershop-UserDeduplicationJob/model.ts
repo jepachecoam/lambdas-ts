@@ -1,5 +1,6 @@
 import concurrency from "../../shared/services/concurrency";
 import Dao from "./dao";
+import Dto from "./dto";
 
 class Model {
   constructor(private dao: Dao) {
@@ -103,7 +104,8 @@ class Model {
       ...profilingDuplicates
     ];
 
-    const mergedGroups = this.mergeGroupsBySharedUsers(allDuplicates);
+    const filteredDuplicates = Dto.filterDuplicatesByExcludedIds(allDuplicates);
+    const mergedGroups = this.mergeGroupsBySharedUsers(filteredDuplicates);
 
     const allUserIds = mergedGroups.flatMap((group) => group.users);
     const userClustersMap = await this.dao.getUserClusters(allUserIds);
