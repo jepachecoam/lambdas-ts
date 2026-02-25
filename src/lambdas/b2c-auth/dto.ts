@@ -40,4 +40,11 @@ const sanitizeMethodArn = (methodArn: any, pathParameters: any) => {
   );
 };
 
-export default { validateHeaders, sanitizeMethodArn };
+const sanitizeHeaders = (headers: any) => {
+  const sanitizedHeaders: any = Object.fromEntries(
+    Object.entries(headers || {}).map(([k, v]) => [k.toLowerCase(), v])
+  );
+  return sanitizedHeaders;
+};
+
+export default { validateHeaders, sanitizeMethodArn, sanitizeHeaders };

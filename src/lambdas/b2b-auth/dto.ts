@@ -103,4 +103,11 @@ function normalizeArn(
   return normalized;
 }
 
-export default { getParams, generatePolicy, normalizeArn };
+const sanitizeHeaders = (headers: any) => {
+  const sanitizedHeaders: any = Object.fromEntries(
+    Object.entries(headers || {}).map(([k, v]) => [k.toLowerCase(), v])
+  );
+  return sanitizedHeaders;
+};
+
+export default { getParams, generatePolicy, normalizeArn, sanitizeHeaders };

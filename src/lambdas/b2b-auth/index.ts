@@ -7,6 +7,9 @@ export const handler = async (event: any) => {
   let response;
 
   try {
+    // Sanitize headers to ensure consistent access
+    event.headers = dto.sanitizeHeaders(event.headers);
+
     const { stage, apiKey, appName, httpMethod, resource } =
       dto.getParams(event);
 

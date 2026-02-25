@@ -17,6 +17,9 @@ export const handler = async (event: any) => {
     // Check required environment variables
     checkEnv(types.EnvsEnum);
 
+    // Sanitize headers to ensure consistent access
+    event.headers = dto.sanitizeHeaders(event.headers);
+
     // Validate and extract headers
     const { authorizationToken, idToken } = dto.validateHeaders(event);
 
@@ -56,7 +59,7 @@ export const handler = async (event: any) => {
 
     // This validation is temporally and const isShippingQuoteRoute - Delete IF in future
     let extraDataContext;
-    const isShippingQuoteRoute = event.rawPath.includes(
+    const isShippingQuoteRoute = event.rawPath?.includes(
       "/logistics/shippingQuote"
     );
     if (event.headers["x-idbusiness"] && !isShippingQuoteRoute) {
