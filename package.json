@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "ts-node-dev index.ts",
     "build": "bash ./build-lambda.sh",
+    "create-lambda": "ts-node scripts/create-lambda.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install"
   },
