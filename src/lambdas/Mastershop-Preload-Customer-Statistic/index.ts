@@ -17,7 +17,7 @@ export const handler = async (event: any, context: any) => {
     const { environment, logStreamId } = Dto.getEnvironment(context);
     console.log("environment :>>>", environment);
 
-    const db = await dbSm(environment);
+    const db = await dbSm({ environment: environment });
 
     const cacheDB = CacheDB.getInstance(environment);
 

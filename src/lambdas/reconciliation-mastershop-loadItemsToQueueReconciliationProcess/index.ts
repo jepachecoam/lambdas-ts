@@ -14,7 +14,7 @@ export const handler = async (event: any, _context: any) => {
 
     const { operationType, environment } = dto.parseEvent({ event });
 
-    const db = await dbSm(environment);
+    const db = await dbSm({ environment: environment });
 
     const dao = new Dao(environment, db);
 
