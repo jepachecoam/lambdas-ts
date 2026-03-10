@@ -5,13 +5,17 @@ import { CreateProductValidationProcessParams, TicketStatus } from "./types";
 
 class Dao {
   private db: Database;
-  private environmentName: string;
+  private baseUrl: string;
   private apiToken: string;
+  private apiKey: string;
+  private appName: string;
 
   constructor(environment: string) {
-    this.environmentName = environment;
     this.db = new Database(environment);
+    this.baseUrl = process.env[`BASE_URL_${environment.toUpperCase()}`]!;
     this.apiToken = process.env[`API_TOKEN_${environment.toUpperCase()}`]!;
+    this.apiKey = process.env["API_KEY"]!;
+    this.appName = process.env["APP_NAME"]!;
   }
 
   async updateTicket({
@@ -37,14 +41,16 @@ class Dao {
       };
 
       const result = await axios.put(
-        `${process.env["BASE_URL"]}/${this.environmentName}/api/tickets/${idTicket}/status`,
+        `${this.baseUrl}/tickets/${idTicket}/status`,
         {
           idStatusCatalog: idStatusCatalog(status),
           observations
         },
         {
           headers: {
-            "id-token": this.apiToken
+            "x-auth-id": this.apiToken,
+            "x-api-key": this.apiKey,
+            "x-app-name": this.appName
           }
         }
       );

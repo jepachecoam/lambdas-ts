@@ -12,12 +12,21 @@ import utils from "./utils";
 class Dao {
   private db: Database;
   private environmentName: string;
+  private msBaseUrl: string;
+  private adminBaseUrl: string;
   private apiToken: string;
+  private adminApiKey: string;
+  private adminAppName: string;
 
   constructor(environment: string) {
     this.environmentName = environment;
     this.db = new Database(environment);
+    this.msBaseUrl = process.env[`MS_BASE_URL_${environment.toUpperCase()}`]!;
+    this.adminBaseUrl =
+      process.env[`ADMIN_BASE_URL_${environment.toUpperCase()}`]!;
     this.apiToken = process.env[`API_TOKEN_${environment.toUpperCase()}`]!;
+    this.adminApiKey = process.env["ADMIN_API_KEY"]!;
+    this.adminAppName = process.env["ADMIN_APP_NAME"]!;
   }
 
   async updateProductValidationProcess(
@@ -67,11 +76,13 @@ class Dao {
         adminObservations
       });
       const result = await axios.put(
-        `${process.env["BASE_URL"]}/${this.environmentName}/api/mastershop/products/${idProduct}`,
+        `${this.msBaseUrl}/mastershop/products/${idProduct}`,
         payload,
         {
           headers: {
-            "id-token": this.apiToken
+            "x-auth-id": this.apiToken,
+            "x-api-key": this.adminApiKey,
+            "x-app-name": this.adminAppName
           }
         }
       );
@@ -99,14 +110,16 @@ class Dao {
   }) {
     try {
       const result = await axios.put(
-        `${process.env["BASE_URL"]}/${this.environmentName}/api/tickets/${idTicket}/status`,
+        `${this.adminBaseUrl}/tickets/${idTicket}/status`,
         {
           idStatusCatalog: this.idStatusCatalog(status),
           observations
         },
         {
           headers: {
-            "id-token": this.apiToken
+            "x-auth-id": this.apiToken,
+            "x-api-key": this.adminApiKey,
+            "x-app-name": this.adminAppName
           }
         }
       );
@@ -160,12 +173,14 @@ class Dao {
       }
 
       const result = await axios.post(
-        `${process.env["BASE_URL"]}/${this.environmentName}/api/changes-modules`,
+        `${this.msBaseUrl}/changes-modules`,
         data,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            "id-token": this.apiToken
+            "x-auth-id": this.apiToken,
+            "x-api-key": this.adminApiKey,
+            "x-app-name": this.adminAppName
           }
         }
       );
