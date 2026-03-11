@@ -270,37 +270,43 @@ class Dao {
     });
   };
 
-  createOrderShipmentUpdateHistoryIfNotExists = async ({
+  getTransaction = () => {
+    return this.db.getInstance().transaction();
+  };
+
+  getLastOrderShipmentUpdate = async ({
+    idOrder,
+    transaction
+  }: {
+    idOrder: number;
+    transaction: any;
+  }) => {
+    const query = `
+      SELECT idCarrierStatusUpdate, idShipmentUpdate
+      FROM orderShipmentUpdateHistory
+      WHERE idOrder = :idOrder
+      ORDER BY createdAt DESC
+      LIMIT 1
+      FOR UPDATE
+    `;
+    return this.db.fetchOne(query, { replacements: { idOrder }, transaction });
+  };
+
+  createOrderShipmentUpdateHistory = async ({
     idOrder,
     status,
     idCarrierStatusUpdate,
     carrierData,
     idShipmentUpdate,
     updateSource,
-    idOrderLeg
+    idOrderLeg,
+    transaction
   }: any) => {
     const query = `
-                INSERT INTO orderShipmentUpdateHistory
-                (idOrder, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource, idOrderLeg)
-                SELECT :idOrder,
-                       :idCarrierStatusUpdate,
-                       :carrierData,
-                       NOW(),
-                       NOW(),
-                       :idShipmentUpdate,
-                       :status,
-                       :updateSource,
-                       :idOrderLeg
-                WHERE NOT EXISTS (SELECT 1
-                                  FROM orderShipmentUpdateHistory oh
-                                  WHERE oh.idOrder = :idOrder
-                                    AND oh.createdAt = (SELECT MAX(createdAt)
-                                                        FROM orderShipmentUpdateHistory
-                                                        WHERE idOrder = :idOrder)
-                                    AND (oh.idShipmentUpdate IS NOT NULL AND oh.idShipmentUpdate = :idShipmentUpdate OR
-                                         oh.idCarrierStatusUpdate = :idCarrierStatusUpdate AND oh.idShipmentUpdate IS NULL));
-        `;
-
+      INSERT INTO orderShipmentUpdateHistory
+      (idOrder, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource, idOrderLeg)
+      VALUES (:idOrder, :idCarrierStatusUpdate, :carrierData, NOW(), NOW(), :idShipmentUpdate, :status, :updateSource, :idOrderLeg)
+    `;
     return this.db.insert(query, {
       replacements: {
         idOrder,
@@ -310,49 +316,47 @@ class Dao {
         status,
         updateSource,
         idOrderLeg
-      }
+      },
+      transaction
     });
   };
 
-  createOrderReturnShipmentUpdateHistoryIfNotExists = async ({
+  getLastOrderReturnShipmentUpdate = async ({
+    idOrderReturn,
+    transaction
+  }: {
+    idOrderReturn: number;
+    transaction: any;
+  }) => {
+    const query = `
+      SELECT idCarrierStatusUpdate, idShipmentUpdate
+      FROM orderReturnShipmentUpdateHistory
+      WHERE idOrderReturn = :idOrderReturn
+      ORDER BY createdAt DESC
+      LIMIT 1
+      FOR UPDATE
+    `;
+    return this.db.fetchOne(query, {
+      replacements: { idOrderReturn },
+      transaction
+    });
+  };
+
+  createOrderReturnShipmentUpdateHistory = async ({
     idCarrierStatusUpdate,
     carrierData,
     idOrderReturn,
     idShipmentUpdate,
     updateSource,
     status,
-    idOrderReturnLeg
+    idOrderReturnLeg,
+    transaction
   }: any) => {
     const query = `
-            INSERT INTO orderReturnShipmentUpdateHistory
-            (idOrderReturn, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource, idOrderReturnLeg)
-            SELECT
-                :idOrderReturn,
-                :idCarrierStatusUpdate,
-                :carrierData,
-                NOW(),
-                NOW(),
-                :idShipmentUpdate,
-                :status,
-                :updateSource,
-                :idOrderReturnLeg
-                WHERE NOT EXISTS (
-                SELECT 1 
-                FROM orderReturnShipmentUpdateHistory
-                WHERE idOrderReturn = :idOrderReturn
-                  AND createdAt = (
-                      SELECT MAX(createdAt)
-                      FROM orderReturnShipmentUpdateHistory
-                      WHERE idOrderReturn = :idOrderReturn
-                  )
-                  AND (
-                      (idShipmentUpdate IS NOT NULL AND idShipmentUpdate = :idShipmentUpdate)
-                      OR 
-                      (idCarrierStatusUpdate = :idCarrierStatusUpdate AND idShipmentUpdate IS NULL)
-                  )
-            );
-        `;
-
+      INSERT INTO orderReturnShipmentUpdateHistory
+      (idOrderReturn, idCarrierStatusUpdate, carrierData, createdAt, updatedAt, idShipmentUpdate, status, updateSource, idOrderReturnLeg)
+      VALUES (:idOrderReturn, :idCarrierStatusUpdate, :carrierData, NOW(), NOW(), :idShipmentUpdate, :status, :updateSource, :idOrderReturnLeg)
+    `;
     return this.db.insert(query, {
       replacements: {
         idOrderReturn,
@@ -362,7 +366,8 @@ class Dao {
         status,
         updateSource,
         idOrderReturnLeg
-      }
+      },
+      transaction
     });
   };
 
@@ -405,39 +410,55 @@ class Dao {
     });
   };
 
-  updateStatusOrderReturn = async ({ idStatus, idOrderReturn }: any) => {
+  updateStatusOrderReturn = async ({
+    idStatus,
+    idOrderReturn,
+    transaction
+  }: any) => {
     const query = `
             UPDATE orderReturn
             SET idStatus = :idStatus, updatedAt = now()
             WHERE idOrderReturn = :idOrderReturn;
         `;
     return this.db.update(query, {
-      replacements: { idStatus, idOrderReturn }
+      replacements: { idStatus, idOrderReturn },
+      transaction
     });
   };
 
-  createOrderReturnStatusLogIfNotExists = async ({
+  getLastOrderReturnStatusLog = async ({
     idOrderReturn,
-    idStatus
+    transaction
+  }: {
+    idOrderReturn: number;
+    transaction: any;
+  }) => {
+    const query = `
+      SELECT idStatus
+      FROM orderReturnStatusLog
+      WHERE idOrderReturn = :idOrderReturn
+      ORDER BY createdAt DESC
+      LIMIT 1
+      FOR UPDATE
+    `;
+    return this.db.fetchOne(query, {
+      replacements: { idOrderReturn },
+      transaction
+    });
+  };
+
+  createOrderReturnStatusLog = async ({
+    idOrderReturn,
+    idStatus,
+    transaction
   }: any) => {
     const query = `
-            INSERT INTO orderReturnStatusLog (idOrderReturn, idStatus, createdAt, updatedAt)
-            SELECT :idOrderReturn, :idStatus, NOW(), NOW()
-            WHERE NOT EXISTS (
-                SELECT 1 
-                FROM orderReturnStatusLog 
-                WHERE idOrderReturn = :idOrderReturn
-                  AND createdAt = (
-                      SELECT MAX(createdAt)
-                      FROM orderReturnStatusLog
-                      WHERE idOrderReturn = :idOrderReturn
-                  )
-                  AND idStatus = :idStatus
-            );
-        `;
-
+      INSERT INTO orderReturnStatusLog (idOrderReturn, idStatus, createdAt, updatedAt)
+      VALUES (:idOrderReturn, :idStatus, NOW(), NOW())
+    `;
     return this.db.insert(query, {
-      replacements: { idOrderReturn, idStatus }
+      replacements: { idOrderReturn, idStatus },
+      transaction
     });
   };
 

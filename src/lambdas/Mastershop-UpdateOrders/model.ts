@@ -331,25 +331,62 @@ class Model {
     }
 
     const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
-    const shipmentUpdateResult =
-      await this.dao.createOrderShipmentUpdateHistoryIfNotExists({
+
+    const t = await this.dao.getTransaction();
+    try {
+      const lastShipmentUpdate = await this.dao.getLastOrderShipmentUpdate({
+        idOrder,
+        transaction: t
+      });
+
+      const isDuplicate =
+        lastShipmentUpdate &&
+        ((idShipmentUpdate != null &&
+          lastShipmentUpdate.idShipmentUpdate != null &&
+          String(lastShipmentUpdate.idShipmentUpdate) ===
+            String(idShipmentUpdate)) ||
+          (idShipmentUpdate == null &&
+            lastShipmentUpdate.idShipmentUpdate == null &&
+            String(lastShipmentUpdate.idCarrierStatusUpdate) ===
+              String(idCarrierStatusUpdate)));
+
+      if (isDuplicate) {
+        await t.commit();
+        console.log(
+          `shipmentUpdateHistory not created for guide ${trackingNumber}`
+        );
+        return null;
+      }
+
+      await this.dao.createOrderShipmentUpdateHistory({
         idCarrierStatusUpdate,
         carrierData: sanitizedCarrierData,
         idOrder,
         idShipmentUpdate,
         updateSource: updateSource || null,
         status: idShipmentUpdate ? "PENDING" : null,
-        idOrderLeg: latestOrderLeg?.idOrderLeg || null
+        idOrderLeg: latestOrderLeg?.idOrderLeg || null,
+        transaction: t
       });
 
-    if (!shipmentUpdateResult) {
-      console.log(
-        `shipmentUpdateHistory not created for guide ${trackingNumber}`
-      );
-      return null;
-    }
+      const updateOrderResult = await this.updateOrder({
+        idOrder,
+        idStatus,
+        idUser,
+        statusName
+      });
 
-    await this.updateOrder({ idOrder, idStatus, idUser, statusName });
+      if (!updateOrderResult) {
+        await t.rollback();
+        console.log(`Order ${idOrder} error on updateOrder, rolling back`);
+        return null;
+      }
+
+      await t.commit();
+    } catch (error) {
+      await t.rollback();
+      throw error;
+    }
 
     const requireReturnProcess = dto.requiresReturnProcess({
       statusCode: status.statusCode,
@@ -427,27 +464,83 @@ class Model {
     }
 
     const sanitizedCarrierData = utils.validateAndSanitizeJSON(carrierData);
-    const shipmentUpdateResult =
-      await this.dao.createOrderReturnShipmentUpdateHistoryIfNotExists({
+
+    const t = await this.dao.getTransaction();
+    try {
+      const lastShipmentUpdate =
+        await this.dao.getLastOrderReturnShipmentUpdate({
+          idOrderReturn,
+          transaction: t
+        });
+
+      const isShipmentDuplicate =
+        lastShipmentUpdate &&
+        ((idShipmentUpdate != null &&
+          lastShipmentUpdate.idShipmentUpdate != null &&
+          String(lastShipmentUpdate.idShipmentUpdate) ===
+            String(idShipmentUpdate)) ||
+          (idShipmentUpdate == null &&
+            lastShipmentUpdate.idShipmentUpdate == null &&
+            String(lastShipmentUpdate.idCarrierStatusUpdate) ===
+              String(idCarrierStatusUpdate)));
+
+      if (isShipmentDuplicate) {
+        await t.commit();
+        console.log(
+          `shipmentUpdateHistory not created for guide ${trackingNumber}`
+        );
+        return null;
+      }
+
+      await this.dao.createOrderReturnShipmentUpdateHistory({
         idCarrierStatusUpdate,
         carrierData: sanitizedCarrierData,
         idOrderReturn,
         idShipmentUpdate,
         updateSource: updateSource || null,
         status: idShipmentUpdate ? "PENDING" : null,
-        idOrderReturnLeg: latestOrderReturnLeg?.idOrderReturnLeg || null
+        idOrderReturnLeg: latestOrderReturnLeg?.idOrderReturnLeg || null,
+        transaction: t
       });
 
-    if (!shipmentUpdateResult) {
-      console.log(
-        `shipmentUpdateHistory not created for guide ${trackingNumber}`
-      );
-      return null;
-    } else {
-      console.log(`shipmentUpdateHistory created for guide ${trackingNumber} `);
-    }
+      console.log(`shipmentUpdateHistory created for guide ${trackingNumber}`);
 
-    await this.updateOrderReturn({ idOrderReturn, idStatus });
+      const lastStatusLog = await this.dao.getLastOrderReturnStatusLog({
+        idOrderReturn,
+        transaction: t
+      });
+
+      if (
+        lastStatusLog &&
+        String(lastStatusLog.idStatus) === String(idStatus)
+      ) {
+        await t.commit();
+        console.log(
+          `orderReturnStatusLog not created for idOrderReturn ${idOrderReturn} because idStatus ${idStatus} already exists in last state`
+        );
+        return null;
+      }
+
+      await this.dao.createOrderReturnStatusLog({
+        idOrderReturn,
+        idStatus,
+        transaction: t
+      });
+
+      await this.dao.updateStatusOrderReturn({
+        idOrderReturn,
+        idStatus,
+        transaction: t
+      });
+
+      await t.commit();
+      console.log(
+        `Order ${idOrderReturn} update in table orderReturn with status ${idStatus}`
+      );
+    } catch (error) {
+      await t.rollback();
+      throw error;
+    }
 
     const requiresReturnProcess = dto.requiresReturnProcess({
       statusCode: status.statusCode,
@@ -458,6 +551,7 @@ class Model {
         "OrderReturn not created because already exists in these tables"
       );
     }
+
     if (
       isLinkedShipmentCode &&
       linkedShipment &&
@@ -484,26 +578,6 @@ class Model {
     if (requiresAdditionalSteps) {
       await this.sendEventToProcessAdditionalSteps({ mergedData: data });
     }
-  };
-
-  updateOrderReturn = async ({ idOrderReturn, idStatus }: any) => {
-    const resultInsert = await this.dao.createOrderReturnStatusLogIfNotExists({
-      idOrderReturn,
-      idStatus
-    });
-    if (!resultInsert) {
-      console.log(
-        `orderReturnStatusLog not created for idOrderReturn ${idOrderReturn} because idStatus ${idStatus} already exists in last state`
-      );
-      return null;
-    }
-    await this.dao.updateStatusOrderReturn({
-      idOrderReturn: idOrderReturn,
-      idStatus
-    });
-    console.log(
-      `Order ${idOrderReturn} update in table orderReturn with status ${idStatus}`
-    );
   };
 
   updateOrder = async ({ idOrder, idStatus, idUser, statusName }: any) => {
