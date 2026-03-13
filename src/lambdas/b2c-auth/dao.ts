@@ -5,12 +5,12 @@ import Database from "../../shared/databases/db-sm/sequelize-sm";
 import { IUserRecord } from "./types";
 
 class Dao {
+  private db: Database;
   private cacheDatabase: CacheDB;
-  private db?: Database;
 
-  constructor(environment: string, db?: Database) {
-    this.cacheDatabase = CacheDB.getInstance(environment);
+  constructor(db: Database, cacheDatabase: CacheDB) {
     this.db = db;
+    this.cacheDatabase = cacheDatabase;
   }
 
   async userBusinessData(idBusiness: string, stage: string) {
@@ -37,21 +37,19 @@ class Dao {
     });
   }
 
-  getUserByCognitoSub = async (
-    cognitoSub: string
-  ): Promise<IUserRecord | null> => {
+  async getUserByCognitoSub(cognitoSub: string): Promise<IUserRecord | null> {
     try {
       const query = `
         SELECT idUser, email, cognitoSub
         FROM user
         WHERE cognitoSub = :cognitoSub
       `;
-      return this.db!.fetchOne(query, { replacements: { cognitoSub } });
+      return this.db.fetchOne(query, { replacements: { cognitoSub } });
     } catch (error) {
       console.error("Error in getUserByCognitoSub:", error);
       throw error;
     }
-  };
+  }
 }
 
 export default Dao;
