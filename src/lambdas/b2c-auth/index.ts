@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 
+import { dbEnvSm } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
 import dto from "./dto";
 import model from "./model";
@@ -15,7 +16,7 @@ export const handler = async (event: any) => {
 
   try {
     // Check required environment variables
-    checkEnv(types.EnvsEnum);
+    checkEnv({ ...types.EnvsEnum, ...dbEnvSm });
 
     // Sanitize headers to ensure consistent access
     event.headers = dto.sanitizeHeaders(event.headers);
@@ -57,6 +58,20 @@ export const handler = async (event: any) => {
     // Validate if exist x-idUser-Owner and x-idUser-request in the request
     model.validateForbiddenHeaders(event.headers);
 
+    // Decode x-auth-id to extract user attributes
+    const stage = event.requestContext["stage"];
+    const idTokenDecoded = jwt.decode(
+      event.headers["x-auth-id"]
+    ) as IDecodedToken;
+
+    // Validate user data integrity against DB
+    await model.validateUserDataIntegrity(
+      idTokenResponse["sub"] as string,
+      idTokenDecoded["email"] as string,
+      idTokenDecoded["custom:idUserMastershop"] as string,
+      stage
+    );
+
     // This validation is temporally and const isShippingQuoteRoute - Delete IF in future
     let extraDataContext;
     const isShippingQuoteRoute = event.rawPath?.includes(
@@ -64,11 +79,7 @@ export const handler = async (event: any) => {
     );
     if (event.headers["x-idbusiness"] && !isShippingQuoteRoute) {
       const idBusinessRequest = event.headers["x-idbusiness"];
-      const stage = event.requestContext["stage"];
-      const idUserRequest = jwt.decode(
-        event.headers["x-auth-id"]
-      ) as IDecodedToken;
-      const keyUser = `${idUserRequest["custom:idUserMastershop"]}-${idBusinessRequest}-${stage}`;
+      const keyUser = `${idTokenDecoded["custom:idUserMastershop"]}-${idBusinessRequest}-${stage}`;
       // validate key exist in redis
       const keyExist = await model.getKey(keyUser, stage);
       if (!keyExist) {
@@ -82,13 +93,13 @@ export const handler = async (event: any) => {
 
         const userBusiness = model.validateUserBusiness(
           data,
-          String(idUserRequest["custom:idUserMastershop"]),
+          String(idTokenDecoded["custom:idUserMastershop"]),
           idBusinessRequest
         );
 
         const dataRedis = {
           idBusiness: Number(idBusinessRequest),
-          idUserRequest: Number(idUserRequest["custom:idUserMastershop"]),
+          idUserRequest: Number(idTokenDecoded["custom:idUserMastershop"]),
           idUserOwner: Number(userBusiness.idUser)
         };
         await model.setData(keyUser, JSON.stringify(dataRedis), stage);

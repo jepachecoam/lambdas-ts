@@ -1,8 +1,9 @@
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import jwt from "jsonwebtoken";
 
+import dbSm from "../../shared/databases/db-sm/db";
 import Dao from "./dao";
-import types from "./types";
+import types, { IUserRecord } from "./types";
 
 async function verifyToken(
   token: string,
@@ -126,6 +127,35 @@ async function setData(key: string, value: string, environment: string) {
   }
 }
 
+async function validateUserDataIntegrity(
+  cognitoSub: string,
+  emailFromToken: string,
+  idUserMastershop: string,
+  stage: string
+): Promise<void> {
+  try {
+    const db = await dbSm({ environment: stage });
+    const dao = new Dao(stage, db);
+    const dbUser: IUserRecord | null =
+      await dao.getUserByCognitoSub(cognitoSub);
+
+    if (!dbUser) {
+      throw new Error("User not found in database");
+    }
+
+    if (dbUser.email !== emailFromToken) {
+      throw new Error("User email mismatch");
+    }
+
+    if (String(dbUser.idUser) !== idUserMastershop) {
+      throw new Error("User idUser mismatch");
+    }
+  } catch (error) {
+    console.error("Error in validateUserDataIntegrity:", error);
+    throw error;
+  }
+}
+
 export default {
   verifyToken,
   generatePolicy,
@@ -133,5 +163,6 @@ export default {
   getKey,
   getUserBusinessData,
   validateUserBusiness,
-  setData
+  setData,
+  validateUserDataIntegrity
 };
