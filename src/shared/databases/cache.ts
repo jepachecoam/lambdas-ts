@@ -12,7 +12,7 @@ export class CacheDB {
     this.environment = environment;
   }
 
-  static getInstance(environment: string): CacheDB {
+  static getInstance({ environment }: { environment: string }): CacheDB {
     if (!CacheDB.instance) {
       CacheDB.instance = new CacheDB(environment);
     }

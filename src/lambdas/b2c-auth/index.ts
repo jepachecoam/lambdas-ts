@@ -36,7 +36,7 @@ export const handler = async (event: any) => {
     // Build dependencies
     const stage = event.requestContext["stage"];
     const db = await dbSm({ environment: stage });
-    const cacheDB = CacheDB.getInstance(stage);
+    const cacheDB = CacheDB.getInstance({ environment: stage });
     const dao = new Dao(db, cacheDB);
     const model = new Model(dao);
 
