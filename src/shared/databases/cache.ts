@@ -45,18 +45,15 @@ export class CacheDB {
   }: {
     key: string;
     value: string;
-    expireInSeconds?: number;
+    expireInSeconds: number;
   }): Promise<"OK" | null> {
     const client = this.initClient();
-    if (expireInSeconds) {
-      return await client.set(
-        `${key}-${this.environment}`,
-        value,
-        "EX",
-        expireInSeconds
-      );
-    }
-    return await client.set(key, value);
+    return await client.set(
+      `${key}-${this.environment}`,
+      value,
+      "EX",
+      expireInSeconds
+    );
   }
 
   async get({ key }: { key: string }): Promise<string | null> {
