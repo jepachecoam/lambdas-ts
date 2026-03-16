@@ -18,22 +18,16 @@ export const handler = async (event: any) => {
   const isRestApiGateway = !!event.methodArn;
 
   try {
-    // Check required environment variables
     checkEnv({ ...types.EnvsEnum, ...dbEnvSm });
 
-    // Sanitize headers to ensure consistent access
     event.headers = dto.sanitizeHeaders(event.headers);
 
-    // Validate and extract headers
     const { authorizationToken, idToken } = dto.validateHeaders(event);
 
-    // Sanitize methodArn if needed
     methodArn = dto.sanitizeMethodArn(methodArn, event.pathParameters);
 
-    // New header request-origin to validate if the request is from mobile
     const isMobile = event.headers["request-origin"] === "mobile";
 
-    // Build dependencies
     const stage = event.requestContext["stage"];
     const db = await dbSm({ environment: stage });
     const cacheDB = CacheDB.getInstance({ environment: stage });
