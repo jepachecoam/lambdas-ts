@@ -13,7 +13,8 @@ export default [
       parser: tseslint.parser,
       globals: {
         ...globals.browser,
-        ...globals.node
+        ...globals.node,
+        ...globals.jest
       }
     },
     plugins: {
