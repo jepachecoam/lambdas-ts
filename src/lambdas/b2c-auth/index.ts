@@ -5,7 +5,7 @@ import dbSm from "../../shared/databases/db-sm/db";
 import { dbEnvSm } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
 import Dao from "./dao";
-import dto from "./dto";
+import Dto from "./dto";
 import Model from "./model";
 import types from "./types";
 import { IDecodedToken } from "./utils";
@@ -20,11 +20,11 @@ export const handler = async (event: any) => {
   try {
     checkEnv({ ...types.EnvsEnum, ...dbEnvSm });
 
-    event.headers = dto.sanitizeHeaders(event.headers);
+    event.headers = Dto.sanitizeHeaders(event.headers);
 
-    const { authorizationToken, idToken } = dto.validateHeaders(event);
+    const { authorizationToken, idToken } = Dto.validateHeaders(event);
 
-    methodArn = dto.sanitizeMethodArn(methodArn, event.pathParameters);
+    methodArn = Dto.sanitizeMethodArn(methodArn, event.pathParameters);
 
     const isMobile = event.headers["request-origin"] === "mobile";
 
