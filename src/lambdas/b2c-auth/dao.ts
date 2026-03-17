@@ -1,12 +1,16 @@
 import axios from "axios";
 
 import CacheDB from "../../shared/databases/cache";
+import Database from "../../shared/databases/db-sm/sequelize-sm";
+import { IUserRecord } from "./types";
 
 class Dao {
+  private db: Database;
   private cacheDatabase: CacheDB;
 
-  constructor(environment: string) {
-    this.cacheDatabase = CacheDB.getInstance(environment);
+  constructor(db: Database, cacheDatabase: CacheDB) {
+    this.db = db;
+    this.cacheDatabase = cacheDatabase;
   }
 
   async userBusinessData(idBusiness: string, stage: string) {
@@ -31,6 +35,20 @@ class Dao {
       value,
       expireInSeconds: Number(process.env["REDIS_TTL_IN_MINUTES"]) * 60
     });
+  }
+
+  async getUserByCognitoSub(cognitoSub: string): Promise<IUserRecord | null> {
+    try {
+      const query = `
+        SELECT idUser, email, cognitoSub
+        FROM user
+        WHERE cognitoSub = :cognitoSub
+      `;
+      return this.db.fetchOne(query, { replacements: { cognitoSub } });
+    } catch (error) {
+      console.error("Error in getUserByCognitoSub:", error);
+      throw error;
+    }
   }
 }
 
