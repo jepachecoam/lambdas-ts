@@ -1,8 +1,12 @@
 import jwt from "jsonwebtoken";
 
+import CacheDB from "../../shared/databases/cache";
+import dbSm from "../../shared/databases/db-sm/db";
+import { dbEnvSm } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
-import dto from "./dto";
-import model from "./model";
+import Dao from "./dao";
+import Dto from "./dto";
+import Model from "./model";
 import types from "./types";
 import { IDecodedToken } from "./utils";
 
@@ -14,20 +18,21 @@ export const handler = async (event: any) => {
   const isRestApiGateway = !!event.methodArn;
 
   try {
-    // Check required environment variables
-    checkEnv(types.EnvsEnum);
+    checkEnv({ ...types.EnvsEnum, ...dbEnvSm });
 
-    // Sanitize headers to ensure consistent access
-    event.headers = dto.sanitizeHeaders(event.headers);
+    event.headers = Dto.sanitizeHeaders(event.headers);
 
-    // Validate and extract headers
-    const { authorizationToken, idToken } = dto.validateHeaders(event);
+    const { authorizationToken, idToken } = Dto.validateHeaders(event);
 
-    // Sanitize methodArn if needed
-    methodArn = dto.sanitizeMethodArn(methodArn, event.pathParameters);
+    methodArn = Dto.sanitizeMethodArn(methodArn, event.pathParameters);
 
-    // New header request-origin to validate if the request is from mobile
     const isMobile = event.headers["request-origin"] === "mobile";
+
+    const stage = event.requestContext["stage"];
+    const db = await dbSm({ environment: stage });
+    const cacheDB = CacheDB.getInstance({ environment: stage });
+    const dao = new Dao(db, cacheDB);
+    const model = new Model(dao);
 
     const accessTokenResponse = await model.verifyToken(
       authorizationToken,
@@ -57,6 +62,18 @@ export const handler = async (event: any) => {
     // Validate if exist x-idUser-Owner and x-idUser-request in the request
     model.validateForbiddenHeaders(event.headers);
 
+    // Decode x-auth-id to extract user attributes
+    const idTokenDecoded = jwt.decode(
+      event.headers["x-auth-id"]
+    ) as IDecodedToken;
+
+    // Validate user data integrity against DB
+    await model.validateUserDataIntegrity(
+      idTokenResponse["sub"] as string,
+      idTokenDecoded["email"] as string,
+      idTokenDecoded["custom:idUserMastershop"] as string
+    );
+
     // This validation is temporally and const isShippingQuoteRoute - Delete IF in future
     let extraDataContext;
     const isShippingQuoteRoute = event.rawPath?.includes(
@@ -64,13 +81,9 @@ export const handler = async (event: any) => {
     );
     if (event.headers["x-idbusiness"] && !isShippingQuoteRoute) {
       const idBusinessRequest = event.headers["x-idbusiness"];
-      const stage = event.requestContext["stage"];
-      const idUserRequest = jwt.decode(
-        event.headers["x-auth-id"]
-      ) as IDecodedToken;
-      const keyUser = `${idUserRequest["custom:idUserMastershop"]}-${idBusinessRequest}-${stage}`;
+      const keyUser = `${idTokenDecoded["custom:idUserMastershop"]}-${idBusinessRequest}-${stage}`;
       // validate key exist in redis
-      const keyExist = await model.getKey(keyUser, stage);
+      const keyExist = await model.getKey(keyUser);
       if (!keyExist) {
         const { data } = await model.getUserBusinessData(
           idBusinessRequest,
@@ -82,16 +95,16 @@ export const handler = async (event: any) => {
 
         const userBusiness = model.validateUserBusiness(
           data,
-          String(idUserRequest["custom:idUserMastershop"]),
+          String(idTokenDecoded["custom:idUserMastershop"]),
           idBusinessRequest
         );
 
         const dataRedis = {
           idBusiness: Number(idBusinessRequest),
-          idUserRequest: Number(idUserRequest["custom:idUserMastershop"]),
+          idUserRequest: Number(idTokenDecoded["custom:idUserMastershop"]),
           idUserOwner: Number(userBusiness.idUser)
         };
-        await model.setData(keyUser, JSON.stringify(dataRedis), stage);
+        await model.setData(keyUser, JSON.stringify(dataRedis));
         extraDataContext = {
           idUserOwner: dataRedis["idUserOwner"],
           idUserRequest: dataRedis["idUserRequest"]
@@ -106,7 +119,7 @@ export const handler = async (event: any) => {
 
     // Generate allow policy
     response = {
-      ...model.generatePolicy(
+      ...Model.generatePolicy(
         types.Constants.PRINCIPAL_ID,
         types.Constants.ALLOW,
         methodArn
@@ -119,7 +132,7 @@ export const handler = async (event: any) => {
     };
   } catch (error: any) {
     response = {
-      ...model.generatePolicy(
+      ...Model.generatePolicy(
         types.Constants.PRINCIPAL_ID,
         types.Constants.DENY,
         methodArn

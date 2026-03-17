@@ -7,12 +7,13 @@ Read this entire document before writing any code.
 
 ## Prerequisites
 
-Before creating a new lambda:
+Before creating a new lambda, read these docs in order:
 
-1. Read `AGENTS.md` — conventions, naming, code style, error handling.
-2. Read `ARCHITECTURE.md` — the 5-layer pattern, data flow, and architectural invariants.
-3. Read `agent_docs/shared-utilities.md` — identify which shared modules you need.
-4. Read `agent_docs/database-patterns.md` — if the lambda accesses MySQL.
+1. `agent_docs/architecture.md` — the 5-layer pattern, data flow, and architectural invariants.
+2. `agent_docs/code-style.md` — naming conventions, formatting, TS config, class patterns.
+3. `agent_docs/error-handling.md` — try/catch patterns, SQS throw vs return, logging.
+4. `agent_docs/shared-utilities.md` — identify which shared modules you need.
+5. `agent_docs/database-patterns.md` — if the lambda accesses MySQL.
 
 ---
 

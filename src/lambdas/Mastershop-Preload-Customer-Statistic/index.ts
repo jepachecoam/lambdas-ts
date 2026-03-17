@@ -19,7 +19,7 @@ export const handler = async (event: any, context: any) => {
 
     const db = await dbSm({ environment: environment });
 
-    const cacheDB = CacheDB.getInstance(environment);
+    const cacheDB = CacheDB.getInstance({ environment: environment });
 
     const dao = new Dao(db, cacheDB);
 

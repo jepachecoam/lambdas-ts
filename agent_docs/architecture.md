@@ -1,8 +1,7 @@
-# ARCHITECTURE.md — Lambda Architecture Reference
+# agent_docs/architecture.md
 
-This document describes the anatomy of a single lambda in this repository:
-how it is structured, how data flows through its layers, and what shared
-infrastructure is available to use.
+Lambda architecture reference: structure, data flow, and invariants.
+Read this at the start of any task or before creating a new lambda.
 
 ---
 
@@ -12,24 +11,22 @@ infrastructure is available to use.
 lambdas-ts/
 ├── src/
 │   ├── lambdas/          # Independent lambda functions (one folder each)
-│   │   └── example/      # Canonical 5-layer scaffold — use as starting point
+│   │   └── example/      # Canonical 5-layer scaffold — copy as starting point
 │   └── shared/           # Utilities available to every lambda
-├── index.ts              # Local Express dev server for running lambdas locally
-├── AGENTS.md             # Coding conventions and rules
-├── ARCHITECTURE.md       # This file
-└── agent_docs/           # Detailed reference docs (shared utilities, DB patterns, new lambda guide)
+├── index.ts              # Local Express dev server
+└── agent_docs/           # AI reference docs (this folder)
 ```
 
-Each lambda under `src/lambdas/` is **fully independent** — it is built, deployed,
-and runs in isolation. No lambda imports from another lambda. All cross-cutting
-concerns are handled via `src/shared/`.
+Each lambda under `src/lambdas/` is **fully independent** — built, deployed, and
+runs in isolation. No lambda imports from another lambda. All cross-cutting concerns
+go through `src/shared/`.
 
 ---
 
 ## Anatomy of a Lambda — The 5-Layer Pattern
 
-Every lambda in this repo follows a strict 5-layer structure. Each layer has a
-single responsibility and a hard boundary.
+Every lambda follows a strict 5-layer structure. Each layer has a single
+responsibility and a hard boundary.
 
 ```
 src/lambdas/MyLambda/
@@ -42,8 +39,6 @@ src/lambdas/MyLambda/
 └── conf/
     └── envs.ts     → Env Config (optional)
 ```
-
-### Layer responsibilities
 
 | File           | Layer                 | Responsibility                                                       | Hard boundary            |
 | -------------- | --------------------- | -------------------------------------------------------------------- | ------------------------ |
@@ -85,9 +80,6 @@ The `environment` string (`"dev"` | `"qa"` | `"prod"`) flows top-down:
 index.ts → new Model(environment) → new Dao(environment) → new Database(environment)
 ```
 
-This single value drives which DB credentials are loaded and how shared utilities
-behave per environment.
-
 ---
 
 ## Canonical `index.ts` Pattern
@@ -111,7 +103,8 @@ export const handler = async (event: any, _context: any) => {
 
 **Exception — SQS-triggered lambdas:** must `throw err` in the catch block instead
 of returning a 500. Throwing causes Lambda to return the message to the queue for
-retry. Returning a 500 silently discards the message.
+retry. Returning a 500 silently discards the message. Check the lambda's `README.md`
+to confirm its trigger type before deciding which pattern to use.
 
 ---
 
@@ -135,13 +128,13 @@ examples, see `agent_docs/shared-utilities.md`.
 
 ---
 
-## Key Architectural Invariants
+## Architectural Invariants
 
 These rules apply to every lambda without exception:
 
 1. **No business logic in `index.ts`** — handler only: log, checkEnv, extract params, call model, return response.
 2. **No DB access in `model.ts`** — all data access goes through `dao.ts`.
-3. **All INSERT operations use `WHERE NOT EXISTS`** — idempotency guard against duplicate event delivery.
+3. **All INSERT operations use `WHERE NOT EXISTS`** — idempotency guard against duplicate SQS delivery.
 4. **`Promise.allSettled` for batch operations** — one record failure must never abort the entire batch.
 5. **`environment` flows top-down** — index → Model constructor → Dao constructor → Database constructor.
 6. **`checkEnv()` is always the first call in the handler** — fail fast before any logic runs.
