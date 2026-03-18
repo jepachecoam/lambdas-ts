@@ -6,7 +6,7 @@ class Dao {
   private cacheDatabase: CacheDB;
 
   constructor(environment: string) {
-    this.cacheDatabase = CacheDB.getInstance(environment);
+    this.cacheDatabase = CacheDB.getInstance({ environment: environment });
   }
 
   async userBusinessData(idBusiness: string, stage: string) {
