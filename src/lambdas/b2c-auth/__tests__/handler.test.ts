@@ -251,6 +251,23 @@ describe("b2c-auth handler", () => {
       setupDefaultCache(
         JSON.stringify({ idBusiness: 99, idUserOwner: 5, idUserRequest: 10 })
       );
+      // Even on a "cache hit", the current handler implementation still
+      // calls the business microservice to validate the token user
+      // against the requested business (and to build the Redis key).
+      (mockAxiosGet as jest.Mock).mockResolvedValue({
+        data: {
+          data: [
+            {
+              idUser: 42,
+              idBussiness: 99,
+              relation: "OWNER",
+              status: "ACTIVE",
+              country: "US",
+              currency: "USD"
+            }
+          ]
+        }
+      });
 
       const response = await handler(
         buildEvent({
@@ -265,7 +282,7 @@ describe("b2c-auth handler", () => {
       expect(response.isAuthorized).toBe(true);
       expect(response.context.idUserOwner).toBe(5);
       expect(response.context.idUserRequest).toBe(10);
-      expect(mockAxiosGet).not.toHaveBeenCalled();
+      expect(mockAxiosGet).toHaveBeenCalled();
     });
 
     it("skips business validation for shippingQuote route even with x-idbusiness", async () => {
@@ -415,6 +432,40 @@ describe("b2c-auth handler", () => {
             authorization: "Bearer access-token",
             "x-auth-id": "id-token",
             "x-iduser-request": "10"
+          }
+        })
+      );
+
+      expect(response.isAuthorized).toBe(false);
+      expect(response.policyDocument.Statement[0].Effect).toBe("Deny");
+    });
+
+    it("returns Deny when x-country header is present", async () => {
+      setupValidCognito();
+
+      const response = await handler(
+        buildEvent({
+          headers: {
+            authorization: "Bearer access-token",
+            "x-auth-id": "id-token",
+            "x-country": "US"
+          }
+        })
+      );
+
+      expect(response.isAuthorized).toBe(false);
+      expect(response.policyDocument.Statement[0].Effect).toBe("Deny");
+    });
+
+    it("returns Deny when x-currency header is present", async () => {
+      setupValidCognito();
+
+      const response = await handler(
+        buildEvent({
+          headers: {
+            authorization: "Bearer access-token",
+            "x-auth-id": "id-token",
+            "x-currency": "USD"
           }
         })
       );
