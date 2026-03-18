@@ -1,192 +1,37 @@
-# B2C Authentication Lambda
-
-## Overview
-
-The B2C Authentication Lambda function provides API Gateway authorization for B2C (Business-to-Consumer) applications. This function validates JWT tokens from AWS Cognito and manages user authentication for consumer-facing applications.
+# b2c-auth
 
 ## Purpose
 
-This lambda function serves as an authorization layer for API Gateway, ensuring that only authenticated consumers can access specific API endpoints. It validates both access tokens and ID tokens from AWS Cognito User Pool.
+This lambda acts as an API Gateway authorizer for B2C (Business-to-Consumer) flows. Its sole responsibility is to determine whether an incoming request is authorized before it reaches any internal service. It contains no business logic beyond authentication and authorization decisions.
 
-## Functionality
+## What it does
 
-### Authentication Flow
+It receives an API Gateway authorization event, validates the identity of the end user through their tokens, verifies consistency between those tokens, and issues an IAM policy of Allow or Deny. When a request targets a specific business context, it also validates the relationship between the user and that business.
 
-1. **Token Validation**: Validates JWT tokens (access and ID tokens) from AWS Cognito
-2. **Token Verification**: Verifies token signatures and expiration
-3. **Alternative Method**: Falls back to custom JWT verification for ID tokens
-4. **Policy Generation**: Generates AWS IAM policies for API Gateway authorization
-5. **Context Provision**: Provides user context for downstream services
+## Authorization flow
 
-### Token Types Supported
+1. Validates that all required configuration is present before doing any work.
+2. Normalizes and sanitizes the request headers.
+3. Extracts the user tokens from the headers.
+4. Verifies both tokens against the configured identity provider. If the primary verification method fails for the identity token, a secondary fallback mechanism is used.
+5. Ensures both tokens belong to the same user. This check is skipped when the fallback verification method was used.
+6. Rejects the request if it contains headers that are reserved for internal use and must never be sent by a client.
+7. Validates the user's data integrity against the database, ensuring the identity information in the token matches what is stored.
+8. If the request includes a business context, validates that the user has an active relationship with that business. The result of this check is cached to avoid redundant lookups on subsequent requests.
+9. Issues an Allow policy with contextual data attached, or a Deny policy if any step fails.
 
-- **Access Token**: Short-lived token for API access
-- **ID Token**: Contains user identity information
-- **Custom JWT**: Fallback verification method for ID tokens
+## Context injected on success
 
-### Security Features
+When authorization succeeds, the lambda enriches the request context so downstream services know who is making the request and in what capacity:
 
-- **Cognito Integration**: Native AWS Cognito token verification
-- **Alternative Verification**: Custom JWT verification for specific scenarios
-- **Token Mismatch Detection**: Ensures access and ID tokens belong to the same user
-- **Error Handling**: Comprehensive error handling with appropriate responses
+- A client type identifier indicating the request comes from a B2C consumer.
+- When a business context is present, identifiers for both the business owner and the requesting user.
 
-## Business Logic
+## Internal layers
 
-### Authentication Process
-
-1. **Environment Validation**: Checks required environment variables
-2. **Header Validation**: Extracts and validates authorization headers
-3. **Access Token Verification**: Verifies the access token with Cognito
-4. **ID Token Verification**: Verifies the ID token with Cognito or custom method
-5. **Token Consistency Check**: Ensures both tokens belong to the same user
-6. **Policy Generation**: Creates appropriate IAM policy for API Gateway
-
-### Token Verification Methods
-
-#### Primary Method (Cognito)
-```javascript
-// Uses AWS Cognito JWT verifier for both access and ID tokens
-const verifier = CognitoJwtVerifier.create({
-  userPoolId: cognitoUserPoolId,
-  tokenUse: typeTokenUse,
-  clientId: cognitoClientId
-});
-```
-
-#### Alternative Method (Custom JWT)
-```javascript
-// Falls back to custom JWT verification for ID tokens
-const decoded = jwt.verify(token, JWT_SECRET);
-```
-
-## Input/Output
-
-### Input (API Gateway Event)
-
-```json
-{
-  "methodArn": "arn:aws:execute-api:region:account:api-id/stage/HTTP-METHOD/resource",
-  "headers": {
-    "Authorization": "Bearer access-token-here",
-    "Id-Token": "id-token-here"
-  },
-  "stageVariables": {
-    "cognitoUserPoolId": "us-east-1_xxxxx",
-    "cognitoClientId": "client-id-here"
-  }
-}
-```
-
-### Output (IAM Policy)
-
-```json
-{
-  "principalId": "user",
-  "policyDocument": {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Action": "execute-api:Invoke",
-        "Effect": "Allow|Deny",
-        "Resource": "arn:aws:execute-api:region:account:api-id/stage/*"
-      }
-    ]
-  },
-  "context": {
-    "clientType": "B2C"
-  }
-}
-```
-
-## Dependencies
-
-- **AWS Cognito**: For token verification and user management
-- **aws-jwt-verify**: Official AWS JWT verification library
-- **jsonwebtoken**: For custom JWT verification
-- **AWS SDK**: For AWS service interactions
-
-## Environment Variables
-
-- `JWT_SECRET`: Secret key for custom JWT verification
-- `COGNITO_USER_POOL_ID`: AWS Cognito User Pool ID
-- `COGNITO_CLIENT_ID`: AWS Cognito Client ID
-
-## Error Handling
-
-- **Missing Tokens**: Returns deny policy for missing authorization headers
-- **Invalid Tokens**: Returns deny policy for invalid or expired tokens
-- **Token Mismatch**: Returns deny policy when access and ID tokens don't match
-- **Verification Errors**: Returns deny policy for verification failures
-- **System Errors**: Returns deny policy for internal errors
-
-## Security Features
-
-- **Token Encryption**: JWT tokens are cryptographically signed
-- **Expiration Validation**: Checks token expiration times
-- **Signature Verification**: Validates token signatures
-- **User Consistency**: Ensures tokens belong to the same user
-- **Error Masking**: Prevents information leakage in error responses
-
-## Monitoring and Logging
-
-The function provides detailed logging for:
-
-- Token verification attempts
-- Authentication decisions
-- Error conditions
-- Performance metrics
-- Token type verification methods used
-
-## Usage Examples
-
-### Basic Authentication
-```javascript
-// API Gateway triggers this lambda with the event
-// Lambda validates JWT tokens and returns authorization policy
-```
-
-### Token Verification
-```javascript
-// Primary method: Cognito verification
-const payload = await verifier.verify(token);
-
-// Alternative method: Custom JWT verification
-const decoded = jwt.verify(token, JWT_SECRET);
-```
-
-## Configuration
-
-### Cognito Setup
-```javascript
-// Required Cognito configuration
-const cognitoConfig = {
-  userPoolId: process.env.COGNITO_USER_POOL_ID,
-  clientId: process.env.COGNITO_CLIENT_ID
-};
-```
-
-### Environment Variables
-```bash
-JWT_SECRET=your-jwt-secret
-COGNITO_USER_POOL_ID=us-east-1_xxxxx
-COGNITO_CLIENT_ID=client-id-here
-```
-
-## Related Components
-
-- **DTO**: Handles parameter extraction and validation
-- **Model**: Contains token verification logic
-- **Types**: Common type definitions and constants
-- **Validation**: Environment variable validation
-
-## Deployment
-
-This lambda function is deployed as an API Gateway authorizer and is triggered automatically for all API requests that require B2C authentication.
-
-## Best Practices
-
-- **Token Expiration**: Configure appropriate token expiration times
-- **Secret Management**: Store JWT secrets securely
-- **Error Logging**: Monitor authentication failures
-- **Performance**: Optimize token verification for high-traffic scenarios 
+- **index**: entry point. Orchestrates the full authorization flow and builds the final response.
+- **model**: holds all authorization logic — token verification, header validation, user integrity checks, and business relationship resolution.
+- **dao**: data access layer. Queries the database to verify the user, calls the business relationship service, and manages the cache.
+- **dto**: handles input transformation and validation. Sanitizes headers, extracts tokens, and normalizes the method ARN.
+- **types**: defines internal constants and the environment variable names this lambda depends on.
+- **utils**: internal type definitions, primarily the shape of a decoded token.

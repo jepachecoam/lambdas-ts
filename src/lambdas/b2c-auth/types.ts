@@ -13,7 +13,17 @@ enum EnvsEnum {
   REDIS_TTL_IN_MINUTES = "REDIS_TTL_IN_MINUTES",
   MS_API_URL = "MS_API_URL",
   MS_APP_NAME = "MS_APP_NAME",
-  MS_API_KEY = "MS_API_KEY"
+  MS_API_KEY = "MS_API_KEY",
+  DB_SECRET_PROD = "DB_SECRET_PROD",
+  DB_SECRET_QA = "DB_SECRET_QA",
+  DB_SECRET_DEV = "DB_SECRET_DEV",
+  DB_SECRET_REGION = "DB_SECRET_REGION"
+}
+
+export interface IUserRecord {
+  idUser: number;
+  email: string;
+  cognitoSub: string;
 }
 
 export default { Constants, EnvsEnum };

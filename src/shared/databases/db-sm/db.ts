@@ -20,7 +20,6 @@ const db = async (config: DbConfig) => {
       throw new Error(`Invalid environment ${config.environment}`);
     }
 
-    let secret: string;
     switch (config.environment) {
       case "prod":
         secret = process.env[dbEnvSm.DB_SECRET_PROD]!;
