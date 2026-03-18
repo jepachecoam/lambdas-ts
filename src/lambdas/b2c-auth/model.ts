@@ -68,7 +68,12 @@ class Model {
   }
 
   validateForbiddenHeaders(headers: any) {
-    if (headers["x-iduser-owner"] || headers["x-iduser-request"]) {
+    if (
+      headers["x-iduser-owner"] ||
+      headers["x-iduser-request"] ||
+      headers["x-country"] ||
+      headers["x-currency"]
+    ) {
       throw new Error("Tokens included in the request!!!");
     }
   }
