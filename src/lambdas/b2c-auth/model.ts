@@ -140,8 +140,26 @@ class Model {
     idUserMastershop: string
   ): Promise<void> {
     try {
-      const dbUser: IUserRecord | null =
-        await this.dao.getUserByCognitoSub(cognitoSub);
+      const cacheKey = `user-${cognitoSub}`;
+      let dbUser: IUserRecord | null = await this.getKey(cacheKey);
+
+      if (dbUser) {
+        console.log(
+          "validateUserDataIntegrity: cache HIT for cognitoSub",
+          cognitoSub
+        );
+      } else {
+        console.log(
+          "validateUserDataIntegrity: cache MISS, querying DB for cognitoSub",
+          cognitoSub
+        );
+        dbUser = await this.dao.getUserByCognitoSub(cognitoSub);
+
+        if (dbUser) {
+          await this.setData(cacheKey, JSON.stringify(dbUser));
+          console.log("validateUserDataIntegrity: user stored in cache");
+        }
+      }
 
       if (!dbUser) {
         throw new Error("User not found in database");
