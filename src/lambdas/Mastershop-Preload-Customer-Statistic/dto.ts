@@ -1,3 +1,5 @@
+export type PhoneWithCountry = { phone: string; country: string };
+
 class Dto {
   static getEnvironment(context: any) {
     const logStreamId = context.logStreamName;
@@ -13,22 +15,36 @@ class Dto {
     return event.Records.map((record: any) => JSON.parse(record.body));
   }
 
-  static getPhones(records: any) {
+  static getPhones(records: any): {
+    uniquePhones: PhoneWithCountry[];
+    recordsWithoutPhone: any[];
+  } {
     const phonesData = records.map((record: any) => {
       const phone = record.detail?.customer?.phone;
+      const country = record.detail?.shipping_address?.country;
       return {
         record,
-        phone: phone ? Dto.sanitizePhone(phone) : null
+        phone: phone ? Dto.sanitizePhone(phone) : null,
+        country: country || null
       };
     });
 
-    const validPhones = phonesData
-      .filter((item: any) => item.phone)
-      .map((item: any) => item.phone);
+    const validEntries = phonesData.filter(
+      (item: any) => item.phone && item.country
+    );
     const recordsWithoutPhone = phonesData
-      .filter((item: any) => !item.phone)
+      .filter((item: any) => !item.phone || !item.country)
       .map((item: any) => item.record);
-    const uniquePhones: any = [...new Set(validPhones)];
+
+    const seen = new Set<string>();
+    const uniquePhones: PhoneWithCountry[] = [];
+    for (const item of validEntries) {
+      const key = `${item.phone}-${item.country}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniquePhones.push({ phone: item.phone, country: item.country });
+      }
+    }
 
     return { uniquePhones, recordsWithoutPhone };
   }
