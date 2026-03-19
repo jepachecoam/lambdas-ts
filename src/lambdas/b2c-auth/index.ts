@@ -67,12 +67,14 @@ export const handler = async (event: any) => {
       event.headers["x-auth-id"]
     ) as IDecodedToken;
 
-    // Validate user data integrity against DB
-    await model.validateUserDataIntegrity(
-      idTokenResponse["sub"] as string,
-      idTokenDecoded["email"] as string,
-      idTokenDecoded["custom:idUserMastershop"] as string
-    );
+    // Validate user data integrity against DB (skipped when alternativeMethod is used)
+    if (!idTokenResponse.alternativeMethod) {
+      await model.validateUserDataIntegrity(
+        idTokenResponse["sub"] as string,
+        idTokenDecoded["email"] as string,
+        idTokenDecoded["custom:idUserMastershop"] as string
+      );
+    }
 
     // This validation is temporally and const isShippingQuoteRoute - Delete IF in future
     let extraDataContext;
@@ -102,17 +104,23 @@ export const handler = async (event: any) => {
         const dataRedis = {
           idBusiness: Number(idBusinessRequest),
           idUserRequest: Number(idTokenDecoded["custom:idUserMastershop"]),
-          idUserOwner: Number(userBusiness.idUser)
+          idUserOwner: Number(userBusiness.idUser),
+          country: userBusiness.country,
+          currency: userBusiness.currency
         };
         await model.setData(keyUser, JSON.stringify(dataRedis));
         extraDataContext = {
           idUserOwner: dataRedis["idUserOwner"],
-          idUserRequest: dataRedis["idUserRequest"]
+          idUserRequest: dataRedis["idUserRequest"],
+          country: dataRedis["country"],
+          currency: dataRedis["currency"]
         };
       } else {
         extraDataContext = {
           idUserOwner: keyExist["idUserOwner"],
-          idUserRequest: keyExist["idUserRequest"]
+          idUserRequest: keyExist["idUserRequest"],
+          country: keyExist["country"],
+          currency: keyExist["currency"]
         };
       }
     }

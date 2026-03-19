@@ -248,9 +248,21 @@ describe("b2c-auth handler", () => {
 
     it("returns Allow using cached business data without calling the microservice", async () => {
       setupValidCognito();
-      setupDefaultCache(
-        JSON.stringify({ idBusiness: 99, idUserOwner: 5, idUserRequest: 10 })
-      );
+      // First get: integrity check (user-user-sub-123) → null, falls through to DB
+      // Second get: business data (42-99-dev) → cache hit, skips microservice call
+      mockGetCacheInstance.mockReturnValue({
+        get: jest
+          .fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(
+            JSON.stringify({
+              idBusiness: 99,
+              idUserOwner: 5,
+              idUserRequest: 10
+            })
+          ),
+        set: jest.fn().mockResolvedValue("OK")
+      } as any);
 
       const response = await handler(
         buildEvent({
@@ -298,6 +310,29 @@ describe("b2c-auth handler", () => {
       (mockJwtVerify as jest.Mock).mockReturnValue({
         sub: "user-sub-123",
         email: "user@test.com"
+      });
+
+      const response = await handler(buildEvent());
+
+      expect(response.isAuthorized).toBe(true);
+      expect(response.policyDocument.Statement[0].Effect).toBe("Allow");
+    });
+
+    it("skips validateUserDataIntegrity when ID token uses JWT fallback (alternativeMethod)", async () => {
+      (mockCognitoCreate as jest.Mock)
+        .mockReturnValueOnce({
+          verify: jest.fn().mockResolvedValue({ sub: "user-sub-123" })
+        })
+        .mockReturnValueOnce({
+          verify: jest.fn().mockRejectedValue(new Error("Cognito failed"))
+        });
+      (mockJwtVerify as jest.Mock).mockReturnValue({
+        sub: "user-sub-123",
+        email: "user@test.com"
+      });
+      // DB returns null — if validateUserDataIntegrity runs it would throw and Deny
+      (mockDbSm as jest.Mock).mockResolvedValue({
+        fetchOne: jest.fn().mockResolvedValue(null)
       });
 
       const response = await handler(buildEvent());
@@ -415,6 +450,40 @@ describe("b2c-auth handler", () => {
             authorization: "Bearer access-token",
             "x-auth-id": "id-token",
             "x-iduser-request": "10"
+          }
+        })
+      );
+
+      expect(response.isAuthorized).toBe(false);
+      expect(response.policyDocument.Statement[0].Effect).toBe("Deny");
+    });
+
+    it("returns Deny when x-country header is present", async () => {
+      setupValidCognito();
+
+      const response = await handler(
+        buildEvent({
+          headers: {
+            authorization: "Bearer access-token",
+            "x-auth-id": "id-token",
+            "x-country": "US"
+          }
+        })
+      );
+
+      expect(response.isAuthorized).toBe(false);
+      expect(response.policyDocument.Statement[0].Effect).toBe("Deny");
+    });
+
+    it("returns Deny when x-currency header is present", async () => {
+      setupValidCognito();
+
+      const response = await handler(
+        buildEvent({
+          headers: {
+            authorization: "Bearer access-token",
+            "x-auth-id": "id-token",
+            "x-currency": "USD"
           }
         })
       );
