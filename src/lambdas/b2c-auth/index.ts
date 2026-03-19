@@ -67,12 +67,14 @@ export const handler = async (event: any) => {
       event.headers["x-auth-id"]
     ) as IDecodedToken;
 
-    // Validate user data integrity against DB
-    await model.validateUserDataIntegrity(
-      idTokenResponse["sub"] as string,
-      idTokenDecoded["email"] as string,
-      idTokenDecoded["custom:idUserMastershop"] as string
-    );
+    // Validate user data integrity against DB (skipped when alternativeMethod is used)
+    if (!idTokenResponse.alternativeMethod) {
+      await model.validateUserDataIntegrity(
+        idTokenResponse["sub"] as string,
+        idTokenDecoded["email"] as string,
+        idTokenDecoded["custom:idUserMastershop"] as string
+      );
+    }
 
     // This validation is temporally and const isShippingQuoteRoute - Delete IF in future
     let extraDataContext;
