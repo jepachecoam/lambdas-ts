@@ -36,11 +36,13 @@ class Dao {
     });
   }
 
-  async getCustomerStatistics(phones: string[]) {
+  async getCustomerStatistics(phones: string[], country: string) {
     const queryString = `
         WITH target_phones AS (SELECT DISTINCT phone, idCustomer
                         FROM (SELECT c.phone, c.idCustomer
                                 FROM db_mastershop_orders.customer c
+                                INNER JOIN db_bemaster_aff.bussiness b ON c.idBussiness = b.idBussiness
+                                  AND b.country = :country
                                 WHERE c.phone IN (:phones)
                                 AND c.isActive = 1
 
@@ -49,6 +51,8 @@ class Dao {
                                 SELECT cp.phone, cp.idCustomer
                                 FROM db_mastershop_orders.customerPhone cp
                                         JOIN db_mastershop_orders.customer c ON cp.idCustomer = c.idCustomer
+                                        INNER JOIN db_bemaster_aff.bussiness b ON c.idBussiness = b.idBussiness
+                                          AND b.country = :country
                                 WHERE cp.phone IN (:phones)
                                 AND c.isActive = 1) AS mapping),
         customer_metrics AS (SELECT o.idCustomer,
@@ -83,7 +87,8 @@ class Dao {
         `;
     return this.db.fetchMany(queryString, {
       replacements: {
-        phones: phones
+        phones,
+        country
       },
       logging: console.log
     });
