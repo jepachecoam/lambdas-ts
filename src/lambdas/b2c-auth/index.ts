@@ -81,24 +81,24 @@ export const handler = async (event: any) => {
     );
     if (event.headers["x-idbusiness"] && !isShippingQuoteRoute) {
       const idBusinessRequest = event.headers["x-idbusiness"];
-      const { data } = await model.getUserBusinessData(
-        idBusinessRequest,
-        stage
-      );
-      if (data.length === 0) {
-        throw new Error("Business not found!!!");
-      }
-
-      const userBusiness = model.validateUserBusiness(
-        data,
-        String(idTokenDecoded["custom:idUserMastershop"]),
-        idBusinessRequest
-      );
-
-      const keyUser = `${idTokenDecoded["custom:idUserMastershop"]}-${idBusinessRequest}-${userBusiness.country}-${stage}`;
+      const keyUser = `${idTokenDecoded["custom:idUserMastershop"]}-${idBusinessRequest}-${stage}`;
       // validate key exist in redis
       const keyExist = await model.getKey(keyUser);
       if (!keyExist) {
+        const { data } = await model.getUserBusinessData(
+          idBusinessRequest,
+          stage
+        );
+        if (data.length === 0) {
+          throw new Error("Business not found!!!");
+        }
+
+        const userBusiness = model.validateUserBusiness(
+          data,
+          String(idTokenDecoded["custom:idUserMastershop"]),
+          idBusinessRequest
+        );
+
         const dataRedis = {
           idBusiness: Number(idBusinessRequest),
           idUserRequest: Number(idTokenDecoded["custom:idUserMastershop"]),
