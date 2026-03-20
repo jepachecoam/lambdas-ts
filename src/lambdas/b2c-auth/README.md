@@ -33,5 +33,5 @@ When authorization succeeds, the lambda enriches the request context so downstre
 - **model**: holds all authorization logic — token verification, header validation, user integrity checks, and business relationship resolution.
 - **dao**: data access layer. Queries the database to verify the user, calls the business relationship service, and manages the cache.
 - **dto**: handles input transformation and validation. Sanitizes headers, extracts tokens, and normalizes the method ARN.
-- **types**: defines internal constants and the environment variable names this lambda depends on.
+- **types**: defines internal constants used throughout the lambda.
 - **utils**: internal type definitions, primarily the shape of a decoded token.

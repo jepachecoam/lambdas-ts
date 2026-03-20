@@ -1,218 +1,34 @@
-# Process Additional Steps in Orders Update Lambda
-
-## Overview
-
-The Process Additional Steps in Orders Update Lambda function handles additional processing steps for order updates across multiple shipping carriers. This function manages order processing workflows and coordinates with different carrier systems to ensure complete order fulfillment.
+# processAdditionalStepsInOrdersUpdate
 
 ## Purpose
 
-This lambda function serves as a coordination layer for order processing, handling additional steps required after initial order updates. It manages carrier-specific processing requirements and ensures that all necessary steps are completed for order fulfillment.
+This lambda handles additional carrier-specific processing steps required after initial order status updates. Its sole responsibility is to route shipment events to the appropriate carrier integration and dispatch auxiliary notifications or actions triggered by complex status transitions. It contains no business logic beyond event routing and carrier dispatching.
 
-## Functionality
+## What it does
 
-### Core Operations
+It receives event-driven notifications containing carrier identifiers and order update details. For each event, it determines which carrier is involved (TCC, Envia, Swayp, or Coordinadora), routes the request to the corresponding carrier-specific handler, and optionally dispatches a secondary shipment update event to downstream systems for customer notifications or additional processing. The lambda ensures that carriers requiring extra steps beyond standard status updates are handled according to their specific integration requirements.
 
-1. **Order Processing Coordination**: Coordinates additional processing steps for orders
-2. **Carrier-Specific Handling**: Manages different carrier requirements and APIs
-3. **Shipment Updates**: Processes shipment status updates from various carriers
-4. **Event Processing**: Handles order-related events and triggers
-5. **Workflow Management**: Manages multi-step order processing workflows
+## Processing flow
 
-### Supported Carriers
+1. Extracts the carrier identifier and event payload from the incoming notification.
+2. Determines the execution environment from the event context.
+3. If the event is not a standard status update, dispatches a supplementary event containing the order details, carrier status information, and return data.
+4. Routes the request to the carrier-specific handler based on the carrier name.
+5. Executes carrier-specific processing logic for the identified carrier.
+6. Logs successful completion or reports any errors to the monitoring system.
 
-- **TCC**: TCC carrier integration and processing
-- **Envia**: Envia carrier integration and processing
-- **Swayp**: Swayp carrier integration and processing
+## Context dispatched on success
 
-### Processing Features
+When additional processing completes, the system may dispatch:
 
-- **Multi-Carrier Support**: Handles multiple shipping carriers
-- **Event-Driven Processing**: Processes events from various sources
-- **Carrier-Specific Logic**: Implements carrier-specific processing requirements
-- **Error Handling**: Manages processing failures across different carriers
-- **Audit Trail**: Maintains complete history of processing steps
+- A supplementary event to the shipment update queue containing order data, carrier status mappings, and return information for downstream notification handlers.
 
-## Business Logic
+## Internal layers
 
-### Order Processing Workflow
-
-1. **Event Reception**: Receives order update events from various sources
-2. **Carrier Identification**: Identifies the carrier associated with the order
-3. **Parameter Extraction**: Extracts relevant parameters from the event
-4. **Shipment Update Dispatch**: Dispatches shipment updates to appropriate systems
-5. **Carrier-Specific Processing**: Executes carrier-specific processing logic
-6. **Completion Logging**: Records successful completion of processing steps
-
-### Carrier Processing Logic
-
-#### TCC Carrier
-- **API Integration**: Integrates with TCC carrier API
-- **Status Updates**: Processes TCC-specific status updates
-- **Data Transformation**: Converts TCC data format to internal format
-- **Error Handling**: Manages TCC-specific error scenarios
-
-#### Envia Carrier
-- **API Integration**: Integrates with Envia carrier API
-- **Status Updates**: Processes Envia-specific status updates
-- **Data Transformation**: Converts Envia data format to internal format
-- **Error Handling**: Manages Envia-specific error scenarios
-
-#### Swayp Carrier
-- **API Integration**: Integrates with Swayp carrier API
-- **Status Updates**: Processes Swayp-specific status updates
-- **Data Transformation**: Converts Swayp data format to internal format
-- **Error Handling**: Manages Swayp-specific error scenarios
-
-## Input/Output
-
-### Input (Event)
-
-```json
-{
-  "carrier": "tcc|envia|swayp",
-  "detail": {
-    "orderId": "order-123",
-    "trackingNumber": "TRK123456",
-    "status": "in_transit"
-  },
-  "eventProcess": "shipment_update"
-}
-```
-
-### Output
-
-- **Success**: Processing completed successfully
-- **Error**: Error logged for monitoring and debugging
-
-## Dependencies
-
-- **Carrier APIs**: Integration with TCC, Envia, and Swayp carrier systems
-- **Order Management System**: For order data and status updates
-- **AWS Services**: For logging, monitoring, and data processing
-- **Event Systems**: For receiving and processing events
-
-## Environment Variables
-
-- Carrier API configurations for each carrier
-- Order management system configurations
-- Environment-specific settings
-- Processing parameters and thresholds
-
-## Error Handling
-
-- **Carrier API Errors**: Handles failures in carrier API communications
-- **Processing Errors**: Manages order processing failures
-- **Data Validation Errors**: Handles invalid or missing data
-- **System Errors**: Manages system-level failures
-- **Timeout Errors**: Handles processing timeouts
-
-## Security Features
-
-- **API Authentication**: Secure authentication with carrier APIs
-- **Data Validation**: Validates all input data before processing
-- **Error Masking**: Prevents information leakage in error responses
-- **Access Control**: Ensures only authorized events are processed
-
-## Monitoring and Logging
-
-The function provides detailed logging for:
-
-- Event reception and processing
-- Carrier-specific operations
-- Shipment update operations
-- Error conditions and recovery
-- Performance metrics and timing
-- Carrier API interactions
-
-## Usage Examples
-
-### Basic Order Processing
-```javascript
-// Process order update for TCC carrier
-await handleTccRequest({ 
-  detail: orderDetails, 
-  eventProcess: "shipment_update" 
-});
-```
-
-### Carrier-Specific Processing
-```javascript
-// Process shipment update for specific carrier
-switch (carrier) {
-  case Carriers.tcc:
-    await handleTccRequest({ detail, eventProcess });
-    break;
-  case Carriers.envia:
-    await handleEnviaRequest({ detail, eventProcess });
-    break;
-  case Carriers.swayp:
-    await handleSwaypRequest({ detail, eventProcess });
-    break;
-}
-```
-
-## Related Components
-
-- **API Modules**: Carrier-specific API integrations (TCC, Envia, Swayp)
-- **Model**: Contains business logic for order processing
-- **DTO**: Manages data transfer and parameter extraction
-- **Types**: Common type definitions and enums
-- **Configuration**: Environment and carrier configurations
-
-## Deployment
-
-This lambda function is typically triggered by:
-- EventBridge events for order updates
-- SQS messages for queued processing
-- API Gateway for manual processing
-- Scheduled events for batch processing
-
-## Best Practices
-
-- **Carrier Abstraction**: Maintain consistent interfaces across carriers
-- **Error Handling**: Implement robust error handling for each carrier
-- **Performance**: Optimize for real-time processing
-- **Monitoring**: Set up carrier-specific monitoring and alerting
-- **Audit Trail**: Maintain logs for compliance and debugging
-
-## Performance Considerations
-
-- **Multi-Carrier Processing**: Efficient handling of multiple carrier systems
-- **API Optimization**: Optimize carrier API calls for speed
-- **Memory Management**: Efficient memory usage for large datasets
-- **Concurrent Processing**: Handle multiple simultaneous requests
-
-## Business Impact
-
-- **Order Fulfillment**: Ensures complete order processing across carriers
-- **Customer Experience**: Provides accurate order status information
-- **Operational Efficiency**: Automates carrier-specific processing
-- **Cost Reduction**: Reduces manual intervention in order processing
-
-## Integration Points
-
-- **Carrier Systems**: TCC, Envia, and Swayp carrier APIs
-- **Order Management System**: For order data and status updates
-- **Event Systems**: For receiving order update events
-- **Notification Systems**: For customer and business notifications
-- **Analytics Systems**: For order processing analytics
-
-## Carrier-Specific Considerations
-
-### TCC Carrier
-- **API Rate Limits**: Respect TCC API rate limits
-- **Data Format**: Handle TCC-specific data formats
-- **Error Codes**: Manage TCC-specific error codes
-- **Authentication**: Use TCC-specific authentication methods
-
-### Envia Carrier
-- **API Rate Limits**: Respect Envia API rate limits
-- **Data Format**: Handle Envia-specific data formats
-- **Error Codes**: Manage Envia-specific error codes
-- **Authentication**: Use Envia-specific authentication methods
-
-### Swayp Carrier
-- **API Rate Limits**: Respect Swayp API rate limits
-- **Data Format**: Handle Swayp-specific data formats
-- **Error Codes**: Manage Swayp-specific error codes
-- **Authentication**: Use Swayp-specific authentication methods 
+- **index**: entry point. Validates configuration, extracts parameters from the event, and orchestrates the processing flow.
+- **model**: holds all routing logic — event routing to carrier handlers and shipment update dispatching.
+- **dao**: data access layer. Fetches order data, carrier status mappings, and sends events to downstream services.
+- **dto**: handles data transformation. Extracts parameters from the event payload.
+- **api/**: carrier-specific integration modules. Each carrier (tcc, envia, swayp, coordinadora) has its own module with handling logic.
+- **types**: defines internal constants and carrier identifiers.
+- **utils**: helper functions for HTTP requests and Slack notifications.

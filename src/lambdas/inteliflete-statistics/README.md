@@ -1,176 +1,38 @@
-# Inteleflete Statistics Lambda
-
-## Overview
-
-The Inteleflete Statistics Lambda function processes and updates statistical data for the Inteleflete platform. This function handles data aggregation, calculation, and storage of various business metrics and performance indicators.
+# inteliflete-statistics
 
 ## Purpose
 
-This lambda function serves as a data processing engine that updates statistical information used for business intelligence, reporting, and analytics. It ensures that statistical data is current and accurate for decision-making processes.
+This lambda computes and stores carrier performance statistics for business intelligence purposes. Its sole responsibility is to aggregate operational data and persist calculated metrics that downstream services use for routing optimization and performance monitoring. It contains no business logic beyond data aggregation and metric storage.
 
-## Functionality
+## What it does
 
-### Core Operations
+It executes scheduled aggregation queries against the operational database to compute three categories of carrier statistics: return rates by geographic region, delivery time averages between origin and destination cities, and carrier performance broken down by payment method. The computed metrics are stored in a key-value database with keys structured for efficient lookup by carrier and category. These statistics inform routing decisions and help identify carriers with higher return rates or longer delivery times.
 
-1. **Data Aggregation**: Collects and aggregates data from various sources
-2. **Statistical Calculation**: Performs mathematical operations on collected data
-3. **Data Updates**: Updates statistical records in the database
-4. **Performance Monitoring**: Tracks processing performance and metrics
+## Statistics computation flow
 
-### Statistical Categories
+1. Extracts the execution environment from the request context.
+2. Queries the database for return statistics grouped by state, including only carriers with sufficient order volume.
+3. Queries the database for return statistics grouped by city, applying the same minimum order threshold.
+4. Queries the database for average delivery time between origin and destination city pairs.
+5. For each state-level result, creates a statistics record with the carrier identifier, payment method grouping, state name, order counts, and calculated return percentage.
+6. For each city-level result, creates a statistics record with the carrier identifier, payment method grouping, city identifier, order counts, and return percentage.
+7. For each origin-destination result, creates a statistics record with the carrier identifier, payment method, city pair identifiers, average delivery time in hours, and total order count.
+8. Stores all computed statistics in the key-value database.
+9. Logs the total number of statistics records updated.
 
-The function processes various types of statistics including:
-- **User Statistics**: User activity, registration, and engagement metrics
-- **Business Statistics**: Business performance and transaction metrics
-- **System Statistics**: Platform performance and technical metrics
-- **Financial Statistics**: Revenue, costs, and financial performance indicators
+## Context stored on success
 
-### Processing Features
+When statistics are updated, the system stores:
 
-- **Batch Processing**: Handles large volumes of data efficiently
-- **Incremental Updates**: Updates only changed or new data
-- **Data Validation**: Ensures data integrity and accuracy
-- **Error Recovery**: Handles processing failures gracefully
+- Return rate metrics by carrier, state, and payment method.
+- Return rate metrics by carrier, city, and payment method.
+- Average delivery time metrics by carrier, payment method, and city pair.
 
-## Business Logic
+## Internal layers
 
-### Statistics Update Process
-
-1. **Data Collection**: Gathers data from multiple sources and databases
-2. **Data Processing**: Performs calculations and aggregations
-3. **Data Validation**: Validates processed data for accuracy
-4. **Database Updates**: Updates statistical records in the database
-5. **Completion Logging**: Records successful completion of updates
-
-### Data Sources
-
-The function integrates with various data sources:
-- **User Database**: User activity and registration data
-- **Transaction Database**: Financial and transaction data
-- **System Logs**: Performance and technical metrics
-- **External APIs**: Third-party data sources
-
-### Calculation Methods
-
-- **Aggregation**: Sum, average, count operations
-- **Time-based Analysis**: Daily, weekly, monthly statistics
-- **Trend Analysis**: Growth and decline calculations
-- **Comparative Analysis**: Period-over-period comparisons
-
-## Input/Output
-
-### Input (Event)
-
-```json
-{
-  "environment": "production|staging|development",
-  "statisticsType": "user|business|system|financial",
-  "dateRange": {
-    "start": "2024-01-01",
-    "end": "2024-01-31"
-  }
-}
-```
-
-### Output
-
-- **Success**: Statistics updated successfully
-- **Error**: Error logged for monitoring and debugging
-
-## Dependencies
-
-- **Database**: MySQL database for data storage and retrieval
-- **External APIs**: Integration with various data sources
-- **AWS Services**: For logging, monitoring, and data processing
-
-## Environment Variables
-
-- Database connection configurations
-- API endpoint configurations
-- Processing parameters and thresholds
-- Environment-specific settings
-
-## Error Handling
-
-- **Data Source Errors**: Handles failures in data collection
-- **Processing Errors**: Manages calculation and aggregation failures
-- **Database Errors**: Handles database connection and update errors
-- **Validation Errors**: Ensures data integrity during processing
-
-## Performance Features
-
-- **Batch Processing**: Efficient handling of large datasets
-- **Memory Management**: Optimized memory usage for large operations
-- **Timeout Handling**: Prevents function timeouts during long operations
-- **Progress Tracking**: Monitors processing progress and completion
-
-## Monitoring and Logging
-
-The function provides detailed logging for:
-
-- Processing start and completion
-- Data collection activities
-- Calculation operations
-- Database update operations
-- Error conditions and recovery
-- Performance metrics and timing
-
-## Usage Examples
-
-### Basic Statistics Update
-```javascript
-// Update all statistics for the current period
-await model.updateStatistics();
-```
-
-### Environment-Specific Processing
-```javascript
-// Process statistics for specific environment
-const model = new Model(environment);
-await model.updateStatistics();
-```
-
-## Related Components
-
-- **DAO**: Manages database interactions and data retrieval
-- **Model**: Contains business logic for statistics processing
-- **DTO**: Manages data transfer and parameter parsing
-- **Types**: Common type definitions and interfaces
-- **Utils**: Utility functions for calculations and processing
-
-## Deployment
-
-This lambda function is typically triggered by:
-- Scheduled events (daily, weekly, monthly)
-- Manual triggers for immediate updates
-- EventBridge for automated processing
-- API Gateway for on-demand updates
-
-## Best Practices
-
-- **Data Accuracy**: Ensure statistical calculations are accurate
-- **Performance**: Optimize for large dataset processing
-- **Error Handling**: Implement robust error handling and recovery
-- **Monitoring**: Set up comprehensive monitoring and alerting
-- **Data Validation**: Validate all processed data before storage
-
-## Performance Considerations
-
-- **Memory Usage**: Monitor memory consumption during large operations
-- **Processing Time**: Optimize calculations for faster processing
-- **Database Load**: Minimize database impact during updates
-- **Concurrent Processing**: Handle multiple simultaneous requests
-
-## Data Quality
-
-- **Validation**: Validate all input data before processing
-- **Accuracy**: Ensure mathematical calculations are correct
-- **Consistency**: Maintain data consistency across updates
-- **Completeness**: Ensure all required data is processed
-
-## Business Impact
-
-- **Decision Support**: Provides data for business decisions
-- **Performance Tracking**: Monitors business performance metrics
-- **Trend Analysis**: Identifies business trends and patterns
-- **Reporting**: Supports various business reports and dashboards 
+- **index**: entry point. Validates configuration, extracts the environment, and triggers the statistics update.
+- **model**: holds all computation logic — parallel execution of aggregation queries, metric calculation, and result storage orchestration.
+- **dao**: data access layer. Executes aggregation queries against the relational database and stores results in the key-value store.
+- **dto**: handles data transformation. Extracts the environment parameter from the request context.
+- **types**: defines internal constants for statistic categories and return thresholds.
+- **utils**: helper functions for date formatting.

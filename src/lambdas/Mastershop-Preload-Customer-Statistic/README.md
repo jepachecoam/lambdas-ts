@@ -1,96 +1,37 @@
-# Mastershop Customer Statistics Preloader
-
-## Overview
-
-This Lambda function processes SQS messages containing customer data and preloads customer statistics in batches to reduce database load. It extracts customer phone numbers from the messages, queries statistics from the database in bulk, and caches the results in Redis for improved performance.
+# Mastershop-Preload-Customer-Statistic
 
 ## Purpose
 
-The function optimizes customer statistics access by:
-- Processing SQS messages containing customer events
-- Extracting and sanitizing customer phone numbers in batches
-- Querying customer statistics from the database for multiple customers at once
-- Caching the statistics in Redis with 7-day expiration
-- Reducing individual database queries by processing customers in bulk
+This lambda preloads customer statistics into a distributed cache. Its sole responsibility is to fetch behavioral metrics for a batch of customers and store them in Redis for fast retrieval by downstream services. It contains no business logic beyond data aggregation and caching.
 
-## Functionality
+## What it does
 
-### SQS Message Processing
-- **Batch Processing**: Receives multiple customer records from SQS messages
-- **Phone Extraction**: Extracts phone numbers from customer detail events
-- **Phone Sanitization**: Removes country codes and formats phone numbers
-- **Deduplication**: Processes unique phone numbers to avoid redundant queries
+It receives events containing customer phone numbers and their associated countries. For each unique phone-country pair, it queries the database to compute aggregate behavioral metrics including order volume, return rate, delivery success, cancellation count, and blocked business relationships. It stores the computed statistics in Redis with a thirty-day expiration, enabling downstream services to quickly access customer profiles without hitting the primary database.
 
-### Database Operations
-- **Bulk Statistics Query**: Retrieves customer metrics for all phones in a single database query
-- **Multi-table Joins**: Queries customer and order data across multiple tables
-- **Comprehensive Metrics**: Calculates order counts, returns, deliveries, cancellations, and blocked status
+## Processing flow
 
-### Cache Management
-- **Redis Storage**: Stores statistics in Redis with structured keys (`customerStatistics-{phone}`)
-- **7-Day Expiration**: Sets cache expiration to 7 days for optimal performance
-- **JSON Serialization**: Stores statistics as JSON strings for easy retrieval
+1. Parses the incoming event to extract customer phone numbers and their countries.
+2. Deduplicates the phone-country pairs to avoid redundant lookups.
+3. Separates records missing phone or country data for separate handling.
+4. Groups the valid phone numbers by country for efficient batch querying.
+5. For each country group, queries the database to compute customer statistics.
+6. Stores each customer's statistics in Redis with a thirty-day TTL.
+7. Logs any records that could not be processed due to missing data.
 
-## Business Logic
+## Context cached on success
 
-1. **Message Processing**: Parses SQS records and extracts customer data
-2. **Phone Validation**: Sanitizes and validates customer phone numbers
-3. **Batch Query**: Retrieves statistics for all valid phones in one database operation
-4. **Cache Population**: Stores individual customer statistics in Redis
-5. **Error Notification**: Sends Slack notifications for records without phone numbers
+When customer statistics are preloaded, the cache is enriched with:
 
-## Key Benefits
+- Total number of orders placed by the customer.
+- Number of orders that resulted in returns.
+- Number of successfully delivered orders.
+- Number of canceled orders.
+- Count of distinct businesses that have blocked the customer.
+- The customer's return rate as a percentage.
 
-- **Reduced Database Load**: Processes multiple customers in single queries instead of individual requests
-- **Improved Performance**: Pre-caches frequently accessed customer statistics
-- **Batch Efficiency**: Handles multiple SQS messages simultaneously
-- **Error Monitoring**: Tracks and notifies about data quality issues
-- **Scalable Architecture**: Processes varying batch sizes efficiently
+## Internal layers
 
-## Technical Implementation
-
-The Lambda follows standard architecture with:
-- **SQS Integration**: Processes messages from SQS queues
-- **Database Layer**: Uses MySQL for customer and order data queries
-- **Cache Layer**: Implements Redis for statistics storage
-- **Notification System**: Integrates with Slack for error reporting
-
-## Customer Statistics Metrics
-
-The function calculates and caches:
-- **cantOrders**: Total number of orders placed by customer
-- **cantReturOrders**: Number of returned orders
-- **delivered**: Number of successfully delivered orders
-- **canceled**: Number of canceled orders
-- **blockedBy**: Number of businesses that have blacklisted the customer
-- **percentageReturn**: Return rate percentage based on eligible orders
-
-## Input Format
-
-Expected SQS message structure:
-```json
-{
-  "Records": [
-    {
-      "body": "{
-        \"detail\": {
-          \"customer\": {
-            \"phone\": \"customer_phone_number\"
-          }
-        }
-      }"
-    }
-  ]
-}
-```
-
-## Monitoring
-
-The function tracks:
-- SQS message processing success rates
-- Database query performance
-- Cache storage operations
-- Phone number validation issues
-- Slack notification delivery
-
-This ensures efficient batch processing and optimal database resource utilization.
+- **index**: entry point. Initializes database and cache connections, parses the event, and delegates to the model.
+- **model**: holds all business logic — event parsing, phone extraction and deduplication, statistic aggregation, and cache storage orchestration.
+- **dao**: data access layer. Executes the aggregation queries against the primary database and stores the results in the cache.
+- **dto**: handles data transformation. Extracts phone numbers and countries from events, normalizes phone formats, and structures the output for caching.

@@ -1,156 +1,35 @@
-# B2B Authentication Lambda
-
-## Overview
-
-The B2B Authentication Lambda function provides API Gateway authorization for B2B (Business-to-Business) applications. This function validates API keys and manages access control for business partners and third-party integrations.
+# b2b-auth
 
 ## Purpose
 
-This lambda function serves as an authorization layer for API Gateway, ensuring that only authorized business applications can access specific API endpoints. It implements a comprehensive access control system with scope-based permissions.
+This lambda acts as an API Gateway authorizer for B2B (Business-to-Business) flows. Its sole responsibility is to determine whether an incoming application request is authorized before it reaches any internal service. It contains no business logic beyond authentication and authorization decisions for partner applications.
 
-## Functionality
+## What it does
 
-### Authentication Flow
+It receives an API Gateway authorization event, validates the identity of the calling application through its API key, checks the application's active status and granted permissions, and issues an IAM policy of Allow or Deny. The permission check supports pattern-based access control with wildcards and explicit deny rules that take precedence.
 
-1. **API Key Validation**: Validates the provided API key against stored secrets
-2. **Application Verification**: Checks if the requesting application is registered and active
-3. **Scope Permission Check**: Validates if the application has permission to access the requested resource
-4. **Policy Generation**: Generates AWS IAM policies for API Gateway authorization
+## Authorization flow
 
-### Access Control Features
+1. Extracts and validates the required headers from the incoming request.
+2. Normalizes the resource path to a consistent format.
+3. Retrieves the stored API keys from the secrets manager.
+4. Verifies the application exists and the provided key matches the stored secret.
+5. Fetches the application's access control configuration, including scopes and active status.
+6. Checks for explicit deny rules that would block this request.
+7. Grants access if the application has wildcard permissions.
+8. Evaluates whether the requested method and path are covered by the granted scopes.
+9. Issues an Allow policy with contextual data attached, or a Deny policy if any step fails.
 
-- **Wildcard Permissions**: Support for full access with `*` scope
-- **Deny Rules**: Specific deny rules that take precedence over allow rules
-- **Method-Specific Access**: Different permissions for different HTTP methods
-- **Resource-Based Access**: Granular control over specific API endpoints
-- **Pattern Matching**: Support for dynamic resource patterns with wildcards
+## Context injected on success
 
-### Supported Operations
+When authorization succeeds, the lambda enriches the request context so downstream services know which application is making the request and in what capacity:
 
-- **GET**: Read operations
-- **POST**: Create operations
-- **PUT**: Update operations
-- **DELETE**: Delete operations
-- **PATCH**: Partial update operations
+- A client type identifier indicating the request comes from a B2B partner.
+- The authorized application name.
 
-## Business Logic
+## Internal layers
 
-### Authorization Process
-
-1. **Input Validation**: Validates required parameters (API key, app name, HTTP method, resource)
-2. **Secret Retrieval**: Fetches API keys from AWS Secrets Manager
-3. **Key Verification**: Compares provided API key with stored secret
-4. **Access Control Check**: Validates application permissions from DynamoDB
-5. **Scope Validation**: Checks if the requested operation is within allowed scopes
-6. **Policy Response**: Returns appropriate IAM policy for API Gateway
-
-### Scope Management
-
-The function supports flexible scope definitions:
-
-- **Full Access**: `*` grants access to all resources
-- **Method-Specific**: `GET:/api/users` allows only GET requests to user endpoints
-- **Resource Patterns**: `POST:/api/orders/{id}` allows POST to specific order patterns
-- **Deny Rules**: `DENY:DELETE:/api/critical` explicitly denies DELETE operations
-
-## Input/Output
-
-### Input (API Gateway Event)
-
-```json
-{
-  "methodArn": "arn:aws:execute-api:region:account:api-id/stage/HTTP-METHOD/resource",
-  "headers": {
-    "x-api-key": "your-api-key",
-    "x-app-name": "application-name"
-  },
-  "httpMethod": "GET",
-  "resource": "/api/users"
-}
-```
-
-### Output (IAM Policy)
-
-```json
-{
-  "principalId": "user",
-  "policyDocument": {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Action": "execute-api:Invoke",
-        "Effect": "Allow|Deny",
-        "Resource": "arn:aws:execute-api:region:account:api-id/stage/*"
-      }
-    ]
-  },
-  "context": {
-    "authorizedToAccess": "application-name",
-    "clientType": "B2B"
-  }
-}
-```
-
-## Dependencies
-
-- **AWS Secrets Manager**: Stores API keys for different applications
-- **DynamoDB**: Stores access control configurations and scope definitions
-- **AWS SDK**: For AWS service interactions
-
-## Environment Variables
-
-- Database connection configurations
-- AWS region settings
-- Secrets Manager configuration
-
-## Error Handling
-
-- **Missing Parameters**: Returns deny policy for missing required fields
-- **Invalid API Key**: Returns deny policy for invalid keys
-- **Inactive Application**: Returns deny policy for inactive applications
-- **Scope Mismatch**: Returns deny policy for unauthorized operations
-- **System Errors**: Returns deny policy for internal errors
-
-## Security Features
-
-- **API Key Encryption**: Keys stored in AWS Secrets Manager
-- **Scope Validation**: Granular permission control
-- **Audit Logging**: Comprehensive access logging
-- **Error Masking**: Prevents information leakage in error responses
-
-## Monitoring and Logging
-
-The function provides detailed logging for:
-
-- Access attempts (successful and failed)
-- Authorization decisions
-- Error conditions
-- Performance metrics
-
-## Usage Examples
-
-### Basic Authorization
-```javascript
-// API Gateway triggers this lambda with the event
-// Lambda validates and returns authorization policy
-```
-
-### Scope Configuration
-```json
-{
-  "provider": "my-app",
-  "isActive": true,
-  "scopes": ["GET:/api/users", "POST:/api/orders", "DENY:DELETE:/api/critical"]
-}
-```
-
-## Related Components
-
-- **DTO**: Handles parameter extraction and policy generation
-- **Model**: Contains business logic for authorization
-- **DAO**: Manages database interactions
-- **Shared Types**: Common type definitions
-
-## Deployment
-
-This lambda function is deployed as an API Gateway authorizer and is triggered automatically for all API requests that require B2B authentication. 
+- **index**: entry point. Orchestrates the full authorization flow and builds the final response.
+- **model**: holds all authorization logic — API key validation, scope checking, deny rule evaluation, and pattern matching.
+- **dao**: data access layer. Retrieves API keys from the secrets manager and access control configurations from the key-value store.
+- **dto**: handles input transformation and validation. Extracts headers, normalizes resource paths, and generates IAM policies.
