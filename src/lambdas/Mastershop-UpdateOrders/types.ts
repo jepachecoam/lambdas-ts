@@ -19,7 +19,8 @@ export enum Carriers {
   SWAYP = "SWAYP",
   ENVIA = "ENVIA",
   INTERRAPIDISIMO = "INTERRAPIDISIMO",
-  "IN-HOUSE" = "IN-HOUSE"
+  "IN-HOUSE" = "IN-HOUSE",
+  "SWAYP-PERU" = "SWAYP-PERU"
 }
 
 export enum OrderSources {
