@@ -193,6 +193,7 @@ SQS Event (batch of tracking update messages)
 | `SWAYP`           | `8`                  |
 | `INTERRAPIDISIMO` | `9`                  |
 | `IN-HOUSE`        | `11`                 |
+| `SWAYP-PERU`      | `12`                 |
 
 ---
 

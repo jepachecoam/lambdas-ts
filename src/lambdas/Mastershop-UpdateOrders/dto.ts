@@ -128,6 +128,9 @@ class Dto {
         case Carriers["IN-HOUSE"]:
           return 0;
 
+        case Carriers["SWAYP-PERU"]:
+          return 0;
+
         default:
           throw new Error("GetShipping rate not found");
       }
@@ -148,7 +151,8 @@ class Dto {
       ENVIA: 7,
       SWAYP: 8,
       INTERRAPIDISIMO: 9,
-      "IN-HOUSE": 11
+      "IN-HOUSE": 11,
+      "SWAYP-PERU": 12
     };
 
     records.forEach((record: any) => {
