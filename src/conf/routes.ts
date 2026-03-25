@@ -16,6 +16,7 @@ import { handler as productApprovalBasicValidations } from "../lambdas/MasterSho
 import { handler as productApprovalFinishValidation } from "../lambdas/MasterShop-ProductApproval-FinishValidation";
 import { handler as bedrockIntegration } from "../lambdas/Mastershop-ProductApprovalAIReviewer/index";
 import { handler as shopifyDataNormalizer } from "../lambdas/Mastershop-shopifyDataNormalizer";
+import { handler as masterShopUpdateShippingRateBilledHandler } from "../lambdas/MasterShop-Update-shippingRateBilled/index";
 import { handler as updateOrders } from "../lambdas/Mastershop-UpdateOrders/index";
 import { handler as userDeduplicationJob } from "../lambdas/Mastershop-UserDeduplicationJob/index";
 import { handler as validateInHouseCarrierCoverage } from "../lambdas/Mastershop-ValidateInHouseCarrierCoverage/index";
@@ -181,4 +182,11 @@ router.post(
   })
 );
 
+router.post(
+  "/master-shop-update-shipping-rate-billed",
+  serverResponse({
+    handler: masterShopUpdateShippingRateBilledHandler,
+    responseType: "void"
+  })
+);
 export default router;
