@@ -183,7 +183,7 @@ router.post(
 );
 
 router.post(
-  "/master-shop-update-shipping-rate-billed",
+  "/mastershop-update-shippingrate-billed",
   serverResponse({
     handler: masterShopUpdateShippingRateBilledHandler,
     responseType: "void"
