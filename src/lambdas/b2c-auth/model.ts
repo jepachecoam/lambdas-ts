@@ -165,7 +165,7 @@ class Model {
         throw new Error("User not found in database");
       }
 
-      if (dbUser.email !== emailFromToken) {
+      if (dbUser.email.toLowerCase() !== emailFromToken.toLowerCase()) {
         throw new Error("User email mismatch");
       }
 
