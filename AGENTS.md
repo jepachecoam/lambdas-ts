@@ -48,16 +48,16 @@ Do not load all docs upfront — only what the current task needs.
 
 ## Skills
 
-Load the relevant skill from `agent_docs/skills/` when the task requires it.
+Load the relevant skill from `.opencode/skills/` when the task requires it.
 Skills are practical guides — load them before writing any code for that domain.
 
-| Skill                          | Load when...                                                                 |
-| ------------------------------ | ---------------------------------------------------------------------------- |
-| `agent_docs/skills/testing.md` | Creating or modifying test files, adding a `__tests__/` folder to any lambda |
+| Skill                                 | Load when...                                                                 |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| `.opencode/skills/testing/testing.md` | Creating or modifying test files, adding a `__tests__/` folder to any lambda |
 
 ### Rules for skills
 
 - Load the skill **before** writing any test code, not after.
 - Follow every rule in the skill without exception.
 - If a task involves both writing code and writing tests, load both the relevant
-  `agent_docs/` document and `agent_docs/skills/testing.md`.
+  `agent_docs/` document and `.opencode/skills/testing/testing.md`.
