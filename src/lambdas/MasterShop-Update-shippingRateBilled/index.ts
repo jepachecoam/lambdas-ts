@@ -1,4 +1,5 @@
-import { dbEnv } from "../../shared/types/database";
+import dbSm from "../../shared/databases/db-sm/db";
+import { dbEnvSm } from "../../shared/types/database";
 import { checkEnv } from "../../shared/validation/envChecker";
 import Dao from "./dao";
 import dto from "./dto";
@@ -9,12 +10,12 @@ export const handler = async (event: any, _context: any) => {
   console.log("Event :>>>", JSON.stringify(event));
 
   try {
-    checkEnv({ ...EnvsEnum, ...dbEnv });
+    checkEnv({ ...EnvsEnum, ...dbEnvSm });
 
     const params = dto.extractParams(event);
 
-    const dao = new Dao(params.stage);
-
+    const db = await dbSm({ environment: params.stage });
+    const dao = new Dao(db);
     const model = new Model(dao);
 
     const result = await model.process(params);

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import Database from "../../shared/databases/sequelize";
+import Database from "../../shared/databases/db-sm/sequelize-sm";
 import { envs } from "./conf/envs";
 import {
   ICarrierChargeResponse,
@@ -11,8 +11,8 @@ import {
 class Dao {
   private db: Database;
 
-  constructor(environment: string) {
-    this.db = new Database(environment);
+  constructor(db: Database) {
+    this.db = db;
   }
 
   callCarrierChargeValidate = async (
