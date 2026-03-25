@@ -20,7 +20,7 @@ class Dao {
   ): Promise<ICarrierChargeResponse> => {
     try {
       const response = await axios.post<ICarrierChargeResponse>(
-        `${envs.BASE_URL_MS}/api/order/carrier-charge-validate`,
+        `${envs.BASE_URL_MS}/api/b2b/order/carrier-charge-validate`,
         {
           orderStatus: params.orderStatus,
           orderData: {
