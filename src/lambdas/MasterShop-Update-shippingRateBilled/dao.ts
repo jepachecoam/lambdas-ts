@@ -21,21 +21,7 @@ class Dao {
     try {
       const response = await axios.post<ICarrierChargeResponse>(
         `${envs.BASE_URL_MS}/api/b2b/order/carrier-charge-validate`,
-        {
-          orderStatus: params.orderStatus,
-          orderData: {
-            idOrder: params.idOrder,
-            idCarrier: params.idCarrier,
-            paymentMethod: params.paymentMethod,
-            carrierInfo: {
-              shippingRate0: params.shippingRate0,
-              collectionFee: params.collectionFee,
-              insuredValueReturn: params.insuredValueReturn,
-              profitMargin: params.profitMargin
-            }
-          },
-          agreementType: params.agreementType
-        },
+        params,
         {
           headers: {
             "x-api-key": envs.API_KEY_MS,
@@ -47,16 +33,7 @@ class Dao {
 
       return response.data;
     } catch (error: any) {
-      const serializedError = {
-        message: error.message,
-        code: error.code,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        url: error.config?.url,
-        method: error.config?.method,
-        data: error.response?.data
-      };
-      console.error("Error in Dao.callCarrierChargeValidate:", serializedError);
+      console.error("Error in Dao.callCarrierChargeValidate:", error);
       throw error;
     }
   };

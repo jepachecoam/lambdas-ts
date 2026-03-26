@@ -14,11 +14,13 @@ export const handler = async (event: any, _context: any) => {
 
     const params = dto.extractParams(event);
 
-    const db = await dbSm({ environment: params.stage });
+    const db = await dbSm({ environment: params.environment });
+
     const dao = new Dao(db);
+
     const model = new Model(dao);
 
-    const result = await model.process(params);
+    const result = await model.process(params.data);
 
     console.log("Result =>>>", result);
   } catch (err) {
