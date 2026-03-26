@@ -4,7 +4,7 @@ const extractParams = (event: any) => {
   const idOrder: number = event?.detail?.id_order;
 
   if (!environment || !idOrder) {
-    throw new Error("Data not found");
+    throw new Error("Invalid Event");
   }
 
   return {
