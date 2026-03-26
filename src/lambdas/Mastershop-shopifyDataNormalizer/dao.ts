@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { IShopifyOrder } from "./types";
+import { IShopifyOrder } from "./utils/types";
 
 class Dao {
   private environmentName: string;
