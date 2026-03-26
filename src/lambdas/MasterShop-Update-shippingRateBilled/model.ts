@@ -31,7 +31,9 @@ class Model {
         idOrder,
         orderStatus: "returned",
         paymentMethod: orderData.paymentMethod,
-        agreementType: null,
+        agreementType: carrierInfo?.insuredValueReturn
+          ? "carrierReturnShield"
+          : "none",
         billingFactors: {
           profitMargin: carrierInfo?.profitMargin ?? 0,
           shippingRate: orderData.shippingRateQuoted,
