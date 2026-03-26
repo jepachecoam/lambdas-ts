@@ -14,16 +14,18 @@ export const handler = async (event: any, _context: any) => {
 
     const params = dto.extractParams(event);
 
-    const db = await dbSm({ environment: params.environment });
+    const environment = params.environment;
 
-    const dao = new Dao(db);
+    const db = await dbSm({ environment: environment });
+
+    const dao = new Dao(db, environment);
 
     const model = new Model(dao);
 
-    const result = await model.process(params.data);
+    const result = await model.process({ idOrder: params.idOrder });
 
     console.log("Result =>>>", result);
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error in handler", err);
     throw err;
   }

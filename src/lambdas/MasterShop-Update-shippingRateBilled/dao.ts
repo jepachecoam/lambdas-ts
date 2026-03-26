@@ -4,23 +4,46 @@ import Database from "../../shared/databases/db-sm/sequelize-sm";
 import { envs } from "./conf/envs";
 import {
   ICarrierChargeResponse,
+  IOrderData,
   IProcessInput,
   IShippingRateBilled
 } from "./types";
 
 class Dao {
   private db: Database;
+  private environment: string;
 
-  constructor(db: Database) {
+  constructor(db: Database, environment: string) {
     this.db = db;
+    this.environment = environment;
   }
+
+  getOrderData = async (idOrder: number): Promise<IOrderData> => {
+    try {
+      const result = await this.db.fetchOne(
+        `SELECT idCarrier, paymentMethod, shippingRateQuoted, carrierInfo
+         FROM \`order\`
+         WHERE idOrder = :idOrder`,
+        { replacements: { idOrder } }
+      );
+
+      if (!result) {
+        throw new Error(`Order not found for idOrder: ${idOrder}`);
+      }
+
+      return result as IOrderData;
+    } catch (error) {
+      console.error("Error in Dao.getOrderData:", error);
+      throw error;
+    }
+  };
 
   callCarrierChargeValidate = async (
     params: IProcessInput
   ): Promise<ICarrierChargeResponse> => {
     try {
       const response = await axios.post<ICarrierChargeResponse>(
-        `${envs.BASE_URL_MS}/api/b2b/order/carrier-charge-validate`,
+        `${envs.BASE_URL_MS}/${this.environment}/api/b2b/orderLogistics/order/carrier-charge-validate`,
         params,
         {
           headers: {
@@ -58,7 +81,8 @@ class Dao {
           replacements: {
             idOrder,
             shippingRateBilled: JSON.stringify(shippingRateBilled)
-          }
+          },
+          logging: console.log
         }
       );
     } catch (error) {

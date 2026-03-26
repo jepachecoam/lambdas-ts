@@ -11,7 +11,7 @@ export interface IProcessInput {
   idOrder: number;
   orderStatus: string;
   paymentMethod: string;
-  agreementType: string;
+  agreementType: string | null;
   billingFactors: { [key: string]: number };
 }
 
@@ -39,6 +39,19 @@ export interface ICarrierChargeResponse {
   statusCodeName: string;
   message: string;
   data: IShippingRateBilled | null;
+}
+
+export interface IOrderData {
+  idCarrier: number;
+  paymentMethod: string;
+  shippingRateQuoted: number;
+  carrierInfo: {
+    profitMargin?: number;
+    shippingRate?: number;
+    collectionFee?: number;
+    insuredValueReturn?: number;
+    [key: string]: any;
+  } | null;
 }
 
 export interface IProcessResult {

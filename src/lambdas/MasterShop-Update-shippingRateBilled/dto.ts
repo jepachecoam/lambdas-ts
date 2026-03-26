@@ -1,22 +1,15 @@
-import { IProcessInput } from "./types";
-
 const extractParams = (event: any) => {
-  const mockData: IProcessInput = {
-    idCarrier: 6,
-    idOrder: 32,
-    orderStatus: "returned",
-    paymentMethod: "cod",
-    agreementType: "carrierReturnShield",
-    billingFactors: {
-      profitMargin: 1,
-      shippingRate: 1,
-      collectionFee: 5000,
-      insuredValueReturn: 1
-    }
-  };
+  const environment: string = event?.detail?.parameters?.stage;
+
+  const idOrder: number = event?.detail?.id_order;
+
+  if (!environment || !idOrder) {
+    throw new Error("Data not found");
+  }
+
   return {
-    data: mockData,
-    environment: "dev"
+    idOrder,
+    environment
   };
 };
 

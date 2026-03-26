@@ -8,13 +8,46 @@ class Model {
     this.dao = dao;
   }
 
-  process = async (params: IProcessInput): Promise<IProcessResult> => {
+  process = async ({
+    idOrder
+  }: {
+    idOrder: number;
+  }): Promise<IProcessResult> => {
     try {
-      console.log("Model.process params:", params);
+      console.log("Model.process idOrder:", idOrder);
+
+      const orderData = await this.dao.getOrderData(idOrder);
+
+      if (!orderData) {
+        throw new Error("Order Data not found");
+      }
+
+      console.log("Order data:", JSON.stringify(orderData, null, 2));
+
+      const { carrierInfo } = orderData;
+
+      const params: IProcessInput = {
+        idCarrier: orderData.idCarrier,
+        idOrder,
+        orderStatus: "returned",
+        paymentMethod: orderData.paymentMethod,
+        agreementType: null,
+        billingFactors: {
+          profitMargin: carrierInfo?.profitMargin ?? 0,
+          shippingRate: orderData.shippingRateQuoted,
+          collectionFee: carrierInfo?.collectionFee ?? 0,
+          insuredValueReturn: carrierInfo?.insuredValueReturn ?? 0
+        }
+      };
+
+      console.log("Model.process params:", JSON.stringify(params, null, 2));
 
       const response = await this.dao.callCarrierChargeValidate(params);
 
-      console.log("Carrier charge validate response:", response);
+      console.log(
+        "Carrier charge validate response:",
+        JSON.stringify(response, null, 2)
+      );
 
       if (!response.result) {
         throw new Error(
@@ -25,11 +58,11 @@ class Model {
       const shippingRateBilled = response.data!;
 
       await this.dao.updateOrderCarrierInfo({
-        idOrder: params.idOrder,
+        idOrder,
         shippingRateBilled
       });
 
-      return { success: true, idOrder: params.idOrder };
+      return { success: true, idOrder };
     } catch (error) {
       console.error("Error in Model.process:", error);
       throw error;
