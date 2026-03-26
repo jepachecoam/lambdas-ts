@@ -45,13 +45,7 @@ export interface IOrderData {
   idCarrier: number;
   paymentMethod: string;
   shippingRateQuoted: number;
-  carrierInfo: {
-    profitMargin?: number;
-    shippingRate?: number;
-    collectionFee?: number;
-    insuredValueReturn?: number;
-    [key: string]: any;
-  } | null;
+  carrierInfo: any;
 }
 
 export interface IProcessResult {

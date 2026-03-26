@@ -31,14 +31,14 @@ class Model {
         idOrder,
         orderStatus: "returned",
         paymentMethod: orderData.paymentMethod,
-        agreementType: carrierInfo?.insuredValueReturn
+        agreementType: carrierInfo?.extraData?.insuredValueReturn
           ? "carrierReturnShield"
           : "none",
         billingFactors: {
           profitMargin: carrierInfo?.profitMargin ?? 0,
           shippingRate: orderData.shippingRateQuoted,
           collectionFee: carrierInfo?.collectionFee ?? 0,
-          insuredValueReturn: carrierInfo?.insuredValueReturn ?? 0
+          insuredValueReturn: carrierInfo?.extraData?.insuredValueReturn ?? 0
         }
       };
 
