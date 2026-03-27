@@ -1,6 +1,12 @@
 import Dao from "./dao";
 import dto from "./dto";
-import { IRecord, IRecordData, OrderLegSource, OrderSources } from "./types";
+import {
+  IProcessInput,
+  IRecord,
+  IRecordData,
+  OrderLegSource,
+  OrderSources
+} from "./types";
 import utils from "./utils";
 
 class Model {
@@ -558,10 +564,38 @@ class Model {
       return null;
     }
 
-    const updatedShippingRate = dto.getShippingRate({
-      orderData,
-      carrierName
-    });
+    const { carrierInfo } = orderData;
+
+    const params: IProcessInput = {
+      idCarrier: orderData.idCarrier,
+      idOrder,
+      orderStatus: "returned",
+      paymentMethod: orderData.paymentMethod,
+      agreementType: carrierInfo?.extraData?.insuredValueReturn
+        ? "carrierReturnShield"
+        : "none",
+      billingFactors: {
+        profitMargin: carrierInfo?.profitMargin ?? 0,
+        shippingRate: orderData.shippingRateQuoted,
+        collectionFee: carrierInfo?.collectionFee ?? 0,
+        insuredValueReturn: carrierInfo?.extraData?.insuredValueReturn ?? 0
+      }
+    };
+
+    console.log("Model.process params:", JSON.stringify(params, null, 2));
+
+    const carrierCharge = await this.dao.callCarrierChargeValidate({ params });
+
+    const updatedShippingRate = carrierCharge?.data?.total;
+
+    if (!updatedShippingRate) {
+      await this.dao.sendErrorNotification({
+        carrierName: carrierName,
+        trackingNumber: orderData.carrierTrackingCode,
+        error: "error al calcular coste de devolucion",
+        notes: orderData
+      });
+    }
 
     const sanitizedOriginAddress = utils.validateAndSanitizeJSON(
       orderData.originAddress

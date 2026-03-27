@@ -79,3 +79,36 @@ export const recordSchema = z.object({
 export const objectSchema = z.object({});
 
 export type IRecord = z.infer<typeof recordSchema>;
+
+export interface IProcessInput {
+  idCarrier: number;
+  idOrder: number;
+  orderStatus: string;
+  paymentMethod: string;
+  agreementType: string | null;
+  billingFactors: { [key: string]: number };
+}
+
+export interface ICarrierChargeBreakdownItem {
+  original: number;
+  charged: number;
+  action: string;
+  note?: string;
+}
+
+export interface ICarrierChargeBreakdown {
+  [key: string]: ICarrierChargeBreakdownItem;
+}
+
+export interface IShippingRateBilled {
+  total: number;
+  breakdown: ICarrierChargeBreakdown;
+}
+
+export interface ICarrierChargeResponse {
+  result: boolean;
+  codeResponse: number;
+  statusCodeName: string;
+  message: string;
+  data: IShippingRateBilled | null;
+}

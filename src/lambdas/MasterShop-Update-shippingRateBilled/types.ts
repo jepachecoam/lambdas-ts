@@ -19,13 +19,11 @@ export interface ICarrierChargeBreakdownItem {
   original: number;
   charged: number;
   action: string;
+  note?: string;
 }
 
 export interface ICarrierChargeBreakdown {
-  profitMargin: ICarrierChargeBreakdownItem;
-  shippingRate: ICarrierChargeBreakdownItem;
-  collectionFee: ICarrierChargeBreakdownItem;
-  insuredValueReturn: ICarrierChargeBreakdownItem;
+  [key: string]: ICarrierChargeBreakdownItem;
 }
 
 export interface IShippingRateBilled {

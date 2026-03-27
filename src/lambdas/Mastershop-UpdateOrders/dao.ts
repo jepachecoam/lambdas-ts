@@ -1,6 +1,6 @@
 import Database from "../../shared/databases/sequelize";
 import { envs } from "./conf/envs";
-import { IRecordData } from "./types";
+import { ICarrierChargeResponse, IProcessInput, IRecordData } from "./types";
 import utils from "./utils";
 
 class Dao {
@@ -517,6 +517,25 @@ class Dao {
         shippingRate,
         idAlert,
         parentLegId
+      }
+    });
+  };
+
+  callCarrierChargeValidate = ({
+    params
+  }: {
+    params: IProcessInput;
+  }): Promise<ICarrierChargeResponse | null> => {
+    return utils.httpRequest({
+      method: "post",
+      url: `${envs.BASE_URL_MS}/${this.environment}/api/b2b/orderLogistics/order/carrier-charge-validate`,
+      data: params,
+      config: {
+        headers: {
+          "x-api-key": envs.API_KEY_MS,
+          "x-app-name": envs.APP_NAME_MS,
+          "Content-Type": "application/json"
+        }
       }
     });
   };
