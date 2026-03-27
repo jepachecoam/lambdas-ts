@@ -1,5 +1,6 @@
 import Dao from "./dao";
-import DtoSelector from "./dtos";
+import Dto from "./dto";
+import { ShopifyDataSchema } from "./utils/schemas/schema";
 import {
   DisplayFinancialStatus,
   IShopifyOrder,
@@ -34,9 +35,11 @@ class Model {
         orderData.shippingAddress?.countryCode ??
         orderData.billingAddress?.countryCode;
       console.log("Country Order:>>>", countryOrder);
-      const selectedDto = DtoSelector.getDtoByCountry(countryOrder);
 
-      const directResult = this.tryDirectNormalization(orderData);
+      const directResult = this.tryDirectNormalization(
+        orderData,
+        countryOrder || "CO"
+      );
       if (!directResult.success) {
         return {
           success: false,
@@ -59,7 +62,7 @@ class Model {
       }
 
       // 1. Armar body para primer endpoint getNormalizeProducts
-      const normalizeProductsBody = selectedDto.buildNormalizeProductsBody(
+      const normalizeProductsBody = Dto.buildNormalizeProductsBody(
         directResult.data,
         params.configTool
       );
@@ -76,10 +79,11 @@ class Model {
       }
 
       // 2. Segundo body para process order
-      const processOrderBody = selectedDto.buildProcessOrderBody(
+      const processOrderBody = Dto.buildProcessOrderBody(
         directResult.data,
         normalizeItemsResult.data,
-        params.shopifyOrderId
+        params.shopifyOrderId,
+        countryOrder || "CO"
       );
 
       const processOrderResp = await this.dao.postProcessOrder(
@@ -136,20 +140,14 @@ class Model {
     }
   }
 
-  private tryDirectNormalization(orderData: any) {
-    const countryOrder =
-      orderData.shippingAddress?.countryCode ??
-      orderData.billingAddress?.countryCode;
-    const selectedDto = DtoSelector.getDtoByCountry(countryOrder);
-
+  private tryDirectNormalization(orderData: any, countryOrder: string) {
     const { data: normalizeOrderData, usedFallback } =
-      selectedDto.normalizeOrderData(orderData);
+      Dto.normalizeOrderData(orderData);
 
     const { orderSchemaExpected, usedDefaultValuesInCriticalFields } =
-      selectedDto.convertToOrderSchemaExpected(normalizeOrderData);
+      Dto.convertToOrderSchemaExpected(normalizeOrderData, countryOrder);
 
-    const selectedSchema = DtoSelector.getSchemaByCountry(countryOrder);
-    const validation = selectedSchema.safeParse(orderSchemaExpected);
+    const validation = ShopifyDataSchema.safeParse(orderSchemaExpected);
 
     return {
       success: validation.success,
