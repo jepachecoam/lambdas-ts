@@ -1,11 +1,9 @@
-export const codeProvince = (
-  provinceCode: string | null,
-  valueExtract: string
-) => {
-  if (!provinceCode) {
+export const codeProvince = (provinceCode: string | null, country: string) => {
+  if (!provinceCode || country !== "PE") {
     return null;
   }
 
+  const valueExtract = `${country}-`;
   if (provinceCode.startsWith(valueExtract)) {
     return provinceCode.slice(valueExtract.length);
   }
