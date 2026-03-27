@@ -140,16 +140,20 @@ class Dto {
     }
   };
 
-  static parseRecords = ({ records, carriers }: any) => {
+  static parseRecords = ({ records }: any) => {
     const validRecords: any = [];
     const invalidRecords: any = [];
 
-    const carrierMap: any = Object.fromEntries(
-      carriers.map(({ idCarrier, carrierName }: any) => [
-        String(carrierName).toUpperCase(),
-        idCarrier
-      ])
-    );
+    const carrierMap: any = {
+      TCC: 4,
+      DOMINA: 5,
+      COORDINADORA: 6,
+      ENVIA: 7,
+      SWAYP: 8,
+      INTERRAPIDISIMO: 9,
+      "IN-HOUSE": 11,
+      "SWAYP-PERU": 12
+    };
 
     records.forEach((record: any) => {
       try {

@@ -50,15 +50,7 @@ class Model {
 
   fetchValidRecordsForProcessing = async ({ records, logStreamId }: any) => {
     try {
-      const carriers = await this.dao.getCarriers();
-      if (!carriers || carriers.length === 0) {
-        throw new Error("No carrier data found — aborting batch");
-      }
-
-      const { validRecords, invalidRecords } = dto.parseRecords({
-        records,
-        carriers
-      });
+      const { validRecords, invalidRecords } = dto.parseRecords({ records });
 
       if (invalidRecords.length) {
         await this.processInvalidRecords({ invalidRecords, logStreamId });

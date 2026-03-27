@@ -481,14 +481,6 @@ class Dao {
     });
   };
 
-  getCarriers = async (): Promise<
-    { idCarrier: number; carrierName: string }[] | null
-  > => {
-    const query =
-      "SELECT idCarrier, name AS carrierName FROM db_bemaster_aff.carrier";
-    return this.db.fetchMany(query);
-  };
-
   createOrderReturnLeg = async ({
     idOrderReturn,
     carrierTrackingCode,
